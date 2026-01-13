@@ -1,0 +1,762 @@
+---
+title: "Standardizing Exposure-Response Data for Modeling and Simulation"
+subtitle: "Using CDISC Principles and {admiral}"
+author: "Jeff Lucore"
+institute: "[Your Organization]"
+date: today
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    slide-number: true
+    chalkboard: true
+    code-line-numbers: false
+    code-overflow: wrap
+    highlight-style: github
+---
+
+## Overview {.smaller}
+
+::: {.columns}
+::: {.column width="50%"}
+**The Challenge**
+
+- ER modeling critical for drug development
+- Datasets lack standardization
+- CDISC SDTM-PK exists, but no ER equivalent
+- Inconsistent structures hinder reproducibility
+:::
+
+::: {.column width="50%"}
+**Our Approach**
+
+- Extend CDISC principles to ER data
+- Three key domains:
+  - Exposure-Efficacy (EE)
+  - Exposure-Safety (ES)  
+  - Tumor Response
+- Demonstrate with {admiral}
+:::
+:::
+
+::: {.notes}
+- Start with the practical pain point
+- Emphasize that we're building on existing standards, not reinventing
+- These three domains cover majority of ER applications
+:::
+
+---
+
+## The ER Modeling Landscape {.smaller}
+
+**What is Exposure-Response Analysis?**
+
+- Quantifies relationship between drug exposure (PK) and outcomes
+- Key questions:
+  - What exposure achieves target efficacy?
+  - What exposure level increases toxicity risk?
+  - How do we optimize dosing for subpopulations?
+
+**Current State**
+
+- Each analysis starts from scratch
+- Variable naming inconsistent
+- Difficult to share methodologies
+- QC challenges
+
+::: {.notes}
+- Ground the audience in why this matters
+- Connect to their daily work
+- Emphasize reproducibility crisis
+:::
+
+---
+
+## Why Standards Matter
+
+::: {.incremental}
+- **Consistency**: Same structure across studies and organizations
+- **Traceability**: Clear lineage from raw data → analysis
+- **Reproducibility**: Others can verify and extend your work
+- **Efficiency**: Reusable code and workflows
+- **Regulatory clarity**: Easier to document and defend analyses
+:::
+
+::: {.fragment .fade-in}
+> "The beauty of standards is that we can build tooling that works across contexts"
+:::
+
+::: {.notes}
+- Build excitement about the benefits
+- Connect to regulatory expectations
+- Mention FDA's push for computational reproducibility
+:::
+
+---
+
+## SDTM-PK: Our Foundation {.smaller}
+
+::: {.columns}
+::: {.column width="50%"}
+**Key Principles from SDTM-PK**
+
+- Relative time variables (*TPT, *ELTM)
+- Numeric analysis values (PCSTRESN)
+- Analysis flags (*FL variables)
+- Traceability (*DTC, --SEQ)
+- Standardized parameter codes
+:::
+
+::: {.column width="50%"}
+**What We Can Leverage**
+
+- Time calculation patterns
+- Covariate structures
+- Metadata approaches
+- Validation frameworks
+:::
+:::
+
+**The Gap**: SDTM-PK focuses on PK measurements, not PK-outcome relationships
+
+::: {.notes}
+- Don't assume everyone knows SDTM-PK deeply
+- Show how we're extending, not replacing
+- Emphasize the "gap" we're filling
+:::
+
+---
+
+## Three ER Domains: A Comparison {.smaller}
+
+| Aspect | Exposure-Efficacy | Exposure-Safety | Tumor Response |
+|--------|------------------|-----------------|----------------|
+| **Primary Outcome** | Time-to-event (OS, PFS) | Event frequency/rates | Tumor size over time |
+| **Data Structure** | One record per subject-event | Multiple levels (subject/event) | Longitudinal repeated measures |
+| **Key Metrics** | Survival time, censoring | AE counts, rates, grades | Percent change, RECIST |
+| **Analysis Type** | Cox regression, K-M curves | Poisson/negative binomial | Mixed models, waterfall plots |
+| **Common Challenges** | Censoring handling | Time-varying exposure | Baseline normalization |
+
+::: {.notes}
+- This comparison helps frame the rest of the talk
+- Each domain has unique needs but shared principles
+- Will circle back to this throughout examples
+:::
+
+---
+
+## Domain 1: Exposure-Efficacy {.smaller}
+
+**Use Case**: Progression-Free Survival by AUC Quartiles
+
+**Key Dataset Features**
+
+- One record per subject-parameter
+- AVAL = time from treatment start (days)
+- CNSR = censoring indicator (1=censored, 0=event)
+- Exposure available as continuous and categorical
+
+```r
+adee %>% 
+  select(USUBJID, AVAL, CNSR, AUC0_24, AUC_TERTILE) %>%
+  head(3)
+```
+
+::: {.notes}
+- This is the most common ER analysis type
+- Similar to ADTTE structure
+- Exposure categorization is key decision point
+:::
+
+---
+
+## EE: Code Example {.smaller}
+
+```{r}
+#| echo: true
+#| eval: false
+#| code-line-numbers: "|3-5|7-13|15-18"
+
+# Derive time to event
+adtte <- adtte_source %>%
+  derive_vars_merged(
+    dataset_add = adsl,
+    by_vars = exprs(USUBJID)
+  ) %>%
+  mutate(
+    # Analysis value = days from treatment start
+    AVAL = as.numeric(ADT - TRTSDT),
+    AVALU = "DAYS",
+    # Event indicator (inverse of CNSR for modeling)
+    EVENT = if_else(CNSR == 0, 1, 0)
+  )
+
+# Create exposure categories
+exposure_cats <- adsl %>%
+  mutate(
+    AUC_TERTILE = cut(AUC0_24, 
+                      breaks = quantile(AUC0_24, probs = c(0, 1/3, 2/3, 1)),
+                      labels = c("Low", "Medium", "High"))
+  )
+```
+
+::: {.notes}
+- Highlight the AVAL derivation - key for standardization
+- EVENT variable is modeling convenience
+- Exposure categorization is common pattern
+:::
+
+---
+
+## EE: Analysis-Ready Output {.smaller}
+
+```r
+# ADEE structure
+USUBJID | PARAMCD | AVAL | AVALU | CNSR | EVENT | AUC0_24 | AUC_TERTILE | LOGAUC
+--------|---------|------|-------|------|-------|---------|-------------|-------
+001-001 | PFS     | 104  | DAYS  | 1    | 0     | 450     | Low         | 6.11
+001-002 | PFS     | 135  | DAYS  | 0    | 1     | 520     | Medium      | 6.25
+001-003 | PFS     | 213  | DAYS  | 0    | 1     | 680     | High        | 6.52
+```
+
+**Ready for modeling:**
+
+```r
+# Cox proportional hazards
+coxph(Surv(AVAL, EVENT) ~ LOGAUC + AGE + SEX, data = adee)
+
+# By category
+survfit(Surv(AVAL, EVENT) ~ AUC_TERTILE, data = adee)
+```
+
+::: {.notes}
+- Show the "payoff" - clean data ready for standard tools
+- Both continuous and categorical approaches supported
+- No data wrangling needed in modeling scripts
+:::
+
+---
+
+## Domain 2: Exposure-Safety {.smaller}
+
+**Use Case**: Adverse Event Rates by Cmax Categories
+
+**Unique Challenges**
+
+- Multiple analysis levels (subject, event, parameter)
+- Time-varying exposure considerations
+- Grade/severity tracking
+- Need both counts and rates
+
+**Three Dataset Structures**
+
+1. **Subject-level**: Overall AE burden per subject
+2. **Event-level**: Individual AE occurrences  
+3. **Parameter-level**: Specific AE types
+
+::: {.notes}
+- More complex than EE due to multiple structures
+- Each level serves different analytical purposes
+- Time-varying exposure is advanced topic
+:::
+
+---
+
+## ES: Subject-Level Structure {.smaller}
+
+```{r}
+#| echo: true
+#| eval: false
+
+# Subject-level AE summary
+ades_subj <- exposure_cats %>%
+  left_join(ae_summary, by = "USUBJID") %>%
+  mutate(
+    # Total events
+    N_AES = n(),
+    N_SAE = sum(AESER == "Y"),
+    N_GRADE3 = sum(AETOXGR >= "3"),
+    
+    # Rates per 100 patient-days
+    RATE_AES = (N_AES / TRTDURD) * 100,
+    RATE_SAE = (N_SAE / TRTDURD) * 100,
+    
+    # Binary indicators
+    ANY_SAE = if_else(N_SAE > 0, "Y", "N"),
+    ANY_GRADE3 = if_else(N_GRADE3 > 0, "Y", "N")
+  )
+```
+
+::: {.notes}
+- Subject-level is good for overall safety profile
+- Rates normalize for exposure duration
+- Binary indicators for logistic regression
+:::
+
+---
+
+## ES: Event-Level for Detailed Analysis {.smaller}
+
+```r
+# Event-level dataset
+USUBJID | AEDECOD    | AETOXGR | ASTDY | CMAX | CMAX_TERTILE | GRADE3FL
+--------|------------|---------|-------|------|--------------|----------
+001-001 | Nausea     | 1       | 15    | 125  | Low          | N
+001-001 | Fatigue    | 2       | 32    | 125  | Low          | N
+001-002 | Neutropenia| 3       | 56    | 145  | Medium       | Y
+```
+
+**Enables analyses like:**
+
+- Time to first Grade 3+ AE
+- Recurring event models
+- Exposure-toxicity relationships by AE type
+
+::: {.notes}
+- Event-level preserves granularity
+- Each AE has exposure context
+- Multiple events per subject supported
+:::
+
+---
+
+## Domain 3: Tumor Response {.smaller}
+
+**Use Case**: Longitudinal Tumor Measurements with RECIST 1.1
+
+**Key Features**
+
+- Repeated measures over time
+- Baseline normalization critical
+- Categorical response criteria (CR, PR, SD, PD)
+- Best overall response (BOR) derivation
+
+**Analysis Approaches**
+
+- Waterfall plots (best percent change)
+- Spider plots (individual trajectories)
+- Response rate by exposure
+- Time to response
+
+::: {.notes}
+- Most "clinical" of the three domains
+- RECIST is regulatory standard
+- Visual displays are critical for this domain
+:::
+
+---
+
+## Tumor Response: Longitudinal Structure {.smaller}
+
+```{r}
+#| echo: true
+#| eval: false
+
+adtr <- tr_raw %>%
+  mutate(
+    PARAM = "Sum of Target Lesion Diameters",
+    PARAMCD = "STDIAM",
+    AVAL = TRORRES,  # Raw measurement
+    ADY = as.numeric(ADT - TRTSDT) + 1
+  ) %>%
+  # Identify baseline
+  group_by(USUBJID, PARAMCD) %>%
+  mutate(
+    ABLFL = if_else(VISITNUM == 0, "Y", NA_character_),
+    BASE = AVAL[ABLFL == "Y"]
+  ) %>%
+  # Calculate changes
+  mutate(
+    CHG = if_else(ABLFL != "Y", AVAL - BASE, NA_real_),
+    PCHG = if_else(ABLFL != "Y", (AVAL - BASE) / BASE * 100, NA_real_)
+  )
+```
+
+::: {.notes}
+- BASE variable is anchor point
+- CHG and PCHG are standard ADaM conventions
+- ABLFL identifies the reference point
+:::
+
+---
+
+## RECIST Criteria Implementation {.smaller}
+
+```{r}
+#| echo: true
+#| eval: false
+
+adtr <- adtr %>%
+  mutate(
+    AVALC = case_when(
+      ABLFL == "Y" ~ "BASELINE",
+      AVAL == 0 ~ "CR",        # Complete Response
+      PCHG <= -30 ~ "PR",      # Partial Response (≥30% decrease)
+      PCHG >= 20 ~ "PD",       # Progressive Disease (≥20% increase)
+      TRUE ~ "SD"              # Stable Disease
+    )
+  )
+
+# Best Overall Response (BOR)
+bor <- adtr %>%
+  filter(ABLFL != "Y") %>%
+  group_by(USUBJID) %>%
+  summarise(
+    BOR = case_when(
+      any(AVALC == "CR") ~ "CR",
+      any(AVALC == "PR") ~ "PR",
+      any(AVALC == "PD") ~ "PD",
+      any(AVALC == "SD") ~ "SD"
+    )
+  )
+```
+
+::: {.notes}
+- RECIST thresholds are regulatory standard
+- BOR requires looking across all timepoints
+- This logic is reusable across studies
+:::
+
+---
+
+## Tumor Response: Output Structure {.smaller}
+
+```r
+# Longitudinal measurements
+USUBJID | VISIT   | ADY | BASE | AVAL | CHG  | PCHG   | AVALC | BOR | AUC_TERTILE
+--------|---------|-----|------|------|------|--------|-------|-----|------------
+001-002 | BASE    | 1   | 65   | 65   | NA   | NA     | BASE  | PR  | Medium
+001-002 | WEEK 6  | 43  | 65   | 55   | -10  | -15.4  | SD    | PR  | Medium
+001-002 | WEEK 12 | 85  | 65   | 35   | -30  | -46.2  | PR    | PR  | Medium
+001-002 | WEEK 18 | 127 | 65   | 32   | -33  | -50.8  | PR    | PR  | Medium
+```
+
+**Each subject has:**
+
+- Longitudinal trajectory (for spider plots)
+- Best overall response (for response rate)
+- Exposure metrics (for ER modeling)
+
+::: {.notes}
+- One record per subject-visit
+- BOR carried on all records for convenience
+- Ready for mixed models or response analysis
+:::
+
+---
+
+## Common Patterns Across Domains {.smaller}
+
+::: {.columns}
+::: {.column width="50%"}
+**Time Variables**
+
+- ADT: Analysis date
+- ADY: Study day (relative to TRTSDT)
+- AVAL: Numeric outcome
+- Consistent calculation methods
+:::
+
+::: {.column width="50%"}
+**Exposure Metrics**
+
+- Raw values (AUC, Cmax, Cavg)
+- Transformed (log, standardized)
+- Categorized (tertiles, quartiles)
+- Available at subject level
+:::
+:::
+
+**Analysis Flags**
+
+- ANL01FL: Primary analysis population
+- ANL02FL: Sensitivity analyses
+- Domain-specific (GRADE3FL, RESPFL, etc.)
+
+**Traceability**
+
+- Clear link to SDTM (via --SEQ, --DTC)
+- Derivation rules documented
+- Metadata specifications
+
+::: {.notes}
+- These commonalities enable code reuse
+- {admiral} functions can be extended
+- Similar QC approaches across domains
+:::
+
+---
+
+## Why {admiral}? {.smaller}
+
+**Advantages for ER Data**
+
+::: {.incremental}
+- **Modular functions**: `derive_vars_*`, `derive_param_*`
+- **Validation built-in**: `assert_*` functions catch errors early
+- **Metadata integration**: Works with {metatools}
+- **Community-driven**: Pharmaverse ecosystem
+- **Well-documented**: Functions follow consistent patterns
+- **CDISC-aligned**: Built with standards in mind
+:::
+
+::: {.fragment}
+**Example Extension**
+
+```r
+# Hypothetical future function
+derive_param_er_response <- function(
+  dataset, exposure_var, outcome_var, 
+  method = c("tertile", "quartile", "continuous")
+) { ... }
+```
+:::
+
+::: {.notes}
+- {admiral} is natural choice for this work
+- Already trusted in pharma
+- Extension functions maintain consistency
+- Could contribute back to pharmaverse
+:::
+
+---
+
+## Benefits: Reproducibility {.smaller}
+
+**Before Standardization**
+
+```r
+# Study A
+data$time_days <- difftime(data$event_dt, data$trt_start, units="days")
+data$AUC_cat <- cut(data$AUC, breaks=c(0,500,1000,Inf))
+
+# Study B  
+df$tte <- as.numeric(df$EventDate - df$TreatmentDate) + 1
+df$exposure_grp <- ifelse(df$auc < median(df$auc), "Low", "High")
+```
+
+**After Standardization**
+
+```r
+# All studies use consistent approach
+adee <- derive_er_tte_data(
+  adsl = adsl, 
+  adrs = adrs,
+  exposure_var = "AUC0_24",
+  param = "PFS"
+)
+```
+
+::: {.notes}
+- Show the pain point clearly
+- Inconsistency makes meta-analysis impossible
+- Standard approach = reusable code
+:::
+
+---
+
+## Benefits: Efficiency {.smaller}
+
+**Time Savings**
+
+- Dataset creation: 50% reduction with templates
+- QC: Automated checks via {admiral} assertions
+- Documentation: Metadata-driven specs
+- Onboarding: New analysts can follow patterns
+
+**Quality Improvements**
+
+- Fewer manual errors
+- Consistent validation approach
+- Peer review easier
+- Regulatory submissions smoother
+
+::: {.fragment}
+> "We reduced our ER dataset programming time from 3 weeks to 1 week per study" - [Example quote]
+:::
+
+::: {.notes}
+- Quantify benefits where possible
+- Appeal to practical efficiency gains
+- Quality and speed go together with standards
+:::
+
+---
+
+## Path Forward: Community Adoption {.smaller}
+
+**What We Need**
+
+1. **Feedback on proposed structures**
+   - Variable naming conventions
+   - Mandatory vs. optional elements
+   - Domain-specific needs
+
+2. **Real-world testing**
+   - Pilot studies across organizations
+   - Edge cases and exceptions
+   - Tooling gaps
+
+3. **Documentation**
+   - Implementation guides
+   - Worked examples
+   - Best practices
+
+4. **Potential formalization**
+   - Could inform future CDISC guidance
+   - Pharmaverse ER working group?
+
+::: {.notes}
+- This is a starting point, not final answer
+- Community input is critical
+- Open to feedback and iteration
+:::
+
+---
+
+## Getting Started Today {.smaller}
+
+**Resources Available**
+
+- GitHub repository: [your-repo-url]
+- Example datasets and scripts
+- ADaM specifications templates
+- Presentation materials
+
+**Try It Yourself**
+
+```r
+# Install development version
+remotes::install_github("your-username/er-standards-project")
+
+# Run examples
+library(erstds)
+run_ee_example()
+run_es_example()
+run_tumor_response_example()
+```
+
+**Connect**
+
+- Questions: [your-email]
+- Feedback: [GitHub issues]
+- Collaboration: [Slack/Teams channel]
+
+::: {.notes}
+- Make it actionable
+- Lower barriers to trying
+- Invite collaboration
+:::
+
+---
+
+## Key Takeaways {.smaller}
+
+::: {.incremental}
+1. **ER data needs standardization** - current state is inconsistent
+
+2. **CDISC principles apply** - we can extend SDTM-PK patterns
+
+3. **Three distinct domains** - but shared commonalities
+   - Exposure-Efficacy: time-to-event
+   - Exposure-Safety: event rates
+   - Tumor Response: longitudinal measurements
+
+4. **{admiral} is well-suited** - modular, validated, community-supported
+
+5. **Benefits are real** - efficiency, reproducibility, quality
+
+6. **Community input needed** - pilot, refine, formalize
+:::
+
+---
+
+## Questions? {.center}
+
+**Contact Information**
+
+- Email: [your-email]
+- GitHub: [your-github]
+- LinkedIn: [your-linkedin]
+
+**Resources**
+
+- Repository: [repo-url]
+- Documentation: [docs-url]
+- Pharmaverse: https://pharmaverse.org
+
+::: {.fragment}
+Thank you!
+:::
+
+---
+
+## Backup Slides {.smaller}
+
+---
+
+## Backup: SDTM-PK Variables Reference {.smaller}
+
+**Key Variables from SDTM-PK**
+
+| Variable | Description | ER Relevance |
+|----------|-------------|--------------|
+| PCTPT | Time Point Name | Timing of outcome assessment |
+| PCTPTNUM | Numeric Time Point | Analysis visit sequencing |
+| PCELTM | Planned Elapsed Time | Relative timing calculations |
+| PCSTRESN | Numeric Result | Maps to AVAL |
+| PCSTRESU | Units | Maps to AVALU |
+
+::: {.notes}
+- Reference slide for questions
+- Shows how we map concepts
+:::
+
+---
+
+## Backup: Detailed Variable Specifications {.smaller}
+
+**Proposed Core Variables for ADEE**
+
+| Variable | Type | Description | Required? |
+|----------|------|-------------|-----------|
+| PARAMCD | Char | Parameter Code (e.g., "PFS", "OS") | Yes |
+| AVAL | Num | Analysis Value (days) | Yes |
+| CNSR | Num | Censoring (1=censored, 0=event) | Yes |
+| ADT | Date | Analysis Date | Yes |
+| EXPOSURE_VAR | Num | Exposure metric | Yes |
+| EXPOSURE_CAT | Char | Categorized exposure | No |
+| ANL01FL | Char | Primary analysis flag | Yes |
+
+::: {.notes}
+- Detailed specs for implementers
+- Balance required vs. optional
+:::
+
+---
+
+## Backup: Handling Edge Cases {.smaller}
+
+**Common Challenges**
+
+1. **Missing Exposure Data**
+   - Imputation strategies
+   - Sensitivity analyses
+   - Flagging for exclusion
+
+2. **Competing Risks** (EE)
+   - Death vs. progression
+   - Multiple event types
+
+3. **Time-Varying Exposure** (ES)
+   - Dose changes
+   - Cumulative exposure
+
+4. **Unscheduled Assessments** (Tumor)
+   - Off-schedule scans
+   - Response confirmation
+
+::: {.notes}
+- Real world is messy
+- Standards should accommodate
+- Document decisions clearly
+:::
