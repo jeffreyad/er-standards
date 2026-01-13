@@ -43,7 +43,7 @@ adtte <- adtte_source %>%
   derive_vars_merged(
     dataset_add = adsl,
     by_vars = exprs(USUBJID),
-    new_vars = exprs(TRTSDT, AUC0_24, CMAX, CAVG, ARM)
+    new_vars = exprs(STUDYID, TRTSDT, AUC0_24, CMAX, CAVG, ARM)
   ) %>%
   mutate(
     AVAL = as.numeric(ADT - TRTSDT),
