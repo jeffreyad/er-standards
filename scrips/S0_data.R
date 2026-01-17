@@ -11,12 +11,13 @@
 
 library(dplyr)
 library(tidyr)
-library(simsurv)  # For simulating survival data
 
 set.seed(12345)  # For reproducibility
 
 # Create output directory if it doesn't exist
 if (!dir.exists("data")) dir.create("data")
+
+cat("=== ER Standards Framework - Data Generation ===\n\n")
 
 #===============================================================================
 # HELPER FUNCTIONS
@@ -61,11 +62,65 @@ categorize_exposure <- function(exposure, method = "tertile") {
   }
 }
 
+# Direct Weibull time-to-event simulation
+simulate_tte_direct <- function(subjects_df, endpoint, 
+                                shape = 1.5, 
+                                scale0 = 180,  # Baseline median days
+                                beta_exposure = -0.015,
+                                max_followup = 730) {
+  
+  # Center exposure
+  exposure_c <- subjects_df$EXPOSURE_VAR - mean(subjects_df$EXPOSURE_VAR)
+  
+  # Scale parameter with exposure effect
+  # scale = scale0 * exp(beta * exposure)
+  # Higher exposure → lower hazard → longer survival
+  scale <- scale0 * exp(beta_exposure * exposure_c)
+  
+  # Simulate Weibull event times
+  # Using rweibull: T ~ Weibull(shape, scale)
+  event_times <- rweibull(nrow(subjects_df), shape = shape, scale = scale)
+  
+  # Apply administrative censoring at max_followup
+  observed_times <- pmin(event_times, max_followup)
+  
+  # Event indicator: 1 if event before censoring, 0 if censored
+  event_indicator <- as.numeric(event_times <= max_followup)
+  
+  # Random censoring (some subjects drop out early)
+  random_censor_time <- runif(nrow(subjects_df), 
+                               max_followup * 0.5,  # Min 50% of followup
+                               max_followup)         # Max full followup
+  final_times <- pmin(observed_times, random_censor_time)
+  final_event <- event_indicator * (observed_times <= random_censor_time)
+  
+  # Create result
+  result <- subjects_df %>%
+    mutate(
+      PARAMCD = endpoint,
+      PARAM = case_when(
+        endpoint == "PFS" ~ "Progression-Free Survival",
+        endpoint == "OS" ~ "Overall Survival",
+        endpoint == "TTP" ~ "Time to Progression"
+      ),
+      AVAL = round(final_times),
+      AVALU = "DAYS",
+      EVENT = final_event,
+      CNSR = 1 - final_event,
+      ADT = TRTSDT + AVAL,
+      ADY = AVAL + 1
+    )
+  
+  return(result)
+}
+
 #===============================================================================
 # 1. GENERATE BASELINE SUBJECT CHARACTERISTICS
 #===============================================================================
 
 n_subjects <- 200
+
+cat("Generating baseline characteristics for", n_subjects, "subjects...\n")
 
 baseline <- data.frame(
   USUBJID = generate_usubjid(n_subjects),
@@ -95,6 +150,11 @@ baseline <- data.frame(
   TRTSDT = as.Date("2023-01-15") + sample(0:180, n_subjects, replace = TRUE)
 ) %>%
   mutate(
+    # Ensure reasonable values
+    AGE = pmax(18, pmin(AGE, 85)),
+    WTBL = pmax(40, pmin(WTBL, 150)),
+    HTBL = pmax(140, pmin(HTBL, 200)),
+    
     # Derived variables
     BMIBL = round(WTBL / (HTBL/100)^2, 1),
     BSABL = round(0.007184 * WTBL^0.425 * HTBL^0.725, 2),
@@ -118,6 +178,14 @@ baseline <- data.frame(
     ASTBL = round(rnorm(n_subjects, mean = 28, sd = 8), 0),
     ALTBL = round(rnorm(n_subjects, mean = 25, sd = 7), 0),
     
+    # Ensure labs are positive and reasonable
+    CREATBL = pmax(0.5, CREATBL),
+    CRCLBL = pmax(30, pmin(CRCLBL, 150)),
+    EGFRBL = pmax(30, pmin(EGFRBL, 130)),
+    TBILBL = pmax(0.2, TBILBL),
+    ASTBL = pmax(10, ASTBL),
+    ALTBL = pmax(10, ALTBL),
+    
     # Analysis flags
     SAFFL = "Y",
     ITTFL = "Y",
@@ -135,81 +203,54 @@ baseline <- baseline %>%
     EXPOSURE_MEDIAN = categorize_exposure(EXPOSURE_VAR, "median")
   )
 
-cat("Generated baseline characteristics for", n_subjects, "subjects\n")
+cat("✓ Baseline characteristics generated\n")
+cat("  - Mean exposure:", round(mean(baseline$EXPOSURE_VAR), 1), "μg·h/mL\n")
+cat("  - Exposure range:", round(min(baseline$EXPOSURE_VAR), 1), "-",
+    round(max(baseline$EXPOSURE_VAR), 1), "μg·h/mL\n\n")
 
 #===============================================================================
 # 2. GENERATE ADEE DATASET (EXPOSURE-EFFICACY)
 #===============================================================================
 
-cat("\n=== Generating ADEE Dataset ===\n")
-
-# Simulate time-to-event data using simsurv
-# Weibull model with exposure effect on hazard
-
-# Define hazard function
-# log(h(t)) = log(shape) + (shape-1)*log(t) + beta*exposure
-
-simulate_tte <- function(subjects_df, endpoint, 
-                         shape = 1.5, 
-                         scale_intercept = 5.2,  # log(scale)
-                         beta_exposure = -0.015) {
-  
-  # Center exposure
-  subjects_df <- subjects_df %>%
-    mutate(exposure_c = EXPOSURE_VAR - mean(EXPOSURE_VAR))
-  
-  # Simulate survival times
-  simdata <- simsurv(
-    lambdas = 1,  # Will be overridden by custom hazard
-    gammas = shape,
-    x = subjects_df %>% select(exposure_c),
-    betas = c(exposure_c = beta_exposure),
-    maxt = 730,  # Maximum follow-up 2 years
-    interval = c(1e-8, 730)
-  )
-  
-  # Merge back with subject data
-  result <- subjects_df %>%
-    mutate(id = 1:n()) %>%
-    left_join(simdata, by = "id") %>%
-    mutate(
-      PARAMCD = endpoint,
-      PARAM = case_when(
-        endpoint == "PFS" ~ "Progression-Free Survival",
-        endpoint == "OS" ~ "Overall Survival",
-        endpoint == "TTP" ~ "Time to Progression"
-      ),
-      AVAL = round(eventtime),
-      AVALU = "DAYS",
-      EVENT = status,
-      CNSR = 1 - status,
-      ADT = TRTSDT + AVAL,
-      ADY = AVAL + 1
-    ) %>%
-    select(-id, -eventtime, -status, -exposure_c)
-  
-  return(result)
-}
+cat("=== Generating ADEE Dataset ===\n")
 
 # Generate PFS data
-adee_pfs <- simulate_tte(
+cat("  Simulating PFS events...\n")
+adee_pfs <- simulate_tte_direct(
   baseline, 
   endpoint = "PFS",
   shape = 1.3,
-  beta_exposure = -0.012  # HR = 0.988 per unit AUC
+  scale0 = 150,        # Median 150 days at mean exposure
+  beta_exposure = -0.012,  # HR = 0.988 per unit AUC (protective)
+  max_followup = 730
 )
 
-# Generate OS data (longer times, less exposure effect)
-adee_os <- simulate_tte(
+cat("    - Events:", sum(adee_pfs$EVENT), "/", nrow(adee_pfs), "\n")
+cat("    - Median time:", median(adee_pfs$AVAL), "days\n")
+
+# Generate OS data (longer times, weaker exposure effect)
+cat("  Simulating OS events...\n")
+adee_os <- simulate_tte_direct(
   baseline,
   endpoint = "OS", 
   shape = 1.5,
-  beta_exposure = -0.008,  # Smaller effect
+  scale0 = 300,        # Median 300 days at mean exposure
+  beta_exposure = -0.008,  # Weaker effect than PFS
+  max_followup = 730
 ) %>%
   mutate(
-    # OS should be >= PFS
-    AVAL = pmax(AVAL, adee_pfs$AVAL + round(rexp(n(), 1/60)))
+    # OS should be >= PFS (subjects can't die before progression)
+    AVAL = pmax(AVAL, adee_pfs$AVAL + round(rexp(n(), 1/60))),
+    # Recalculate dates
+    ADT = TRTSDT + AVAL,
+    ADY = AVAL + 1,
+    # Adjust censoring if time extended
+    EVENT = ifelse(AVAL >= 730, 0, EVENT),
+    CNSR = 1 - EVENT
   )
+
+cat("    - Events:", sum(adee_os$EVENT), "/", nrow(adee_os), "\n")
+cat("    - Median time:", median(adee_os$AVAL), "days\n")
 
 # Combine endpoints
 adee <- bind_rows(adee_pfs, adee_os) %>%
@@ -233,16 +274,18 @@ adee <- bind_rows(adee_pfs, adee_os) %>%
 
 # Save ADEE
 write.csv(adee, "data/adee_example.csv", row.names = FALSE)
-cat("ADEE dataset created:", nrow(adee), "records\n")
+cat("✓ ADEE dataset created:", nrow(adee), "records\n")
 cat("  - Subjects:", length(unique(adee$USUBJID)), "\n")
-cat("  - Events (PFS):", sum(adee$EVENT[adee$PARAMCD == "PFS"]), "\n")
-cat("  - Events (OS):", sum(adee$EVENT[adee$PARAMCD == "OS"]), "\n")
+cat("  - PFS events:", sum(adee$EVENT[adee$PARAMCD == "PFS"]), 
+    "(", round(100*mean(adee$EVENT[adee$PARAMCD == "PFS"]), 1), "%)\n")
+cat("  - OS events:", sum(adee$EVENT[adee$PARAMCD == "OS"]),
+    "(", round(100*mean(adee$EVENT[adee$PARAMCD == "OS"]), 1), "%)\n\n")
 
 #===============================================================================
 # 3. GENERATE ADES DATASET (EXPOSURE-SAFETY)
 #===============================================================================
 
-cat("\n=== Generating ADES Dataset ===\n")
+cat("=== Generating ADES Dataset ===\n")
 
 # ADES has multi-level structure:
 # 1. Subject-level summary records
@@ -250,6 +293,8 @@ cat("\n=== Generating ADES Dataset ===\n")
 # 3. Parameter-level summaries (by AEDECOD)
 
 ## 3.1 Simulate Adverse Events ----
+
+cat("  Simulating adverse events...\n")
 
 # AE terms and their baseline rates
 ae_terms <- data.frame(
@@ -332,9 +377,13 @@ for (i in 1:nrow(baseline)) {
 
 ae_events <- bind_rows(all_aes)
 
-cat("Generated", nrow(ae_events), "adverse event records\n")
+cat("    - Total AE records:", nrow(ae_events), "\n")
+cat("    - Subjects with AEs:", length(unique(ae_events$USUBJID)), "/", n_subjects, "\n")
+cat("    - Serious AEs:", sum(ae_events$AESER == "Y"), "\n")
 
 ## 3.2 Create ADES Multi-Level Structure ----
+
+cat("  Creating multi-level structure...\n")
 
 ### Level 1: Subject-level summaries ----
 ades_subject <- baseline %>%
@@ -359,7 +408,7 @@ ades_subject <- baseline %>%
     N_GRADE4 = ifelse(is.na(N_GRADE4), 0, N_GRADE4),
     TRTDURD = ifelse(is.na(TRTDURD), round(rexp(1, 1/180)), TRTDURD),
     
-    # Rates per patient-days
+    # Rates per 100 patient-days
     RATE_AES = (N_AES / TRTDURD) * 100,
     RATE_SAE = (N_SAE / TRTDURD) * 100,
     
@@ -377,7 +426,7 @@ ades_subject <- baseline %>%
 
 ### Level 2: Event-level records ----
 ades_event <- ae_events %>%
-  left_join(baseline %>% select(USUBJID, TRTSDT, EXPOSURE_VAR, 
+  left_join(baseline %>% select(USUBJID, STUDYID, TRTSDT, EXPOSURE_VAR, 
                                   EXPOSURE_TERTILE, WTBL, AGE, SEX),
             by = "USUBJID") %>%
   mutate(
@@ -393,25 +442,20 @@ ades_event <- ae_events %>%
   )
 
 ### Level 3: Parameter-level summaries (by AEDECOD) ----
+# Get treatment duration for each subject
+subj_trtdur <- ae_events %>% 
+  group_by(USUBJID) %>% 
+  summarise(TRTDURD = max(AEENDY), .groups = "drop")
+
 ades_param <- ae_events %>%
-  left_join(baseline %>% select(USUBJID, EXPOSURE_VAR, 
-                                  EXPOSURE_TERTILE, TRTDURD = WTBL),
+  left_join(baseline %>% select(USUBJID, EXPOSURE_VAR, EXPOSURE_TERTILE),
             by = "USUBJID") %>%
-  # Need to get actual treatment duration
-  left_join(
-    ae_events %>% 
-      group_by(USUBJID) %>% 
-      summarise(TRTDURD = max(AEENDY), .groups = "drop"),
-    by = "USUBJID"
-  ) %>%
-  group_by(USUBJID, AEDECOD, AEBODSYS) %>%
+  left_join(subj_trtdur, by = "USUBJID") %>%
+  group_by(USUBJID, AEDECOD, AEBODSYS, EXPOSURE_VAR, EXPOSURE_TERTILE, TRTDURD) %>%
   summarise(
     N_EVENTS = n(),
     MAX_GRADE = max(AETOXGR),
-    ANY_SAE = max(AESER == "Y"),
-    EXPOSURE_VAR = first(EXPOSURE_VAR),
-    EXPOSURE_TERTILE = first(EXPOSURE_TERTILE),
-    TRTDURD = first(TRTDURD),
+    ANY_SAE = as.numeric(any(AESER == "Y")),
     .groups = "drop"
   ) %>%
   mutate(
@@ -433,7 +477,7 @@ ades <- bind_rows(
            AGE, SEX, WTBL, BMIBL),
   
   ades_event %>%
-    select(USUBJID, STUDYID = STUDYID, PARAMCD, PARAM, AVAL, AVALU,
+    select(USUBJID, STUDYID, PARAMCD, PARAM, AVAL, AVALU,
            AEDECOD, AEBODSYS, AESTDY, AEENDY, AETOXGR, AESER, AEREL,
            EXPOSURE_VAR, EXPOSURE_TERTILE, ADT, ADY,
            ANL01FL, ANL02FL, ANL03FL,
@@ -448,18 +492,20 @@ ades <- bind_rows(
 
 # Save ADES
 write.csv(ades, "data/ades_example.csv", row.names = FALSE)
-cat("ADES dataset created:", nrow(ades), "records\n")
+cat("✓ ADES dataset created:", nrow(ades), "records\n")
 cat("  - Subject-level:", sum(ades$PARAMCD == "SUBJSUM"), "\n")
 cat("  - Event-level:", sum(ades$PARAMCD == "AEVENT"), "\n")
-cat("  - Parameter-level:", sum(!ades$PARAMCD %in% c("SUBJSUM", "AEVENT")), "\n")
+cat("  - Parameter-level:", sum(!ades$PARAMCD %in% c("SUBJSUM", "AEVENT")), "\n\n")
 
 #===============================================================================
 # 4. GENERATE ADTR DATASET (TUMOR RESPONSE)
 #===============================================================================
 
-cat("\n=== Generating ADTR Dataset ===\n")
+cat("=== Generating ADTR Dataset ===\n")
 
 # ADTR: Longitudinal tumor measurements with RECIST 1.1
+
+cat("  Simulating tumor trajectories...\n")
 
 # Visit schedule
 visits <- data.frame(
@@ -482,7 +528,8 @@ simulate_tumor_trajectory <- function(subject_data, visits) {
   exposure_centered <- exposure - mean(baseline$EXPOSURE_VAR)
   
   # Maximum response (% reduction)
-  max_response <- -30 + (-15 * exposure_centered / sd(baseline$EXPOSURE_VAR))
+  # Base response + exposure effect + random variability
+  max_response <- -30 + (-15 * exposure_centered / sd(baseline$EXPOSURE_VAR)) + rnorm(1, 0, 10)
   max_response <- max(max_response, -100)  # Can't go below -100%
   
   # Time to maximum response
@@ -503,8 +550,8 @@ simulate_tumor_trajectory <- function(subject_data, visits) {
       # Tumor size follows a biphasic model
       PCHG = ifelse(
         STUDY_DAY < time_to_max,
-        # Initial response phase
-        max_response * (STUDY_DAY / time_to_max),
+        # Initial response phase (exponential approach to max response)
+        max_response * (1 - exp(-STUDY_DAY / (time_to_max/3))),
         # Maintenance/progression phase
         ifelse(
           STUDY_DAY < time_to_progression,
@@ -513,7 +560,7 @@ simulate_tumor_trajectory <- function(subject_data, visits) {
         )
       ),
       
-      # Add noise
+      # Add measurement noise
       PCHG = PCHG + rnorm(n(), 0, 5),
       
       # Calculate absolute values
@@ -558,7 +605,10 @@ for (i in 1:nrow(baseline)) {
 
 adtr_long <- bind_rows(all_trajectories)
 
+cat("    - Total measurements:", nrow(adtr_long), "\n")
+
 # Derive best overall response (BOR)
+cat("  Deriving best overall response...\n")
 bor <- adtr_long %>%
   filter(AVISITN > 0) %>%  # Exclude baseline
   group_by(USUBJID) %>%
@@ -660,22 +710,23 @@ adtr_final <- bind_rows(adtr, adtr_bor, adtr_nadir) %>%
 
 # Save ADTR
 write.csv(adtr_final, "data/adtr_example.csv", row.names = FALSE)
-cat("ADTR dataset created:", nrow(adtr_final), "records\n")
+cat("✓ ADTR dataset created:", nrow(adtr_final), "records\n")
 cat("  - Subjects:", length(unique(adtr_final$USUBJID)), "\n")
 cat("  - Tumor measurements:", sum(adtr_final$PARAMCD == "TUMSIZE"), "\n")
-cat("  - BOR records:", sum(adtr_final$PARAMCD == "BOR"), "\n")
-cat("  - CR:", sum(adtr_final$BOR == "CR", na.rm = TRUE), "\n")
-cat("  - PR:", sum(adtr_final$BOR == "PR", na.rm = TRUE), "\n")
-cat("  - SD:", sum(adtr_final$BOR == "SD", na.rm = TRUE), "\n")
-cat("  - PD:", sum(adtr_final$BOR == "PD", na.rm = TRUE), "\n")
+cat("  - Response distribution:\n")
+cat("    CR:", sum(adtr_final$BOR == "CR", na.rm = TRUE), "\n")
+cat("    PR:", sum(adtr_final$BOR == "PR", na.rm = TRUE), "\n")
+cat("    SD:", sum(adtr_final$BOR == "SD", na.rm = TRUE), "\n")
+cat("    PD:", sum(adtr_final$BOR == "PD", na.rm = TRUE), "\n\n")
 
 #===============================================================================
 # 5. CREATE DATA DOCUMENTATION
 #===============================================================================
 
+cat("Creating documentation...\n")
+
 # Create README for data directory
-readme_text <- "
-# Example Datasets for ER Standards Framework
+readme_text <- "# Example Datasets for ER Standards Framework
 
 ## Overview
 These datasets demonstrate the proposed standardized structure for 
@@ -688,23 +739,26 @@ Exposure-Response (ER) data in clinical trials.
 - **Structure**: One record per subject per parameter (PFS, OS)
 - **Key Variables**: AVAL (time), EVENT/CNSR (status), EXPOSURE_VAR
 - **Analysis**: Time-to-event modeling (Cox, Weibull)
+- **N**: 400 records (200 subjects × 2 endpoints)
 
 ### ades_example.csv
 - **Purpose**: Exposure-Safety analysis (adverse events)
 - **Structure**: Multi-level (subject, event, parameter)
 - **Key Variables**: N_AES, RATE_AES, AEDECOD, AETOXGR
 - **Analysis**: Count/rate models (Poisson, negative binomial)
+- **Levels**: Subject summaries, event details, parameter counts
 
 ### adtr_example.csv
 - **Purpose**: Tumor Response analysis (RECIST 1.1)
 - **Structure**: Longitudinal measurements per subject
 - **Key Variables**: AVAL (tumor size), PCHG, BOR, NADIR
 - **Analysis**: Longitudinal models, waterfall/spider plots
+- **Visits**: Baseline + 8 post-baseline assessments
 
 ## Data Generation
 These are synthetic datasets created using:
 - Population PK exposure simulation
-- Time-to-event simulation (simsurv package)
+- Direct Weibull time-to-event simulation
 - RECIST 1.1 response criteria
 - Realistic clinical trial patterns
 
@@ -712,6 +766,12 @@ These are synthetic datasets created using:
 - N = 200 subjects
 - 3 dose levels (50, 100, 150 mg)
 - Exposure-response relationships embedded
+
+## Exposure-Response Relationships
+All datasets include built-in ER relationships:
+- **ADEE**: Higher exposure → longer PFS/OS (HR = 0.988 per μg·h/mL)
+- **ADES**: Higher exposure → increased AE rates
+- **ADTR**: Higher exposure → better tumor response
 
 ## Usage
 Load data in R:
@@ -731,24 +791,40 @@ writeLines(readme_text, "data/README.md")
 # 6. SUMMARY
 #===============================================================================
 
-cat("\n" , "=".repeat(70), "\n")
+cat("\n")
+cat("="strrep("=", 70), "\n")
 cat("DATA GENERATION COMPLETE\n")
-cat("=".repeat(70), "\n\n")
+cat(strrep("=", 70), "\n\n")
 
 cat("Files created in data/ directory:\n")
-cat("  1. adee_example.csv - ", nrow(adee), "records\n")
-cat("  2. ades_example.csv - ", nrow(ades), "records\n")
-cat("  3. adtr_example.csv - ", nrow(adtr_final), "records\n")
+cat("  1. adee_example.csv -", nrow(adee), "records\n")
+cat("  2. ades_example.csv -", nrow(ades), "records\n")
+cat("  3. adtr_example.csv -", nrow(adtr_final), "records\n")
 cat("  4. README.md - Data documentation\n\n")
 
 cat("Summary statistics:\n")
-cat("  Subjects: ", n_subjects, "\n")
+cat("  Subjects:", n_subjects, "\n")
 cat("  Dose levels: 50, 100, 150 mg\n")
-cat("  Exposure range: ", 
+cat("  Exposure range:", 
     round(min(baseline$EXPOSURE_VAR), 1), "-",
     round(max(baseline$EXPOSURE_VAR), 1), "μg·h/mL\n")
+cat("  Mean exposure:", round(mean(baseline$EXPOSURE_VAR), 1), "μg·h/mL\n\n")
 
-cat("\nYou can now run the analysis scripts:\n")
+cat("Event rates:\n")
+cat("  PFS:", sum(adee$EVENT[adee$PARAMCD == "PFS"]), "/", 
+    sum(adee$PARAMCD == "PFS"), 
+    sprintf("(%.1f%%)", 100*mean(adee$EVENT[adee$PARAMCD == "PFS"])), "\n")
+cat("  OS:", sum(adee$EVENT[adee$PARAMCD == "OS"]), "/",
+    sum(adee$PARAMCD == "OS"),
+    sprintf("(%.1f%%)", 100*mean(adee$EVENT[adee$PARAMCD == "OS"])), "\n")
+cat("  AEs:", nrow(ae_events), "events in",
+    length(unique(ae_events$USUBJID)), "subjects\n")
+cat("  ORR (CR+PR):", 
+    sum(adtr_final$BOR %in% c("CR", "PR"), na.rm = TRUE), "/", n_subjects,
+    sprintf("(%.1f%%)", 100*mean(adtr_final$BOR %in% c("CR", "PR"), na.rm = TRUE)),
+    "\n\n")
+
+cat("You can now run the analysis scripts:\n")
 cat("  - S1_ADEE_Exposure_Efficacy_Analysis.R\n")
 cat("  - S2_ADES_Exposure_Safety_Analysis.R\n")
 cat("  - S3_ADTR_Tumor_Response_Analysis.R\n\n")
@@ -762,6 +838,11 @@ sink()
 
 cat("Session info saved: data/session_info_data_generation.txt\n")
 
+cat("\n")
+cat(strrep("=", 70), "\n")
+cat("END OF DATA GENERATION\n")
+cat(strrep("=", 70), "\n")
+
 #===============================================================================
-# END OF DATA GENERATION
+# END OF SCRIPT
 #===============================================================================
