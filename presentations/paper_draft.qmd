@@ -71,6 +71,8 @@ The {admiral} R package, part of the pharmaverse initiative, provides a comprehe
 
 The {admiral} framework has proven successful for standard ADaM datasets (ADSL, ADAE, ADLB, etc.). Its modular approach makes it well-suited for extension to ER-specific needs while maintaining consistency with established patterns.
 
+The latest version of {admiral} 1.4 includes some new experimental functions to facilitate PK analysis including `derive_var_nfrlt()` for deriving nominal time `NFRLT` "Nominal Relative Time for First Dose" which uses `convert_xxtpt_to_hours()` which uses regular expressions to convert `PCTPT` or other SDTM timepoints to numeric hours.
+
 ## Objectives
 
 This paper aims to:
