@@ -412,7 +412,7 @@ ades_subject <- baseline %>%
     RATE_AES = (N_AES / TRTDURD) * 100,
     RATE_SAE = (N_SAE / TRTDURD) * 100,
     
-    # Binary indicators
+    # Binary indicators (CHARACTER for consistency)
     ANY_AE = ifelse(N_AES > 0, "Y", "N"),
     ANY_SAE = ifelse(N_SAE > 0, "Y", "N"),
     
@@ -438,7 +438,15 @@ ades_event <- ae_events %>%
     ADY = AESTDY + 1,
     ANL01FL = "Y",
     ANL02FL = ifelse(AESER == "Y", "Y", "N"),  # SAEs only
-    ANL03FL = ifelse(AETOXGR >= 3, "Y", "N")   # Grade 3+ only
+    ANL03FL = ifelse(AETOXGR >= 3, "Y", "N"),  # Grade 3+ only
+    # Add placeholders for subject-level vars (NA for events)
+    N_AES = NA_real_,
+    N_SAE = NA_real_,
+    N_GRADE3 = NA_real_,
+    RATE_AES = NA_real_,
+    RATE_SAE = NA_real_,
+    ANY_AE = NA_character_,
+    ANY_SAE = NA_character_
   )
 
 ### Level 3: Parameter-level summaries (by AEDECOD) ----
@@ -455,19 +463,31 @@ ades_param <- ae_events %>%
   summarise(
     N_EVENTS = n(),
     MAX_GRADE = max(AETOXGR),
-    ANY_SAE = as.numeric(any(AESER == "Y")),
+    ANY_SAE_NUM = as.numeric(any(AESER == "Y")),  # Numeric first
     .groups = "drop"
   ) %>%
   mutate(
+    # Convert to character for consistency
+    ANY_SAE = ifelse(ANY_SAE_NUM == 1, "Y", "N"),
+    
     PARAMCD = AEDECOD,
     PARAM = paste("Adverse Event:", AEDECOD),
     AVAL = N_EVENTS,
     AVALU = "COUNT",
     RATE = (N_EVENTS / TRTDURD) * 100,
-    ANL01FL = "Y"
-  )
+    ANL01FL = "Y",
+    
+    # Add placeholders for subject-level vars
+    N_AES = NA_real_,
+    N_SAE = NA_real_,
+    N_GRADE3 = NA_real_,
+    RATE_AES = NA_real_,
+    RATE_SAE = NA_real_,
+    ANY_AE = NA_character_
+  ) %>%
+  select(-ANY_SAE_NUM)  # Remove temporary numeric version
 
-# Combine all levels
+# Combine all levels (now all ANY_SAE are character)
 ades <- bind_rows(
   ades_subject %>% 
     select(USUBJID, STUDYID, PARAMCD, PARAM, AVAL, AVALU,
@@ -481,12 +501,14 @@ ades <- bind_rows(
            AEDECOD, AEBODSYS, AESTDY, AEENDY, AETOXGR, AESER, AEREL,
            EXPOSURE_VAR, EXPOSURE_TERTILE, ADT, ADY,
            ANL01FL, ANL02FL, ANL03FL,
-           AGE, SEX, WTBL),
+           AGE, SEX, WTBL,
+           N_AES, N_SAE, N_GRADE3, RATE_AES, RATE_SAE, ANY_AE, ANY_SAE),
   
   ades_param %>%
     select(USUBJID, PARAMCD, PARAM, AVAL, AVALU,
            AEDECOD, AEBODSYS, N_EVENTS, MAX_GRADE, ANY_SAE,
-           EXPOSURE_VAR, EXPOSURE_TERTILE, RATE, TRTDURD, ANL01FL)
+           EXPOSURE_VAR, EXPOSURE_TERTILE, RATE, TRTDURD, ANL01FL,
+           N_AES, N_SAE, N_GRADE3, RATE_AES, RATE_SAE, ANY_AE)
 ) %>%
   arrange(USUBJID, PARAMCD)
 
@@ -792,7 +814,7 @@ writeLines(readme_text, "data/README.md")
 #===============================================================================
 
 cat("\n")
-cat("="strrep("=", 70), "\n")
+cat(strrep("=", 70), "\n")
 cat("DATA GENERATION COMPLETE\n")
 cat(strrep("=", 70), "\n\n")
 
