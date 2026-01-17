@@ -808,7 +808,6 @@ For questions about the ER Standards Framework, see the main manuscript.
 "
 
 writeLines(readme_text, "data/README.md")
-
 #===============================================================================
 # 6. SUMMARY
 #===============================================================================
