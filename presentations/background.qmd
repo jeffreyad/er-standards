@@ -1,0 +1,41 @@
+---
+title: "Standardizing Exposure-Response Analysis Using CDISC Data Standards"
+author: "Research Paper Draft"
+date: "2026-01-17"
+format: 
+  html:
+    toc: true
+    number-sections: true
+  pdf:
+    documentclass: scrartcl
+---
+
+# Introduction
+
+Exposure-response (E-R) analysis is a regulatory cornerstone for dose selection. This document outlines the rationale and structure for adopting CDISC standards in E-R workflows.
+
+# Literature Review
+
+Exposure-response (E-R) analysis has become an essential regulatory requirement for optimizing dose selection. However, the efficacy of these analyses is often limited by inconsistent data structures.
+
+Recent literature from 2025 and 2026 emphasizes that adopting the **Analysis Data Model (ADaM)**—specifically the **ADPPK** dataset structure—is critical for modern model-informed drug development. Key benefits cited in the literature include:
+
+-   **Traceability:** Establishing an audit trail from raw eCRF data to final results.
+-   **Efficiency:** Reducing manual data cleaning using **Basic Data Structure (BDS)** formats.
+-   **Integration:** Enabling cross-study meta-analyses, which is vital for rare diseases.
+
+# Proposed Data Structure (ADaM ADPPK)
+
+To support E-R modeling, the following variables should be mapped within the ADaM framework:
+
+| E-R Parameter         | PARAMCD | PARAM                           | AVAL    | Source |
+|:--------------|:--------------|:--------------|:--------------|:--------------|
+| Area Under the Curve  | AUCSS   | AUC at steady state (ug\*h/mL)  | Numeric | ADPC   |
+| Maximum Concentration | CMAX    | Maximum concentration (ug/mL)   | Numeric | ADPC   |
+| Efficacy Response     | PASI    | Psoriasis Area & Severity Index | Numeric | ADRS   |
+| Safety Response       | ALT     | Alanine Aminotransferase (U/L)  | Numeric | ADLB   |
+| Time to Event         | TTDIS   | Time to discontinuation (Days)  | Numeric | ADTTE  |
+
+# Conclusion
+
+The transition to CDISC standards for E-R modeling ensures that datasets are analysis-ready and compliant with global regulatory mandates (FDA/PMDA).
