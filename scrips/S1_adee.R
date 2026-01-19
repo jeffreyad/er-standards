@@ -92,9 +92,10 @@ p1 <- ggsurvplot(
   risk.table.height = 0.25
 )
 
-# Save plot
-ggsave("output/figures/Figure_S1A_KM_by_exposure.pdf", 
-       print(p1), width = 10, height = 8)
+# FIX: Save properly for ggsurvplot objects
+pdf("output/figures/Figure_S1A_KM_by_exposure.pdf", width = 10, height = 8)
+print(p1)
+dev.off()
 
 cat("\nKaplan-Meier plot saved: output/figures/Figure_S1A_KM_by_exposure.pdf\n")
 
