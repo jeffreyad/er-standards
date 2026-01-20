@@ -68,13 +68,13 @@ ader_specs <- tribble(
   # Baseline Vitals
   "WTBL", "Baseline Weight (kg)", "float", 8, "", "", "",
   "HTBL", "Baseline Height (cm)", "float", 8, "", "", "",
-  "BMIBL", "Baseline BMI (kg/m²)", "float", 8, "", "", "Computed from WTBL, HTBL",
-  "BSABL", "Baseline BSA (m²)", "float", 8, "", "", "Mosteller formula",
+  "BMIBL", "Baseline BMI (kg/m^2)", "float", 8, "", "", "Computed from WTBL, HTBL",
+  "BSABL", "Baseline BSA (m^2)", "float", 8, "", "", "Mosteller formula",
   
   # Baseline Labs
   "CREATBL", "Baseline Serum Creatinine (mg/dL)", "float", 8, "", "", "",
   "CRCLBL", "Baseline Creatinine Clearance (mL/min)", "float", 8, "", "", "Cockcroft-Gault",
-  "EGFRBL", "Baseline eGFR (mL/min/1.73m²)", "float", 8, "", "", "CKD-EPI equation",
+  "EGFRBL", "Baseline eGFR (mL/min/1.73m^2)", "float", 8, "", "", "CKD-EPI equation",
   "ALTBL", "Baseline ALT (U/L)", "float", 8, "", "", "",
   "ASTBL", "Baseline AST (U/L)", "float", 8, "", "", "",
   "TBILBL", "Baseline Total Bilirubin (mg/dL)", "float", 8, "", "", ""
@@ -143,30 +143,30 @@ adee_specs <- tribble(
   "AVISITN", "Analysis Visit (N)", "integer", 8, "", "", "0, 24",
   
   # Exposure Variables - Primary
-  "AUCSS", "Steady-State AUC (μg·h/mL)", "float", 8, "", "", "Primary exposure metric",
+  "AUCSS", "Steady-State AUC (ug·h/mL)", "float", 8, "", "", "Primary exposure metric",
   "AUCSSLOG", "Log-Transformed AUC", "float", 8, "", "", "ln(AUCSS)",
   "AUCSSSTD", "Standardized AUC", "float", 8, "", "", "(AUCSS-mean)/SD",
   "AUCSSN", "Normalized AUC", "float", 8, "", "", "AUCSS/median",
-  "AUCSSDOSE", "Dose-Normalized AUC (μg·h/mL per mg)", "float", 8, "", "", "AUCSS/DOSE",
+  "AUCSSDOSE", "Dose-Normalized AUC (ug·h/mL per mg)", "float", 8, "", "", "AUCSS/DOSE",
   "AUCSSCAT", "AUC Category (Tertiles)", "text", 20, "", "", "Low, Medium, High",
   "AUCSSCATN", "AUC Category (N)", "integer", 8, "", "", "1, 2, 3",
   "AUCSSQ", "AUC Quartile", "text", 20, "", "", "Q1, Q2, Q3, Q4",
   "AUCSSQN", "AUC Quartile (N)", "integer", 8, "", "", "1, 2, 3, 4",
   
   # Exposure Variables - Alternative
-  "CMAXSS", "Steady-State Cmax (μg/mL)", "float", 8, "", "", "Alternative exposure",
-  "CAVGSS", "Steady-State Cavg (μg/mL)", "float", 8, "", "", "Alternative exposure",
-  "CMINSS", "Steady-State Cmin (μg/mL)", "float", 8, "", "", "Trough concentration",
+  "CMAXSS", "Steady-State Cmax (ug/mL)", "float", 8, "", "", "Alternative exposure",
+  "CAVGSS", "Steady-State Cavg (ug/mL)", "float", 8, "", "", "Alternative exposure",
+  "CMINSS", "Steady-State Cmin (ug/mL)", "float", 8, "", "", "Trough concentration",
   
   # Baseline Covariates
   "WTBL", "Baseline Weight (kg)", "float", 8, "", "", "",
   "WTBLGR1", "Baseline Weight Group 1", "text", 20, "", "", "<70 kg, ≥70 kg",
   "HTBL", "Baseline Height (cm)", "float", 8, "", "", "",
-  "BMIBL", "Baseline BMI (kg/m²)", "float", 8, "", "", "",
-  "BSABL", "Baseline BSA (m²)", "float", 8, "", "", "",
+  "BMIBL", "Baseline BMI (kg/m^2)", "float", 8, "", "", "",
+  "BSABL", "Baseline BSA (m^2)", "float", 8, "", "", "",
   "CREATBL", "Baseline Serum Creatinine (mg/dL)", "float", 8, "", "", "",
   "CRCLBL", "Baseline Creatinine Clearance (mL/min)", "float", 8, "", "", "",
-  "EGFRBL", "Baseline eGFR (mL/min/1.73m²)", "float", 8, "", "", "",
+  "EGFRBL", "Baseline eGFR (mL/min/1.73m^2)", "float", 8, "", "", "",
   "ALTBL", "Baseline ALT (U/L)", "float", 8, "", "", "",
   "ASTBL", "Baseline AST (U/L)", "float", 8, "", "", "",
   "TBILBL", "Baseline Total Bilirubin (mg/dL)", "float", 8, "", "", "",
@@ -199,7 +199,7 @@ ades_specs <- tribble(
   "SEXN", "Sex (N)", "integer", 8, "", "", "",
   "RACE", "Race", "text", 40, "(RACE)", "", "",
   "WTBL", "Baseline Weight (kg)", "float", 8, "", "", "",
-  "BMIBL", "Baseline BMI (kg/m²)", "float", 8, "", "", "",
+  "BMIBL", "Baseline BMI (kg/m^2)", "float", 8, "", "", "",
   
   # Parameter Information
   "PARAMCD", "Parameter Code", "text", 8, "", "Req", "SUBJSUM, AEVENT, or AEDECOD",
@@ -237,7 +237,7 @@ ades_specs <- tribble(
   "RATE", "Event Rate (per 100 patient-days)", "float", 8, "", "", "Parameter-level rate",
   
   # Exposure Variables
-  "AUCSS", "Steady-State AUC (μg·h/mL)", "float", 8, "", "", "Primary exposure metric",
+  "AUCSS", "Steady-State AUC (ug·h/mL)", "float", 8, "", "", "Primary exposure metric",
   "AUCSSCAT", "AUC Category (Tertiles)", "text", 20, "", "", "Low, Medium, High",
   
   # Analysis Flags
@@ -263,7 +263,7 @@ adtr_specs <- tribble(
   "AGE", "Age", "integer", 8, "", "", "Years",
   "SEX", "Sex", "text", 1, "(SEX)", "", "",
   "WTBL", "Baseline Weight (kg)", "float", 8, "", "", "",
-  "BMIBL", "Baseline BMI (kg/m²)", "float", 8, "", "", "",
+  "BMIBL", "Baseline BMI (kg/m^2)", "float", 8, "", "", "",
   "DOSE", "Dose (mg)", "float", 8, "", "", "Administered dose",
   
   # Parameter Information
@@ -300,7 +300,7 @@ adtr_specs <- tribble(
   "ANL02FL", "Analysis Flag 02", "text", 1, "(NY)", "", "Y for responders (CR/PR)",
   
   # Exposure Variables
-  "AUCSS", "Steady-State AUC (μg·h/mL)", "float", 8, "", "", "Primary exposure metric",
+  "AUCSS", "Steady-State AUC (ug·h/mL)", "float", 8, "", "", "Primary exposure metric",
   "AUCSSLOG", "Log-Transformed AUC", "float", 8, "", "", "ln(AUCSS)",
   "AUCSSCAT", "AUC Category (Tertiles)", "text", 20, "", "", "Low, Medium, High",
   
