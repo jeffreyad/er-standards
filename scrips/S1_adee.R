@@ -7,12 +7,12 @@
 #          modeling using time-to-event endpoints (PFS, OS)
 #
 # Author: [Your Name]
-# Date: 2026-01-17
+# Date: 2026-01-20
 #===============================================================================
 
 # Required packages
-required_packages <- c("nlmixr2", "dplyr", "ggplot2", "survival", 
-                       "survminer", "tidyr", "patchwork")
+required_packages <- c("dplyr", "ggplot2", "survival", "survminer", 
+                       "tidyr", "patchwork", "broom")
 
 # Install if needed
 new_packages <- required_packages[!(required_packages %in% 
@@ -20,17 +20,27 @@ new_packages <- required_packages[!(required_packages %in%
 if(length(new_packages)) install.packages(new_packages)
 
 # Load libraries
-library(nlmixr2)
 library(dplyr)
 library(ggplot2)
 library(survival)
 library(survminer)
 library(tidyr)
 library(patchwork)
+library(broom)
+
+# Prevent namespace conflicts
+select <- dplyr::select
+filter <- dplyr::filter
+
+# Create output directories
+if (!dir.exists("output/figures")) dir.create("output/figures", recursive = TRUE)
+if (!dir.exists("output/tables")) dir.create("output/tables", recursive = TRUE)
 
 #===============================================================================
 # 1. DATA PREPARATION
 #===============================================================================
+
+cat("\n=== ADEE EXPOSURE-EFFICACY ANALYSIS ===\n\n")
 
 # Load ADEE dataset
 # This dataset follows the ADEE structure proposed in the manuscript:
@@ -92,7 +102,7 @@ p1 <- ggsurvplot(
   risk.table.height = 0.25
 )
 
-# FIX: Save properly for ggsurvplot objects
+# Save plot (ggsurvplot requires special handling)
 pdf("output/figures/Figure_S1A_KM_by_exposure.pdf", width = 10, height = 8)
 print(p1)
 dev.off()
@@ -165,7 +175,7 @@ cat("\n\nMultivariable Cox Model:\n")
 print(summary(cox_multi))
 
 # Forest plot of hazard ratios
-hr_data <- broom::tidy(cox_multi, conf.int = TRUE, exponentiate = TRUE)
+hr_data <- tidy(cox_multi, conf.int = TRUE, exponentiate = TRUE)
 
 p4 <- ggplot(hr_data, aes(x = estimate, y = term)) +
   geom_vline(xintercept = 1, linetype = "dashed", color = "red") +
@@ -181,89 +191,119 @@ ggsave("output/figures/Figure_S1D_hazard_ratios.pdf",
        p4, width = 8, height = 5)
 
 #===============================================================================
-# 4. PARAMETRIC TIME-TO-EVENT MODEL (NLMIXR2)
+# 4. PARAMETRIC TIME-TO-EVENT MODEL
 #===============================================================================
 
 cat("\n=== PARAMETRIC TIME-TO-EVENT MODEL ===\n\n")
 
 ## 4.1 Weibull Model with Exposure Effect ----
 
-# Prepare data for nlmixr2
-# nlmixr2 expects specific column names for survival analysis
-adee_nlmixr <- adee_pfs %>%
+# Prepare data
+adee_survreg <- adee_pfs %>%
   mutate(
-    ID = as.numeric(factor(USUBJID)),
-    TIME = AVAL,
-    DV = EVENT,
-    EVID = 0,  # All observation records
-    # Center covariates
+    # Center covariates for interpretability
     EXPOSURE_C = EXPOSURE_VAR - mean(EXPOSURE_VAR, na.rm = TRUE),
+    EXPOSURE_C10 = EXPOSURE_C / 10,  # Scale: effect per 10-unit increase
     WTBL_C = WTBL - mean(WTBL, na.rm = TRUE),
     AGE_C = AGE - mean(AGE, na.rm = TRUE)
   )
 
-# Define Weibull time-to-event model
-# Hazard function: h(t) = (shape/scale) * (t/scale)^(shape-1) * exp(beta*exposure)
-# Scale parameter includes exposure effect
+# Fit Weibull model
+cat("Fitting Weibull model with exposure effect...\n\n")
 
-weibull_model <- function() {
-  ini({
-    # Log-transformed parameters
-    log_shape <- log(1.5)      # Weibull shape parameter
-    log_scale0 <- log(180)     # Baseline scale (median ~ 180 days)
-    beta_exp <- 0.01           # Exposure coefficient
-    
-    # Between-subject variability
-    eta_scale ~ 0.2
-  })
-  
-  model({
-    # Back-transform
-    shape <- exp(log_shape)
-    
-    # Scale with exposure effect and random effect
-    scale <- exp(log_scale0 + beta_exp * EXPOSURE_C + eta_scale)
-    
-    # Weibull hazard
-    # For time-to-event, nlmixr2 uses special syntax
-    hazard <- (shape / scale) * (TIME / scale)^(shape - 1)
-    
-    # Define survival endpoint
-    TIME ~ weibull(shape, scale)
-  })
-}
-
-cat("Fitting Weibull model with exposure effect...\n")
-cat("This may take a few minutes...\n\n")
-
-# Fit model using SAEM for faster estimation
-fit_weibull <- nlmixr(
-  weibull_model, 
-  data = adee_nlmixr,
-  est = "saem",
-  control = saemControl(
-    nBurn = 200,
-    nEm = 300,
-    print = 50
-  )
+weibull_model <- survreg(
+  Surv(AVAL, EVENT) ~ EXPOSURE_C10,
+  data = adee_survreg,
+  dist = "weibull"
 )
 
 # Model summary
 cat("\n=== Weibull Model Results ===\n")
-print(fit_weibull)
+print(summary(weibull_model))
+
+# Extract parameters
+# survreg uses log(T) = intercept + beta*X + scale*error
+# Convert to standard Weibull parameterization
+shape_param <- 1 / weibull_model$scale
+cat("\nWeibull shape parameter:", round(shape_param, 3), "\n")
+cat("  (shape > 1 indicates increasing hazard over time)\n\n")
+
+# Acceleration factor (how exposure changes survival time)
+accel_factor <- exp(coef(weibull_model)["EXPOSURE_C10"])
+accel_factor_ci <- exp(confint(weibull_model)["EXPOSURE_C10", ])
+
+cat("Acceleration Factor per 10-unit exposure increase:\n")
+cat(sprintf("  AF = %.3f (95%% CI: %.3f - %.3f)\n", 
+            accel_factor, accel_factor_ci[1], accel_factor_ci[2]))
+cat("  → AF > 1 means higher exposure → longer survival time\n\n")
+
+# Hazard ratio (inverse of acceleration factor)
+hr <- 1 / accel_factor
+hr_ci <- 1 / rev(accel_factor_ci)  # Reverse for proper CI bounds
+
+cat("Hazard Ratio per 10-unit exposure increase:\n")
+cat(sprintf("  HR = %.3f (95%% CI: %.3f - %.3f)\n",
+            hr, hr_ci[1], hr_ci[2]))
+cat("  → HR < 1 means higher exposure → lower risk of progression\n\n")
 
 # Save parameter estimates
-params_table <- as.data.frame(fit_weibull$parFixed)
-write.csv(params_table, "output/tables/Table_S1_weibull_parameters.csv")
+params_table <- data.frame(
+  Parameter = c("Shape", "Acceleration_Factor", "Hazard_Ratio"),
+  Estimate = c(shape_param, accel_factor, hr),
+  CI_Lower = c(NA, accel_factor_ci[1], hr_ci[1]),
+  CI_Upper = c(NA, accel_factor_ci[2], hr_ci[2])
+)
+
+write.csv(params_table, "output/tables/Table_S1_weibull_parameters.csv",
+          row.names = FALSE)
 
 ## 4.2 Model Diagnostics ----
 
-# Standard GOF plots
+# Extract predicted survival times
+adee_survreg$predicted <- predict(weibull_model, type = "response")
+
+# Residuals
+adee_survreg$residuals <- residuals(weibull_model, type = "deviance")
+
+# Create diagnostic plots
 pdf("output/figures/Figure_S1E_GOF_plots.pdf", width = 10, height = 10)
-plot(fit_weibull)
+par(mfrow = c(2, 2))
+
+# 1. Predicted vs Observed
+plot(adee_survreg$predicted, adee_survreg$AVAL,
+     xlab = "Predicted Survival Time (days)",
+     ylab = "Observed Time (days)",
+     main = "Predicted vs Observed",
+     pch = ifelse(adee_survreg$EVENT == 1, 16, 1),
+     col = ifelse(adee_survreg$EVENT == 1, "red", "blue"))
+abline(0, 1, lty = 2)
+legend("topleft", c("Event", "Censored"), 
+       pch = c(16, 1), col = c("red", "blue"))
+
+# 2. Residuals vs Predicted
+plot(adee_survreg$predicted, adee_survreg$residuals,
+     xlab = "Predicted Survival Time (days)",
+     ylab = "Deviance Residuals",
+     main = "Residuals vs Predicted",
+     pch = 16, col = "steelblue")
+abline(h = 0, lty = 2, col = "red")
+
+# 3. Q-Q plot of residuals
+qqnorm(adee_survreg$residuals, main = "Normal Q-Q Plot of Residuals")
+qqline(adee_survreg$residuals, col = "red")
+
+# 4. Residuals vs Exposure
+plot(adee_survreg$EXPOSURE_VAR, adee_survreg$residuals,
+     xlab = "Exposure (AUC)",
+     ylab = "Deviance Residuals",
+     main = "Residuals vs Exposure",
+     pch = 16, col = "steelblue")
+abline(h = 0, lty = 2, col = "red")
+
+par(mfrow = c(1, 1))
 dev.off()
 
-cat("\nGoodness-of-fit plots saved: output/figures/Figure_S1E_GOF_plots.pdf\n")
+cat("Goodness-of-fit plots saved: output/figures/Figure_S1E_GOF_plots.pdf\n\n")
 
 ## 4.3 Exposure-Response Curve ----
 
@@ -274,34 +314,33 @@ exp_range <- seq(
   length.out = 100
 )
 
-# Extract parameter estimates
-params <- fit_weibull$parFixed
-shape_est <- exp(params["log_shape"])
-scale0_est <- exp(params["log_scale0"])
-beta_est <- params["beta_exp"]
-
-# Calculate median TTE at each exposure level
+# Create prediction data
 pred_data <- data.frame(
   EXPOSURE_VAR = exp_range,
-  EXPOSURE_C = exp_range - mean(adee_pfs$EXPOSURE_VAR, na.rm = TRUE)
-) %>%
-  mutate(
-    scale = exp(scale0_est + beta_est * EXPOSURE_C),
-    median_tte = scale * (log(2))^(1/shape_est),
-    # 95% prediction interval (approximate)
-    lower_tte = scale * (log(2/0.975))^(1/shape_est),
-    upper_tte = scale * (log(2/0.025))^(1/shape_est)
-  )
+  EXPOSURE_C = exp_range - mean(adee_pfs$EXPOSURE_VAR, na.rm = TRUE),
+  EXPOSURE_C10 = (exp_range - mean(adee_pfs$EXPOSURE_VAR, na.rm = TRUE)) / 10
+)
 
+# Predict median survival times
+pred_data$median_tte <- predict(weibull_model, newdata = pred_data, 
+                                 type = "quantile", p = 0.5)
+
+# Predict 25th and 75th percentiles for uncertainty bands
+pred_data$q25_tte <- predict(weibull_model, newdata = pred_data,
+                              type = "quantile", p = 0.25)
+pred_data$q75_tte <- predict(weibull_model, newdata = pred_data,
+                              type = "quantile", p = 0.75)
+
+# Plot
 p5 <- ggplot() +
-  # Prediction band
-  geom_ribbon(data = pred_data, 
-              aes(x = EXPOSURE_VAR, ymin = lower_tte, ymax = upper_tte),
+  # Prediction band (IQR)
+  geom_ribbon(data = pred_data,
+              aes(x = EXPOSURE_VAR, ymin = q25_tte, ymax = q75_tte),
               fill = "lightblue", alpha = 0.3) +
   # Median prediction line
-  geom_line(data = pred_data, 
+  geom_line(data = pred_data,
             aes(x = EXPOSURE_VAR, y = median_tte),
-            color = "blue", size = 1.2) +
+            color = "blue", linewidth = 1.2) +
   # Observed data points (only events, sized by weight)
   geom_point(data = adee_pfs %>% filter(EVENT == 1),
              aes(x = EXPOSURE_VAR, y = AVAL, size = WTBL),
@@ -312,7 +351,7 @@ p5 <- ggplot() +
              alpha = 0.4, color = "gray", shape = 3) +
   labs(
     title = "Exposure-Response Relationship for PFS",
-    subtitle = "Parametric Weibull Model (nlmixr2 SAEM estimation)",
+    subtitle = "Parametric Weibull Model (survival::survreg)",
     x = "Steady-State AUC (μg·h/mL)",
     y = "Median Time to Progression (days)",
     size = "Baseline\nWeight (kg)"
@@ -323,6 +362,8 @@ p5 <- ggplot() +
 ggsave("output/figures/Figure_S1F_ER_curve.pdf", 
        p5, width = 10, height = 7)
 
+cat("Exposure-response curve saved: output/figures/Figure_S1F_ER_curve.pdf\n\n")
+
 #===============================================================================
 # 5. COVARIATE ANALYSIS
 #===============================================================================
@@ -331,55 +372,28 @@ cat("\n=== COVARIATE ANALYSIS ===\n\n")
 
 ## 5.1 Full Covariate Model ----
 
-weibull_cov_model <- function() {
-  ini({
-    log_shape <- log(1.5)
-    log_scale0 <- log(180)
-    beta_exp <- 0.01
-    beta_wt <- 0            # Weight effect
-    beta_age <- 0           # Age effect
-    beta_sex <- 0           # Sex effect (M vs F)
-    
-    eta_scale ~ 0.2
-  })
-  
-  model({
-    shape <- exp(log_shape)
-    
-    # Scale with all covariate effects
-    scale <- exp(
-      log_scale0 + 
-      beta_exp * EXPOSURE_C + 
-      beta_wt * WTBL_C +
-      beta_age * AGE_C +
-      beta_sex * (SEX == "M") +
-      eta_scale
-    )
-    
-    TIME ~ weibull(shape, scale)
-  })
-}
-
-cat("Fitting full covariate model...\n")
-
-fit_cov <- nlmixr(
-  weibull_cov_model,
-  data = adee_nlmixr,
-  est = "saem",
-  control = saemControl(nBurn = 200, nEm = 300, print = 50)
+weibull_cov_model <- survreg(
+  Surv(AVAL, EVENT) ~ EXPOSURE_C10 + WTBL_C + AGE_C + SEX,
+  data = adee_survreg,
+  dist = "weibull"
 )
 
-cat("\n=== Full Covariate Model Results ===\n")
-print(fit_cov)
+cat("=== Full Covariate Model Results ===\n")
+print(summary(weibull_cov_model))
+cat("\n")
 
 ## 5.2 Model Comparison ----
 
 # Compare models using AIC/BIC
 comparison <- data.frame(
   Model = c("Base (Exposure only)", "Full Covariate"),
-  AIC = c(AIC(fit_weibull), AIC(fit_cov)),
-  BIC = c(BIC(fit_weibull), BIC(fit_cov)),
-  LogLik = c(logLik(fit_weibull), logLik(fit_cov))
+  AIC = c(AIC(weibull_model), AIC(weibull_cov_model)),
+  BIC = c(BIC(weibull_model), BIC(weibull_cov_model)),
+  LogLik = c(logLik(weibull_model), logLik(weibull_cov_model)),
+  df = c(
+    length(coef(weibull_model)) + 1,  # +1 for scale parameter
+    length(coef(weibull_cov_model)) + 1
+  )
 )
 
 cat("\n=== Model Comparison ===\n")
@@ -387,6 +401,66 @@ print(comparison)
 
 write.csv(comparison, "output/tables/Table_S2_model_comparison.csv", 
           row.names = FALSE)
+
+# Likelihood ratio test
+lrt <- -2 * (logLik(weibull_model) - logLik(weibull_cov_model))
+lrt_df <- comparison$df[2] - comparison$df[1]
+lrt_p <- pchisq(as.numeric(lrt), df = lrt_df, lower.tail = FALSE)
+
+cat("\nLikelihood Ratio Test:\n")
+cat(sprintf("  Chi-square = %.2f, df = %d, p-value = %.4f\n", 
+            lrt, lrt_df, lrt_p))
+
+if (lrt_p < 0.05) {
+  cat("  → Covariates significantly improve model fit\n\n")
+  final_model <- weibull_cov_model
+} else {
+  cat("  → Base model adequate\n\n")
+  final_model <- weibull_model
+}
+
+## 5.3 Acceleration Factors for All Covariates ----
+
+coef_table <- data.frame(
+  Covariate = names(coef(weibull_cov_model))[-1],  # Exclude intercept
+  Acceleration_Factor = exp(coef(weibull_cov_model)[-1]),
+  row.names = NULL
+)
+
+# Add confidence intervals
+ci_matrix <- confint(weibull_cov_model)
+coef_table$CI_Lower <- exp(ci_matrix[-1, 1])
+coef_table$CI_Upper <- exp(ci_matrix[-1, 2])
+
+cat("Acceleration Factors (AF > 1 indicates longer survival):\n")
+print(coef_table)
+cat("\n")
+
+# Forest plot
+p_forest <- coef_table %>%
+  mutate(
+    Covariate = recode(Covariate,
+                       "EXPOSURE_C10" = "Exposure (+10 units)",
+                       "WTBL_C" = "Weight (+1 kg)",
+                       "AGE_C" = "Age (+1 year)",
+                       "SEXM" = "Sex (Male vs Female)")
+  ) %>%
+  ggplot(aes(x = Acceleration_Factor, 
+             y = forcats::fct_reorder(Covariate, Acceleration_Factor))) +
+  geom_vline(xintercept = 1, linetype = "dashed", color = "red") +
+  geom_errorbarh(aes(xmin = CI_Lower, xmax = CI_Upper), height = 0.2) +
+  geom_point(size = 3) +
+  scale_x_log10() +
+  labs(
+    title = "Acceleration Factors from Weibull Model",
+    subtitle = "AF > 1 indicates longer survival time",
+    x = "Acceleration Factor (95% CI, log scale)",
+    y = ""
+  ) +
+  theme_bw()
+
+ggsave("output/figures/Figure_S1D_acceleration_factors.pdf", 
+       p_forest, width = 8, height = 5)
 
 #===============================================================================
 # 6. DOSE SELECTION SIMULATION
@@ -396,8 +470,6 @@ cat("\n=== DOSE SELECTION SIMULATION ===\n\n")
 
 # Simulate outcomes at different dose levels
 # Assume linear dose-exposure relationship from population PK
-# Dose (mg) → AUC (μg·h/mL) with slope from PopPK
-
 dose_exp_slope <- 0.12  # Example: 100mg → 12 μg·h/mL
 
 dose_scenarios <- data.frame(
@@ -406,44 +478,60 @@ dose_scenarios <- data.frame(
 )
 
 # Function to simulate median PFS at given exposure
-simulate_median_pfs <- function(exposure, params, n_sim = 1000) {
-  shape <- exp(params["log_shape"])
-  scale0 <- exp(params["log_scale0"])
-  beta <- params["beta_exp"]
+simulate_median_pfs <- function(exposure, model, n_sim = 1000) {
   
-  # Center exposure
-  exposure_c <- exposure - mean(adee_pfs$EXPOSURE_VAR, na.rm = TRUE)
+  # Center exposure (same as in model fitting)
+  exposure_c <- exposure - mean(adee_survreg$EXPOSURE_VAR, na.rm = TRUE)
+  exposure_c10 <- exposure_c / 10
   
-  # Scale parameter
-  scale <- exp(scale0 + beta * exposure_c)
+  # Create prediction data
+  newdata <- data.frame(EXPOSURE_C10 = exposure_c10)
   
-  # Simulate TTE
-  tte_sim <- rweibull(n_sim, shape = shape, scale = scale)
+  # Get predicted median from model
+  median_pred <- predict(model, newdata = newdata, type = "quantile", p = 0.5)
   
-  # Return summary
-  c(
-    median = median(tte_sim),
-    q25 = quantile(tte_sim, 0.25),
-    q75 = quantile(tte_sim, 0.75),
-    mean = mean(tte_sim)
-  )
+  # Get 25th and 75th percentiles for uncertainty
+  q25_pred <- predict(model, newdata = newdata, type = "quantile", p = 0.25)
+  q75_pred <- predict(model, newdata = newdata, type = "quantile", p = 0.75)
+  
+  # For simulation, extract Weibull parameters
+  shape <- 1 / model$scale
+  scale_log <- coef(model)["(Intercept)"] + coef(model)["EXPOSURE_C10"] * exposure_c10
+  scale_param <- exp(scale_log)
+  
+  # Simulate from Weibull
+  simulated_times <- rweibull(n_sim, shape = shape, scale = scale_param)
+  
+  return(c(
+    median = median_pred,
+    q25 = q25_pred,
+    q75 = q75_pred,
+    mean = mean(simulated_times),
+    sd = sd(simulated_times)
+  ))
 }
 
 # Run simulations
-params_est <- fit_weibull$parFixed
+cat("Simulating PFS at different dose levels...\n")
 
 dose_scenarios <- dose_scenarios %>%
   rowwise() %>%
   mutate(
-    Median_PFS_days = simulate_median_pfs(Expected_AUC, params_est)["median"],
-    Q25_PFS_days = simulate_median_pfs(Expected_AUC, params_est)["q25"],
-    Q75_PFS_days = simulate_median_pfs(Expected_AUC, params_est)["q75"],
-    Mean_PFS_days = simulate_median_pfs(Expected_AUC, params_est)["mean"]
+    sim_results = list(simulate_median_pfs(Expected_AUC, weibull_model, n_sim = 1000))
   ) %>%
-  ungroup()
+  ungroup() %>%
+  mutate(
+    Median_PFS_days = sapply(sim_results, function(x) x["median"]),
+    Q25_PFS_days = sapply(sim_results, function(x) x["q25"]),
+    Q75_PFS_days = sapply(sim_results, function(x) x["q75"]),
+    Mean_PFS_days = sapply(sim_results, function(x) x["mean"]),
+    SD_PFS_days = sapply(sim_results, function(x) x["sd"])
+  ) %>%
+  select(-sim_results)
 
 cat("\n=== Simulated PFS by Dose ===\n")
 print(dose_scenarios)
+cat("\n")
 
 write.csv(dose_scenarios, 
           "output/tables/Table_S3_dose_selection_simulation.csv",
@@ -454,11 +542,14 @@ p6 <- ggplot(dose_scenarios,
              aes(x = Dose_mg, y = Median_PFS_days)) +
   geom_ribbon(aes(ymin = Q25_PFS_days, ymax = Q75_PFS_days),
               fill = "lightblue", alpha = 0.3) +
-  geom_line(size = 1.2, color = "blue") +
+  geom_line(linewidth = 1.2, color = "blue") +
   geom_point(size = 3, color = "blue") +
+  geom_text(aes(label = sprintf("%.0f days", Median_PFS_days)),
+            vjust = -1.5, size = 3) +
+  scale_x_continuous(breaks = dose_scenarios$Dose_mg) +
   labs(
     title = "Simulated PFS by Dose Level",
-    subtitle = "Based on parametric E-R model (median and IQR)",
+    subtitle = "Based on parametric Weibull E-R model (median and IQR)",
     x = "Dose (mg)",
     y = "Median PFS (days)"
   ) +
@@ -466,6 +557,8 @@ p6 <- ggplot(dose_scenarios,
 
 ggsave("output/figures/Figure_S1G_dose_simulation.pdf",
        p6, width = 8, height = 6)
+
+cat("Dose simulation plot saved: output/figures/Figure_S1G_dose_simulation.pdf\n\n")
 
 #===============================================================================
 # 7. SUBGROUP ANALYSIS
@@ -490,40 +583,63 @@ cox_wt_high <- coxph(Surv(AVAL, EVENT) ~ EXPOSURE_VAR,
                       data = adee_pfs_subgroup %>% filter(WT_GROUP == "≥ 70 kg"))
 
 cat("Exposure effect (HR per unit AUC):\n")
-cat("Weight < 70 kg: HR =", exp(coef(cox_wt_low)), 
-    "95% CI:", exp(confint(cox_wt_low)), "\n")
-cat("Weight ≥ 70 kg: HR =", exp(coef(cox_wt_high)),
-    "95% CI:", exp(confint(cox_wt_high)), "\n")
+cat("Weight < 70 kg: HR =", round(exp(coef(cox_wt_low)), 3), "\n")
+cat("  95% CI:", round(exp(confint(cox_wt_low)), 3), "\n")
+cat("Weight ≥ 70 kg: HR =", round(exp(coef(cox_wt_high)), 3), "\n")
+cat("  95% CI:", round(exp(confint(cox_wt_high)), 3), "\n\n")
 
 # Test interaction
 cox_interaction <- coxph(Surv(AVAL, EVENT) ~ EXPOSURE_VAR * WT_GROUP,
                          data = adee_pfs_subgroup)
 
-cat("\nInteraction test (p-value):", 
-    summary(cox_interaction)$coefficients["EXPOSURE_VAR:WT_GROUP≥ 70 kg", "Pr(>|z|)"], 
-    "\n")
+cat("Interaction test (p-value):", 
+    round(summary(cox_interaction)$coefficients["EXPOSURE_VAR:WT_GROUP≥ 70 kg", "Pr(>|z|)"], 4), 
+    "\n\n")
 
 ## 7.2 Visualization by Subgroups ----
 
-# Create ER curves for each subgroup
+# Fit Weibull models for each subgroup
+subgroup_models <- list(
+  "< 70 kg" = survreg(Surv(AVAL, EVENT) ~ EXPOSURE_VAR,
+                       data = adee_pfs_subgroup %>% filter(WT_GROUP == "< 70 kg"),
+                       dist = "weibull"),
+  "≥ 70 kg" = survreg(Surv(AVAL, EVENT) ~ EXPOSURE_VAR,
+                       data = adee_pfs_subgroup %>% filter(WT_GROUP == "≥ 70 kg"),
+                       dist = "weibull")
+)
+
+# Generate predictions
+exp_range <- seq(
+  min(adee_pfs$EXPOSURE_VAR, na.rm = TRUE),
+  max(adee_pfs$EXPOSURE_VAR, na.rm = TRUE),
+  length.out = 100
+)
+
 subgroup_predictions <- expand.grid(
   EXPOSURE_VAR = exp_range,
   WT_GROUP = c("< 70 kg", "≥ 70 kg")
 ) %>%
-  mutate(
-    EXPOSURE_C = EXPOSURE_VAR - mean(adee_pfs$EXPOSURE_VAR, na.rm = TRUE),
-    scale = exp(scale0_est + beta_est * EXPOSURE_C),
-    median_tte = scale * (log(2))^(1/shape_est)
-  )
+  mutate(median_tte = NA_real_)
+
+# Predict for each subgroup
+for (grp in c("< 70 kg", "≥ 70 kg")) {
+  pred_data <- data.frame(EXPOSURE_VAR = exp_range)
+  predictions <- predict(subgroup_models[[grp]], 
+                          newdata = pred_data, 
+                          type = "quantile", 
+                          p = 0.5)
+  subgroup_predictions$median_tte[subgroup_predictions$WT_GROUP == grp] <- predictions
+}
 
 p7 <- ggplot() +
   geom_line(data = subgroup_predictions,
             aes(x = EXPOSURE_VAR, y = median_tte, color = WT_GROUP),
-            size = 1.2) +
+            linewidth = 1.2) +
   geom_point(data = adee_pfs_subgroup %>% filter(EVENT == 1),
              aes(x = EXPOSURE_VAR, y = AVAL, color = WT_GROUP),
              alpha = 0.4) +
   facet_wrap(~WT_GROUP) +
+  scale_color_manual(values = c("< 70 kg" = "#E41A1C", "≥ 70 kg" = "#4DAF4A")) +
   labs(
     title = "Exposure-Response by Weight Subgroup",
     x = "Exposure (AUC, μg·h/mL)",
@@ -535,6 +651,8 @@ p7 <- ggplot() +
 
 ggsave("output/figures/Figure_S1H_subgroup_analysis.pdf",
        p7, width = 10, height = 5)
+
+cat("Subgroup analysis plot saved: output/figures/Figure_S1H_subgroup_analysis.pdf\n\n")
 
 #===============================================================================
 # 8. SUMMARY AND EXPORT
@@ -558,16 +676,16 @@ summary_stats <- list(
   ),
   
   model_results = list(
-    weibull_shape = exp(params_est["log_shape"]),
-    baseline_scale = exp(params_est["log_scale0"]),
-    exposure_coefficient = params_est["beta_exp"],
+    weibull_shape = shape_param,
+    acceleration_factor = accel_factor,
+    hazard_ratio = hr,
     median_pfs_at_median_exposure = median(pred_data$median_tte)
   ),
   
   key_findings = list(
-    hr_per_unit_auc = exp(coef(cox_cont)),
-    hr_95ci = exp(confint(cox_cont)),
-    pvalue = summary(cox_cont)$coefficients[,"Pr(>|z|)"]
+    cox_hr_per_unit_auc = exp(coef(cox_cont)),
+    cox_hr_95ci = exp(confint(cox_cont)),
+    cox_pvalue = summary(cox_cont)$coefficients[,"Pr(>|z|)"]
   )
 )
 
@@ -587,7 +705,8 @@ cat("\nFigures:\n")
 cat("  - Figure_S1A_KM_by_exposure.pdf\n")
 cat("  - Figure_S1B_exposure_distribution.pdf\n")
 cat("  - Figure_S1C_raw_er_scatter.pdf\n")
-cat("  - Figure_S1D_hazard_ratios.pdf\n")
+cat("  - Figure_S1D_hazard_ratios.pdf (Cox model)\n")
+cat("  - Figure_S1D_acceleration_factors.pdf (Weibull model)\n")
 cat("  - Figure_S1E_GOF_plots.pdf\n")
 cat("  - Figure_S1F_ER_curve.pdf\n")
 cat("  - Figure_S1G_dose_simulation.pdf\n")
