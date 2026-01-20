@@ -500,8 +500,12 @@ p9 <- ggsurvplot(
   legend.labs = c("Low", "Medium", "High")
 )
 
-ggsave("output/figures/Figure_S2G_time_to_first_AE.pdf",
-       print(p9), width = 10, height = 8)
+# FIX: Save properly
+pdf("output/figures/Figure_S2G_time_to_first_AE.pdf", width = 10, height = 8)
+print(p9)
+dev.off()
+
+cat("Time to first AE plot saved.\n\n")
 
 # Cox model for time to first AE
 cox_ae <- coxph(Surv(TIME, EVENT) ~ EXPOSURE_C10, 
