@@ -11,6 +11,14 @@ library(pharmaverseadam)
 library(dplyr)
 library(lubridate)
 library(stringr)
+library(metacore)
+library(metatools)
+library(xportr)
+library(readxl)
+
+# Load Specs for Metacore ----
+metacore <- spec_to_metacore("specifications/adams-specs.xlsx", where_sep_sheet = FALSE) %>%
+  select_dataset("ADER")
 
 # Load source datasets ----
 
@@ -128,7 +136,8 @@ covar <- adsl %>%
   select(
     STUDYID, STUDYIDN, SITEID, SITEIDN, USUBJID, USUBJIDN,
     SUBJID, SUBJIDN, AGE, SEX, SEXN, COHORT, COHORTC, ROUTE, ROUTEN,
-    RACE, RACEN, ETHNIC, ETHNICN, FORM, FORMN, COUNTRY, COUNTRYN, COUNTRYL
+    RACE, RACEN, ETHNIC, ETHNICN, FORM, FORMN, COUNTRY, COUNTRYN, COUNTRYL,
+    ARMN, ACTARMN
   )
 
 #---- Derive additional baselines from VS and LB ----
@@ -177,18 +186,29 @@ covar_vslb <- covar %>%
 
 # Combine covariates with ADER data
 
-ader <- ader_aseq %>%
+ader_prefinal <- ader_aseq %>%
   derive_vars_merged(
     dataset_add = covar_vslb,
     by_vars = exprs(STUDYID, USUBJID)
   )
 
+ader <- ader_prefinal %>%
+  drop_unspec_vars(metacore) %>% # Drop unspecified variables from specs
+  check_variables(metacore, strict = FALSE) %>% # Check all variables specified are present and no more
+  check_ct_data(metacore) %>% # Checks all variables with CT only contain values within the CT
+  order_cols(metacore) %>% # Orders the columns according to the spec
+  sort_by_key(metacore) # Sorts the rows by the sort keys
+
+dir <- "data/adam" # Change to whichever directory you want to save the dataset in
+
+ader_xpt <- ader %>%
+  xportr_type(metacore, domain = "ADER") %>% # Coerce variable type to match spec
+  xportr_length(metacore) %>% # Assigns SAS length from a variable level metadata
+  xportr_label(metacore) %>% # Assigns variable label from metacore specifications
+  xportr_format(metacore) %>% # Assigns variable format from metacore specifications
+  xportr_df_label(metacore) %>% # Assigns dataset label from metacore specifications
+  xportr_write(file.path(dir, "ader.xpt")) # Write xpt v5 transport file
+
 # Save output ----
 
-# Change to whichever directory you want to save the dataset in
-dir <- tools::R_user_dir("admiralonco_templates_data", which = "cache")
-if (!file.exists(dir)) {
-  # Create the folder
-  dir.create(dir, recursive = TRUE, showWarnings = FALSE)
-}
 save(ader, file = file.path(dir, "ader.rda"), compress = "bzip2")
