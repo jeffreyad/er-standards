@@ -87,65 +87,102 @@ var_spec <- p21_spec %>%
 # CONTROLLED TERMINOLOGY SPECIFICATION
 #===============================================================================
 
+# Create controlled terminology specification
+# Origin values: "CDISC", "Sponsor", "NCI", or other sources
+
 ct_spec <- tibble::tribble(
-  ~variable, ~code, ~decode,
+  ~variable, ~code, ~decode, ~origin,
   
-  # PARAMCD
-  "PARAMCD", "PFS", "Progression-Free Survival",
-  "PARAMCD", "OS", "Overall Survival",
-  "PARAMCD", "TTP", "Time to Progression",
-  "PARAMCD", "TTNT", "Time to Treatment Discontinuation",
+  # ---- CDISC Standard Terms ----
   
-  # PARCAT1
-  "PARCAT1", "EFFICACY", "Efficacy",
+  # PARAMCD (CDISC standard codes where applicable)
+  "PARAMCD", "PFS", "Progression-Free Survival", "CDISC",
+  "PARAMCD", "OS", "Overall Survival", "CDISC",
+  "PARAMCD", "TTP", "Time to Progression", "CDISC",
+  "PARAMCD", "TTNT", "Time to Next Treatment", "Sponsor",  # Sponsor-defined
   
-  # PARCAT2
-  "PARCAT2", "TIME TO EVENT", "Time to Event",
+  # AVALU (CDISC standard units)
+  "AVALU", "DAYS", "Days", "CDISC",
   
-  # AVALU
-  "AVALU", "DAYS", "Days",
+  # SEX (CDISC CT)
+  "SEX", "M", "Male", "CDISC",
+  "SEX", "F", "Female", "CDISC",
+  "SEX", "U", "Unknown", "CDISC",
   
-  # AVALC
-  "AVALC", "EVENT", "Event",
-  "AVALC", "CENSORED", "Censored",
+  # NY codelist (standard CDISC for flags)
+  "ANL01FL", "Y", "Yes", "CDISC",
+  "ANL01FL", "", "No", "CDISC",
+  "ANL02FL", "Y", "Yes", "CDISC",
+  "ANL02FL", "", "No", "CDISC",
+  "ANL03FL", "Y", "Yes", "CDISC",
+  "ANL03FL", "", "No", "CDISC",
+  "ANL04FL", "Y", "Yes", "CDISC",
+  "ANL04FL", "", "No", "CDISC",
   
-  # AUCSSCAT
-  "AUCSSCAT", "Low", "Low Exposure",
-  "AUCSSCAT", "Medium", "Medium Exposure",
-  "AUCSSCAT", "High", "High Exposure",
+  # ATPT / AVISIT (CDISC standard timepoints)
+  "ATPT", "BASELINE", "Baseline", "CDISC",
+  "AVISIT", "BASELINE", "Baseline", "CDISC",
   
-  # AUCSSQ
-  "AUCSSQ", "Q1", "Quartile 1",
-  "AUCSSQ", "Q2", "Quartile 2",
-  "AUCSSQ", "Q3", "Quartile 3",
-  "AUCSSQ", "Q4", "Quartile 4",
+  # DTYPE (CDISC derivation types)
+  "DTYPE", "AVERAGE", "Average", "CDISC",
+  "DTYPE", "MINIMUM", "Minimum", "CDISC",
+  "DTYPE", "MAXIMUM", "Maximum", "CDISC",
   
-  # AUCSSMED
-  "AUCSSMED", "Below Median", "Below Median",
-  "AUCSSMED", "Above Median", "Above Median",
+  # ADTF (CDISC date imputation flags)
+  "ADTF", "D", "Day", "CDISC",
+  "ADTF", "M", "Month", "CDISC",
+  "ADTF", "Y", "Year", "CDISC",
   
-  # AGEGR1
-  "AGEGR1", "<65", "Less than 65 years",
-  "AGEGR1", "65-75", "65 to 75 years",
-  "AGEGR1", ">75", "Greater than 75 years",
+  # ---- Sponsor-Specific Terms ----
   
-  # WTBLGR1
-  "WTBLGR1", "<70 kg", "Less than 70 kg",
-  "WTBLGR1", ">=70 kg", "Greater than or equal to 70 kg",
+  # Parameter categories (sponsor-defined)
+  "PARCAT1", "EFFICACY", "Efficacy", "Sponsor",
+  "PARCAT2", "TIME TO EVENT", "Time to Event", "Sponsor",
   
-  # ATPT
-  "ATPT", "BASELINE", "Baseline",
+  # Event status (sponsor-defined)
+  "AVALC", "EVENT", "Event", "Sponsor",
+  "AVALC", "CENSORED", "Censored", "Sponsor",
   
-  # AVISIT
-  "AVISIT", "BASELINE", "Baseline",
+  # Exposure categories (sponsor-defined tertiles)
+  "AUCSSCAT", "Low", "Low Exposure (Tertile 1)", "Sponsor",
+  "AUCSSCAT", "Medium", "Medium Exposure (Tertile 2)", "Sponsor",
+  "AUCSSCAT", "High", "High Exposure (Tertile 3)", "Sponsor",
   
-  # ANL flags
-  "ANL01FL", "Y", "Yes",
-  "ANL02FL", "Y", "Yes",
-  "ANL03FL", "Y", "Yes",
-  "ANL04FL", "Y", "Yes"
+  # Exposure quartiles (sponsor-defined)
+  "AUCSSQ", "Q1", "Quartile 1", "Sponsor",
+  "AUCSSQ", "Q2", "Quartile 2", "Sponsor",
+  "AUCSSQ", "Q3", "Quartile 3", "Sponsor",
+  "AUCSSQ", "Q4", "Quartile 4", "Sponsor",
+  
+  # Exposure median split (sponsor-defined)
+  "AUCSSMED", "Below Median", "Below Median Exposure", "Sponsor",
+  "AUCSSMED", "Above Median", "Above Median Exposure", "Sponsor",
+  
+  # Age groups (sponsor-defined)
+  "AGEGR1", "<65", "Less than 65 years", "Sponsor",
+  "AGEGR1", "65-75", "65 to 75 years", "Sponsor",
+  "AGEGR1", ">75", "Greater than 75 years", "Sponsor",
+  
+  # Weight groups (sponsor-defined)
+  "WTBLGR1", "<70 kg", "Less than 70 kg", "Sponsor",
+  "WTBLGR1", ">=70 kg", "Greater than or equal to 70 kg", "Sponsor",
+  
+  # Treatment arms (study-specific)
+  "TRT01P", "Placebo", "Placebo", "Sponsor",
+  "TRT01P", "Xanomeline Low Dose", "Xanomeline Low Dose", "Sponsor",
+  "TRT01P", "Xanomeline High Dose", "Xanomeline High Dose", "Sponsor",
+  "TRT01A", "Placebo", "Placebo", "Sponsor",
+  "TRT01A", "Xanomeline Low Dose", "Xanomeline Low Dose", "Sponsor",
+  "TRT01A", "Xanomeline High Dose", "Xanomeline High Dose", "Sponsor",
+  "ARM", "Placebo", "Placebo", "Sponsor",
+  "ARM", "Xanomeline Low Dose", "Xanomeline Low Dose", "Sponsor",
+  "ARM", "Xanomeline High Dose", "Xanomeline High Dose", "Sponsor",
+  "ACTARM", "Placebo", "Placebo", "Sponsor",
+  "ACTARM", "Xanomeline Low Dose", "Xanomeline Low Dose", "Sponsor",
+  "ACTARM", "Xanomeline High Dose", "Xanomeline High Dose", "Sponsor"
 )
 
+# Note: Add study-specific RACE, ETHNIC terms if needed based on actual data
 #===============================================================================
 # VALUE LEVEL METADATA
 #===============================================================================
