@@ -13,9 +13,10 @@
 #   - ADTTE: Time-to-event analysis dataset
 #   - ADVS: Vital signs
 #   - ADLB: Laboratory data
+#   - metacore: Dataset specifications
 #
 # Output: 
-#   - ADEE: Exposure-efficacy analysis dataset
+#   - ADEE: Exposure-efficacy analysis dataset (RDS, XPT, CSV)
 #
 # Structure: BDS (Basic Data Structure)
 #   - One record per subject per parameter per analysis timepoint
@@ -25,7 +26,7 @@
 #
 # Author: Jeff Dickinson
 # Date: 2026-01-21
-# Version: 1.1
+# Version: 1.2
 #
 #===============================================================================
 
@@ -36,10 +37,25 @@ library(dplyr)
 library(lubridate)
 library(stringr)
 library(tidyr)
+library(metacore)
+library(metatools)
+library(xportr)
 
 # Prevent namespace conflicts
 select <- dplyr::select
 filter <- dplyr::filter
+
+#===============================================================================
+# LOAD SPECIFICATIONS
+#===============================================================================
+
+# Load metacore specifications
+# In production, load from spec file (Excel, JSON, etc.)
+# metacore <- spec_to_metacore("specifications/ADEE_spec.xlsx")
+
+# For demonstration, create minimal metacore object
+# Replace with actual spec file in production
+# metacore <- spec_to_metacore("path/to/ADEE_spec.xlsx", where_sep_sheet = FALSE)
 
 #===============================================================================
 # LOAD INPUT DATA
@@ -348,7 +364,7 @@ adee_base <- adtte %>%
 # ADD ANALYSIS VARIABLES
 #===============================================================================
 
-adee <- adee_base %>%
+adee_prefinal <- adee_base %>%
   # Analysis timepoint
   mutate(
     ATPT = "BASELINE",
@@ -379,7 +395,7 @@ adee <- adee_base %>%
     check_type = "error"
   ) %>%
   
-  # Select and order final variables
+  # Select variables (before metacore processing)
   select(
     # Identifiers
     STUDYID, STUDYIDN, USUBJID, USUBJIDN, SUBJID, SUBJIDN,
@@ -444,22 +460,51 @@ adee <- adee_base %>%
   arrange(USUBJID, PARAMN, AVISITN)
 
 #===============================================================================
+# APPLY METADATA AND PREPARE FOR EXPORT
+#===============================================================================
+
+# Apply metacore specifications (if metacore object is available)
+# Uncomment when metacore spec file is ready
+
+# adee <- adee_prefinal %>%
+#   drop_unspec_vars(metacore) %>%           # Drop unspecified variables
+#   check_variables(metacore, strict = FALSE) %>%  # Check variables match spec
+#   check_ct_data(metacore) %>%              # Check controlled terminology
+#   order_cols(metacore) %>%                 # Order columns per spec
+#   sort_by_key(metacore)                    # Sort by key variables
+
+# For now, use prefinal dataset as final
+adee <- adee_prefinal
+
+#===============================================================================
 # SAVE OUTPUT
 #===============================================================================
 
 # Create output directory
-if (!dir.exists("adam")) dir.create("adam", recursive = TRUE)
+dir <- "adam"
+if (!dir.exists(dir)) dir.create(dir, recursive = TRUE)
 
-# Save as RDS
-saveRDS(adee, "adam/adee.rds")
+# Save as RDS (R native format)
+saveRDS(adee, file.path(dir, "adee.rds"))
 
-# Save as SAS transport file
+# Save as CSV (for review)
+write.csv(adee, file.path(dir, "adee.csv"), row.names = FALSE, na = "")
+
+# Apply xportr and save as XPT (if metacore is available)
+# Uncomment when metacore spec file is ready
+
+# adee_xpt <- adee %>%
+#   xportr_type(metacore, domain = "ADEE") %>%     # Coerce variable types
+#   xportr_length(metacore) %>%                    # Assign SAS lengths
+#   xportr_label(metacore) %>%                     # Assign variable labels
+#   xportr_format(metacore) %>%                    # Assign formats
+#   xportr_df_label(metacore) %>%                  # Assign dataset label
+#   xportr_write(file.path(dir, "adee.xpt"))       # Write XPT v5 file
+
+# For now, save XPT without metacore specifications
 if (requireNamespace("haven", quietly = TRUE)) {
-  haven::write_xpt(adee, "adam/adee.xpt", version = 5)
+  haven::write_xpt(adee, file.path(dir, "adee.xpt"), version = 5)
 }
-
-# Save as CSV
-write.csv(adee, "adam/adee.csv", row.names = FALSE, na = "")
 
 #===============================================================================
 # END OF PROGRAM
