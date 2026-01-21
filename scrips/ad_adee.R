@@ -25,9 +25,9 @@
 #   - Standard ADaM BDS variables
 #   - Multiple exposure representations
 #
-# Author: [Your Name]
-# Date: 2026-01-20
-# Version: 1.0
+# Author: Jeff Dickinson
+# Date: 2026-01-21
+# Version: 1.1
 #
 #===============================================================================
 
@@ -72,6 +72,41 @@ adrs <- pharmaverseadam::adrs_onco
 adlb <- pharmaverseadam::adlb
 advs <- pharmaverseadam::advs
 adex <- pharmaverseadam::adex
+
+# Ensure required variables exist in ADSL
+if (!"TRT01P" %in% names(adsl)) {
+  adsl <- adsl %>%
+    mutate(
+      TRT01P = ARM,
+      TRT01PN = case_when(
+        ARM == "Placebo" ~ 0,
+        ARM == "Xanomeline Low Dose" ~ 1,
+        ARM == "Xanomeline High Dose" ~ 2,
+        TRUE ~ 3
+      ),
+      TRT01A = ACTARM,
+      TRT01AN = case_when(
+        ACTARM == "Placebo" ~ 0,
+        ACTARM == "Xanomeline Low Dose" ~ 1,
+        ACTARM == "Xanomeline High Dose" ~ 2,
+        TRUE ~ 3
+      )
+    )
+}
+
+# Ensure PARAMN exists in ADTTE
+if (!"PARAMN" %in% names(adtte)) {
+  adtte <- adtte %>%
+    mutate(
+      PARAMN = case_when(
+        PARAMCD == "PFS" ~ 1,
+        PARAMCD == "OS" ~ 2,
+        PARAMCD == "TTP" ~ 3,
+        PARAMCD == "TTNT" ~ 4,
+        TRUE ~ 99
+      )
+    )
+}
 
 cat("Input datasets loaded:\n")
 cat("  ADSL:", nrow(adsl), "subjects\n")
@@ -234,6 +269,62 @@ cat("  Derived: CRCLBL, EGFRBL\n\n")
 #===============================================================================
 # DERIVE EXPOSURE METRICS
 #===============================================================================
+
+cat("Deriving exposure metrics...\n\n")
+
+# In production, exposure metrics would come from ADPC or population PK analysis
+# For this example, we'll simulate exposure based on dose and covariates
+
+set.seed(12345)  # For reproducibility
+
+exposure_data <- adsl_vslb %>%
+  mutate(
+    # Get dose from treatment arm
+    DOSE = case_when(
+      ARM == "Placebo" ~ 0,
+      ARM == "Xanomeline Low Dose" ~ 54,
+      ARM == "Xanomeline High Dose" ~ 81,
+      TRUE ~ NA_real_
+    ),
+    
+    # Simulate individual clearance (L/h)
+    # CL depends on renal function and weight
+    CL_EST = 5 * (CRCLBL / 100)^0.75 * (WTBL / 70)^(-0.25),
+    
+    # Simulate steady-state AUC (dose/CL with variability)
+    # In production, use actual ADPC values or PopPK predictions
+    AUCSS = if_else(
+      DOSE > 0,
+      (DOSE / CL_EST) * exp(rnorm(n(), 0, 0.3)),  # 30% CV
+      0
+    ),
+    
+    # Simulate Cmax (proportional to AUC with different variability)
+    CMAXSS = if_else(
+      DOSE > 0,
+      AUCSS * 0.18 * exp(rnorm(n(), 0, 0.25)),  # Ka-dependent
+      0
+    ),
+    
+    # Average concentration
+    CAVGSS = if_else(
+      DOSE > 0,
+      AUCSS / 24,  # Assuming QD dosing
+      0
+    ),
+    
+    # Trough concentration (assume 2-compartment)
+    CMINSS = if_else(
+      DOSE > 0,
+      CAVGSS * 0.6 * exp(rnorm(n(), 0, 0.35)),
+      0
+    ),
+    
+    # Individual clearance (for reference)
+    CLSS = if_else(DOSE > 0, DOSE / AUCSS, NA_real_)
+  ) %>%
+  select(-CL_EST)  # Remove intermediate calculation
+
 ## Derive exposure transformations and categories ----
 
 cat("Deriving exposure transformations and categories...\n\n")
@@ -263,6 +354,7 @@ exposure_final <- exposure_data %>%
     CAVGSSLOG = log(CAVGSS + 0.01),
     
     # Standardized (z-score) - only for active treatment
+    # Use manual calculation to avoid dimension mismatch
     AUCSSSTD = if_else(
       DOSE > 0,
       (AUCSS - aucss_mean) / aucss_sd,
@@ -350,21 +442,39 @@ cat("  AUCSS median (active):", round(aucss_median, 2), "\n")
 cat("  Tertile breaks:", paste(round(tertile_breaks, 2), collapse = ", "), "\n")
 cat("  Quartile breaks:", paste(round(quartile_breaks, 2), collapse = ", "), "\n\n")
 
+cat("Exposure metrics derived:\n")
+cat("  Primary: AUCSS, CMAXSS, CAVGSS, CMINSS, CLSS\n")
+cat("  Transformations: AUCSSLOG, AUCSSSTD, AUCSSN, AUCSSDOSE\n")
+cat("  Categories: AUCSSCAT, AUCSSQ, AUCSSMED\n\n")
+
 #===============================================================================
 # CREATE ADEE BASE DATASET
 #===============================================================================
 
 cat("Creating ADEE base dataset from ADTTE...\n\n")
 
-## Filter to efficacy endpoints ----
+## Filter to efficacy endpoints and add required variables ----
 
 adee_base <- adtte %>%
-  select(-ARMCD, -ARM, -ACTARMCD, -ACTARM, -AGE, -SEX) %>%
   # Keep time-to-event efficacy endpoints
   filter(PARAMCD %in% c("OS", "PFS", "TTP", "TTNT")) %>%
   
   # Add EVENT indicator (standard: 1=event, 0=censored)
   mutate(EVENT = 1 - CNSR) %>%
+  
+  # Ensure AVALU exists (unit for time-to-event)
+  mutate(
+    AVALU = if_else(!is.na(AVAL), "DAYS", NA_character_)
+  ) %>%
+  
+  # Add AVALC (character representation of event status)
+  mutate(
+    AVALC = case_when(
+      EVENT == 1 ~ "EVENT",
+      CNSR == 1 ~ "CENSORED",
+      TRUE ~ NA_character_
+    )
+  ) %>%
   
   # Merge exposure and covariates
   derive_vars_merged(
@@ -433,7 +543,7 @@ adee_parcat <- adee_flags %>%
 adee_seq <- adee_parcat %>%
   derive_var_obs_number(
     by_vars = exprs(STUDYID, USUBJID),
-    order = exprs(PARAMCD, AVISITN),
+    order = exprs(PARAMN, AVISITN),
     new_var = ASEQ,
     check_type = "error"
   )
@@ -452,7 +562,7 @@ adee <- adee_seq %>%
     
     # Treatment
     ARM, ARMN, ACTARM, ACTARMN,
-    # TRT01P, TRT01PN, TRT01A, TRT01AN,
+    TRT01P, TRT01PN, TRT01A, TRT01AN,
     TRTSDT, TRTEDT, TRTDURD,
     
     # Demographics
@@ -462,11 +572,11 @@ adee <- adee_seq %>%
     ETHNIC, ETHNICN,
     
     # Parameter information
-    PARAMCD, PARAM,
+    PARAMCD, PARAM, PARAMN,
     PARCAT1, PARCAT2,
     
     # Analysis value (time-to-event)
-    AVAL,
+    AVAL, AVALU, AVALC,
     
     # Dates and relative days
     STARTDT, ADT, ADTF, ADY,
@@ -485,7 +595,8 @@ adee <- adee_seq %>%
     
     # Exposure metrics - Transformations
     AUCSSLOG, AUCSSSTD, AUCSSN, AUCSSDOSE,
-    CMAXSSLOG,
+    CMAXSSLOG, CMAXSSSTD, CMAXSSDOSE,
+    CAVGSSLOG,
     
     # Exposure metrics - Categories
     AUCSSCAT, AUCSSCATN,
@@ -506,7 +617,7 @@ adee <- adee_seq %>%
     # Record identifiers
     ASEQ, DTYPE
   ) %>%
-  arrange(USUBJID, PARAMCD, AVISITN)
+  arrange(USUBJID, PARAMN, AVISITN)
 
 #===============================================================================
 # DATA QUALITY CHECKS
@@ -579,6 +690,20 @@ flag_summary <- adee %>%
 cat("\n✓ Analysis flags summary:\n")
 print(flag_summary)
 
+## Check 6: Verify required variables present ----
+required_vars <- c(
+  "PARAMN", "AVALU", "AVALC",
+  "TRT01P", "TRT01PN", "TRT01A", "TRT01AN"
+)
+
+missing_vars <- setdiff(required_vars, names(adee))
+
+if (length(missing_vars) > 0) {
+  warning("MISSING REQUIRED VARIABLES: ", paste(missing_vars, collapse = ", "))
+} else {
+  cat("\n✓ All required variables present\n")
+}
+
 #===============================================================================
 # SUMMARY STATISTICS
 #===============================================================================
@@ -624,6 +749,20 @@ tertile_summary <- adee %>%
 
 print(tertile_summary)
 
+cat("\n")
+cat("Variable Summary:\n")
+cat("  Identifiers: STUDYID, USUBJID, SUBJID, SITEID (+ numeric versions)\n")
+cat("  Treatment: ARM, ACTARM, TRT01P, TRT01A (+ numeric versions)\n")
+cat("  Demographics: AGE, SEX, RACE, ETHNIC (+ categories/numeric)\n")
+cat("  Parameters: PARAMCD, PARAM, PARAMN, PARCAT1, PARCAT2\n")
+cat("  Analysis values: AVAL, AVALU, AVALC\n")
+cat("  TTE-specific: CNSR, EVENT, EVNTDESC, STARTDT, ADT, ADY\n")
+cat("  Exposure (primary):", length(grep("^(AUCSS|CMAXSS|CAVGSS|CMINSS|CLSS)$", names(adee))), "variables\n")
+cat("  Exposure (transformations):", length(grep("(LOG|STD|DOSE|N)$", names(adee))), "variables\n")
+cat("  Exposure (categories):", length(grep("(CAT|Q|MED)", names(adee))), "variables\n")
+cat("  Baseline covariates:", length(grep("BL$", names(adee))), "variables\n")
+cat("  Analysis flags:", length(grep("^ANL", names(adee))), "variables\n\n")
+
 #===============================================================================
 # SAVE OUTPUT
 #===============================================================================
@@ -650,6 +789,10 @@ if (requireNamespace("haven", quietly = TRUE)) {
 write.csv(adee, "adam/adee.csv", row.names = FALSE, na = "")
 cat("✓ Saved: adam/adee.csv\n")
 
+# Save first 10 records as example
+write.csv(head(adee, 10), "adam/adee_example.csv", row.names = FALSE, na = "")
+cat("✓ Saved: adam/adee_example.csv (first 10 records)\n")
+
 # Save metadata
 metadata <- list(
   dataset_name = "ADEE",
@@ -660,7 +803,10 @@ metadata <- list(
   n_variables = ncol(adee),
   parameters = unique(adee$PARAMCD),
   structure = "BDS (Basic Data Structure)",
-  key_variables = c("USUBJID", "PARAMCD", "AVISITN")
+  key_variables = c("USUBJID", "PARAMCD", "AVISITN"),
+  exposure_metrics = c("AUCSS", "CMAXSS", "CAVGSS", "CMINSS", "CLSS"),
+  R_version = R.version.string,
+  admiral_version = as.character(packageVersion("admiral"))
 )
 
 saveRDS(metadata, "adam/adee_metadata.rds")
@@ -669,14 +815,9 @@ cat("✓ Saved: adam/adee_metadata.rds\n")
 # Create basic data specs
 data_specs <- data.frame(
   Variable = names(adee),
-  Type = sapply(adee, class),
-  Label = c(
-    "Study Identifier", "Study Identifier (N)", 
-    "Unique Subject Identifier", "Unique Subject Identifier (N)",
-    "Subject Identifier", "Subject Identifier (N)",
-    "Study Site Identifier", "Study Site Identifier (N)",
-    rep("", ncol(adee) - 8)  # Placeholder for remaining
-  )[1:ncol(adee)]
+  Type = sapply(adee, function(x) class(x)[1]),
+  N_Missing = sapply(adee, function(x) sum(is.na(x))),
+  N_Unique = sapply(adee, function(x) length(unique(x)))
 )
 
 write.csv(data_specs, "adam/adee_specs.csv", row.names = FALSE)
@@ -686,6 +827,12 @@ cat("\n")
 cat(strrep("=", 80), "\n")
 cat("ADEE DERIVATION COMPLETE\n")
 cat(strrep("=", 80), "\n\n")
+
+cat("Next steps:\n")
+cat("  1. Review adam/adee.csv for data quality\n")
+cat("  2. Check adam/adee_specs.csv for variable summaries\n")
+cat("  3. Use adam/adee.rds in analysis scripts (S1, S2, S3)\n")
+cat("  4. Validate against CDISC ADaM IG v1.3 requirements\n\n")
 
 #===============================================================================
 # END OF PROGRAM
