@@ -460,14 +460,16 @@ adee_base <- adtte %>%
   filter(PARAMCD %in% c("OS", "PFS", "TTP", "TTNT")) %>%
   
   # Add EVENT indicator (standard: 1=event, 0=censored)
+  # Admiral convention: EVENT=1 means event occurred
   mutate(EVENT = 1 - CNSR) %>%
   
-  # Ensure AVALU exists (unit for time-to-event)
+  # Ensure AVALU exists (required ADaM BDS variable)
   mutate(
     AVALU = if_else(!is.na(AVAL), "DAYS", NA_character_)
   ) %>%
   
-  # Add AVALC (character representation of event status)
+  # Add AVALC (character representation of analysis value)
+  # Useful for displays and listings
   mutate(
     AVALC = case_when(
       EVENT == 1 ~ "EVENT",
@@ -476,16 +478,41 @@ adee_base <- adtte %>%
     )
   ) %>%
   
-  # Merge exposure and covariates
+  # Remove variables that exist in both ADTTE and ADSL
+  # We want the ADSL versions (source of truth for baseline characteristics)
+  select(-any_of(c(
+    # Treatment variables (ADSL is source of truth)
+    "ARMCD", "ARM", "ACTARMCD", "ACTARM",
+    
+    # Demographic variables (ADSL is source of truth)
+    "AGE", "SEX", "RACE", "ETHNIC",
+    
+    # Study identifiers (ADSL has complete set)
+    "COUNTRY", "SITEID",
+    
+    # Treatment dates (ADSL is source of truth)
+    "TRTSDT", "TRTEDT", "TRTDURD"
+  ))) %>%
+  
+  # Merge exposure metrics and baseline covariates from ADSL
+  # exposure_final contains: demographics, vitals, labs, exposure metrics
   derive_vars_merged(
     dataset_add = exposure_final,
     by_vars = exprs(STUDYID, USUBJID)
   )
 
+# Quality check: verify all ADTTE records were merged
+if (nrow(adee_base) != nrow(adtte %>% filter(PARAMCD %in% c("OS", "PFS", "TTP", "TTNT")))) {
+  warning("Record count mismatch after merge!")
+}
+
 cat("ADEE base created:\n")
 cat("  Records:", nrow(adee_base), "\n")
 cat("  Subjects:", length(unique(adee_base$USUBJID)), "\n")
-cat("  Parameters:", paste(unique(adee_base$PARAMCD), collapse = ", "), "\n\n")
+cat("  Parameters:", paste(unique(adee_base$PARAMCD), collapse = ", "), "\n")
+cat("  Variables from ADSL merged:", 
+    sum(names(adee_base) %in% names(exposure_final)) - 2, # -2 for STUDYID, USUBJID
+    "\n\n")
 
 #===============================================================================
 # DERIVE ANALYSIS TIMEPOINT VARIABLES
