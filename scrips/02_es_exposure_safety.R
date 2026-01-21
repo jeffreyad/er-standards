@@ -58,9 +58,9 @@ ae <- tibble::tribble(
 ae_summary <- ae %>%
   group_by(USUBJID) %>%
   summarise(
-    N_AES = n(),                                          # Total AEs
-    N_SAE = sum(AESER == "Y"),                            # Serious AEs
-    N_GRADE3 = sum(AETOXGR >= "3", na.rm = TRUE),        # Grade 3+ AEs
+    N_AES = n(), # Total AEs
+    N_SAE = sum(AESER == "Y"), # Serious AEs
+    N_GRADE3 = sum(AETOXGR >= "3", na.rm = TRUE), # Grade 3+ AEs
     N_DRUG_RELATED = sum(AEREL %in% c("PROBABLE", "POSSIBLE")), # Drug-related AEs
     N_GI_AES = sum(AEBODSYS == "GASTROINTESTINAL DISORDERS"), # GI AEs
     .groups = "drop"
@@ -75,13 +75,13 @@ exposure_cats <- adsl %>%
     # Tertile categorization
     AUC_TERTILE = cut(
       AUC0_24,
-      breaks = quantile(AUC0_24, probs = c(0, 1/3, 2/3, 1)),
+      breaks = quantile(AUC0_24, probs = c(0, 1 / 3, 2 / 3, 1)),
       labels = c("Low", "Medium", "High"),
       include.lowest = TRUE
     ),
     CMAX_TERTILE = cut(
       CMAX,
-      breaks = quantile(CMAX, probs = c(0, 1/3, 2/3, 1)),
+      breaks = quantile(CMAX, probs = c(0, 1 / 3, 2 / 3, 1)),
       labels = c("Low", "Medium", "High"),
       include.lowest = TRUE
     )
@@ -96,17 +96,17 @@ ades_subj <- exposure_cats %>%
   left_join(ae_summary, by = "USUBJID") %>%
   mutate(
     # Handle subjects with no AEs
-    across(starts_with("N_"), ~replace_na(.x, 0)),
-    
+    across(starts_with("N_"), ~ replace_na(.x, 0)),
+
     # Calculate rates (events per 100 patient-days)
     RATE_AES = (N_AES / TRTDURD) * 100,
     RATE_SAE = (N_SAE / TRTDURD) * 100,
     RATE_GRADE3 = (N_GRADE3 / TRTDURD) * 100,
-    
+
     # Binary indicators for any event
     ANY_SAE = if_else(N_SAE > 0, "Y", "N"),
     ANY_GRADE3 = if_else(N_GRADE3 > 0, "Y", "N"),
-    
+
     # Continuous exposure metrics
     LOGAUC = log(AUC0_24),
     AUC_STD = (AUC0_24 - mean(AUC0_24)) / sd(AUC0_24)
@@ -125,21 +125,21 @@ ades_event <- ae %>%
   ) %>%
   mutate(
     # Time from treatment start to AE onset
-    ASTDY = as.numeric(AESTDT - TRTSDT) + 1,  # Study day
+    ASTDY = as.numeric(AESTDT - TRTSDT) + 1, # Study day
     AENDY = as.numeric(AEENDT - TRTSDT) + 1,
-    
+
     # Duration of AE
     AEDUR = as.numeric(AEENDT - AESTDT) + 1,
-    
+
     # Flags for analysis
-    SAFFL = "Y",  # Safety population
-    
+    SAFFL = "Y", # Safety population
+
     # Grade 3+ flag
     GRADE3FL = if_else(AETOXGR >= "3", "Y", "N"),
-    
+
     # Serious AE flag
     SERFL = AESER,
-    
+
     # Drug-related flag
     RELFL = if_else(AEREL %in% c("PROBABLE", "POSSIBLE"), "Y", "N")
   )
@@ -152,7 +152,7 @@ ades_event <- ae %>%
 ae_by_pt <- ades_event %>%
   group_by(USUBJID, AEDECOD) %>%
   summarise(
-    AVAL = n(),  # Number of occurrences
+    AVAL = n(), # Number of occurrences
     MAX_GRADE = max(as.numeric(AETOXGR), na.rm = TRUE),
     ANY_SERIOUS = if_else(any(AESER == "Y"), 1, 0),
     .groups = "drop"
@@ -238,7 +238,7 @@ print(
 #    - Subject-level: overall AE burden and rates
 #    - Event-level: individual AE occurrences
 #    - Parameter-level: specific AE types
-# 
+#
 # 2. Exposure metrics available as:
 #    - Continuous (AUC0_24, CMAX)
 #    - Categorical (tertiles)

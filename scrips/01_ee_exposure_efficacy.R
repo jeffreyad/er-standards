@@ -29,7 +29,7 @@ adtte_source <- tibble::tribble(
   ~USUBJID, ~PARAMCD, ~PARAM, ~ADT, ~CNSR, ~EVNTDESC,
   "001-001", "PFS", "Progression-Free Survival", "2024-04-15", 1, "CENSORED",
   "001-002", "PFS", "Progression-Free Survival", "2024-05-20", 0, "PROGRESSIVE DISEASE",
-  "001-003", "PFS", "Progression-Free Survival", "2024-08-10", 0, "PROGRESSIVE DISEASE", 
+  "001-003", "PFS", "Progression-Free Survival", "2024-08-10", 0, "PROGRESSIVE DISEASE",
   "001-004", "PFS", "Progression-Free Survival", "2024-03-01", 0, "DEATH",
   "001-005", "PFS", "Progression-Free Survival", "2024-09-15", 0, "PROGRESSIVE DISEASE"
 ) %>%
@@ -66,7 +66,7 @@ exposure_categories <- adsl %>%
     # Tertile for simpler categorization
     AUC_TERTILE = cut(
       AUC0_24,
-      breaks = quantile(AUC0_24, probs = c(0, 1/3, 2/3, 1)),
+      breaks = quantile(AUC0_24, probs = c(0, 1 / 3, 2 / 3, 1)),
       labels = c("Low", "Medium", "High"),
       include.lowest = TRUE
     ),
@@ -102,11 +102,11 @@ adtte <- adtte %>%
   mutate(
     # Event indicator (1 = event, 0 = censored) - standard for survival modeling
     EVENT = if_else(CNSR == 0, 1, 0),
-    
+
     # Log-transformed exposure for continuous analysis
     LOGAUC = log(AUC0_24),
     LOGCMAX = log(CMAX),
-    
+
     # Standardized exposure metrics (mean 0, SD 1)
     AUC_STD = (AUC0_24 - mean(AUC0_24, na.rm = TRUE)) / sd(AUC0_24, na.rm = TRUE),
     CMAX_STD = (CMAX - mean(CMAX, na.rm = TRUE)) / sd(CMAX, na.rm = TRUE)

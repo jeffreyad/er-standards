@@ -193,9 +193,10 @@ adtte <- adtte_source %>%
 # Create exposure categories
 exposure_cats <- adsl %>%
   mutate(
-    AUC_TERTILE = cut(AUC0_24, 
-                      breaks = quantile(AUC0_24, probs = c(0, 1/3, 2/3, 1)),
-                      labels = c("Low", "Medium", "High"))
+    AUC_TERTILE = cut(AUC0_24,
+      breaks = quantile(AUC0_24, probs = c(0, 1 / 3, 2 / 3, 1)),
+      labels = c("Low", "Medium", "High")
+    )
   )
 ```
 
@@ -275,11 +276,11 @@ ades_subj <- exposure_cats %>%
     N_AES = n(),
     N_SAE = sum(AESER == "Y"),
     N_GRADE3 = sum(AETOXGR >= "3"),
-    
+
     # Rates per 100 patient-days
     RATE_AES = (N_AES / TRTDURD) * 100,
     RATE_SAE = (N_SAE / TRTDURD) * 100,
-    
+
     # Binary indicators
     ANY_SAE = if_else(N_SAE > 0, "Y", "N"),
     ANY_GRADE3 = if_else(N_GRADE3 > 0, "Y", "N")
@@ -355,7 +356,7 @@ adtr <- tr_raw %>%
   mutate(
     PARAM = "Sum of Target Lesion Diameters",
     PARAMCD = "STDIAM",
-    AVAL = TRORRES,  # Raw measurement
+    AVAL = TRORRES, # Raw measurement
     ADY = as.numeric(ADT - TRTSDT) + 1
   ) %>%
   # Identify baseline
@@ -389,10 +390,10 @@ adtr <- adtr %>%
   mutate(
     AVALC = case_when(
       ABLFL == "Y" ~ "BASELINE",
-      AVAL == 0 ~ "CR",        # Complete Response
-      PCHG <= -30 ~ "PR",      # Partial Response (≥30% decrease)
-      PCHG >= 20 ~ "PD",       # Progressive Disease (≥20% increase)
-      TRUE ~ "SD"              # Stable Disease
+      AVAL == 0 ~ "CR", # Complete Response
+      PCHG <= -30 ~ "PR", # Partial Response (≥30% decrease)
+      PCHG >= 20 ~ "PD", # Progressive Disease (≥20% increase)
+      TRUE ~ "SD" # Stable Disease
     )
   )
 

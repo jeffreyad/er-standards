@@ -447,3 +447,19 @@ These commonalities enable: - Shared utility functions - Consistent validation a
 -   {admiral} package references
 -   Key ER modeling papers
 -   RECIST 1.1 criteria publication
+
+# Contact Information
+
+Your comments and questions are valued and encouraged. Contact the author at:
+
+Author Name: Jeffrey Dickinson
+
+Company: Navitas Data Sciences
+
+Address: 1610 Medical Drive, Suite 300, Pottstown, PA 19464 USA
+
+Work Phone: +1 402 319 9380
+
+Email: jeff.dickinson\@navitaslifesciences.com
+
+Website: [www.navitaslifesciences.com](www.navitaslifesciences.com){target="_blank"}

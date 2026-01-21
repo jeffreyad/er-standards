@@ -92,9 +92,10 @@ adtr <- adtr %>%
 adtr <- adtr %>%
   mutate(
     CHG = if_else(!is.na(BASE) & ABLFL != "Y", AVAL - BASE, NA_real_),
-    PCHG = if_else(!is.na(BASE) & ABLFL != "Y" & BASE != 0, 
-                   (AVAL - BASE) / BASE * 100, 
-                   NA_real_)
+    PCHG = if_else(!is.na(BASE) & ABLFL != "Y" & BASE != 0,
+      (AVAL - BASE) / BASE * 100,
+      NA_real_
+    )
   )
 
 # ============================================================================
@@ -107,12 +108,12 @@ adtr <- adtr %>%
     AVALC = case_when(
       ABLFL == "Y" ~ "BASELINE",
       is.na(PCHG) ~ NA_character_,
-      AVAL == 0 ~ "CR",  # Complete response
-      PCHG <= -30 ~ "PR",  # Partial response
-      PCHG >= 20 ~ "PD",  # Progressive disease
-      TRUE ~ "SD"  # Stable disease
+      AVAL == 0 ~ "CR", # Complete response
+      PCHG <= -30 ~ "PR", # Partial response
+      PCHG >= 20 ~ "PD", # Progressive disease
+      TRUE ~ "SD" # Stable disease
     ),
-    
+
     # Numeric code for response
     AVALN = case_when(
       AVALC == "CR" ~ 4,
@@ -173,7 +174,7 @@ exposure_cats <- adsl %>%
   mutate(
     AUC_TERTILE = cut(
       AUC0_24,
-      breaks = quantile(AUC0_24, probs = c(0, 1/3, 2/3, 1)),
+      breaks = quantile(AUC0_24, probs = c(0, 1 / 3, 2 / 3, 1)),
       labels = c("Low", "Medium", "High"),
       include.lowest = TRUE
     ),
@@ -212,8 +213,10 @@ param_best_pchg <- bor %>%
     AVALU = "%",
     DTYPE = "DERIVED"
   ) %>%
-  select(USUBJID, STUDYID, PARAMCD, PARAM, AVAL, AVALU, 
-         BOR, BORN, AUC0_24, CMAX, AUC_TERTILE, LOGAUC, DTYPE)
+  select(
+    USUBJID, STUDYID, PARAMCD, PARAM, AVAL, AVALU,
+    BOR, BORN, AUC0_24, CMAX, AUC_TERTILE, LOGAUC, DTYPE
+  )
 
 # ============================================================================
 # Step 7: Add analysis flags
