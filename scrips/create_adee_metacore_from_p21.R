@@ -29,22 +29,23 @@ p21_spec <- read_csv("specifications/ADEE_P21_Specifications.csv")
 # DATASET SPECIFICATION
 #===============================================================================
 
+# Correct column names: dataset, structure, label (no 'keys' column)
 ds_spec <- tibble::tribble(
-  ~dataset, ~structure, ~label, ~keys,
+  ~dataset, ~structure, ~label,
   "ADEE", 
   "One record per subject per parameter per analysis timepoint", 
-  "Exposure-Efficacy Analysis Dataset", 
-  "USUBJID, PARAMCD, AVISITN"
+  "Exposure-Efficacy Analysis Dataset"
 )
 
 #===============================================================================
 # VARIABLE SPECIFICATION
 #===============================================================================
 
-# Convert P21 to metacore variable spec format
+# Correct column names: variable, length, label, type, common, format
+# Note: Order matters - keep this exact order
 var_spec <- p21_spec %>%
   mutate(
-    # Map data types
+    # Map data types (must match exactly)
     type = case_when(
       Data_Type == "text" ~ "text",
       Data_Type == "integer" ~ "integer",
@@ -52,249 +53,238 @@ var_spec <- p21_spec %>%
       TRUE ~ "text"
     ),
     
-    # Determine if common variable (appears across multiple datasets)
+    # Common flag (Y or N only)
     common = case_when(
       Variable %in% c("STUDYID", "USUBJID", "SUBJID", "SITEID", 
                       "AGE", "SEX", "RACE", "ETHNIC",
                       "ARM", "ARMN", "ACTARM", "ACTARMN",
                       "TRT01P", "TRT01PN", "TRT01A", "TRT01AN") ~ "Y",
-      TRUE ~ "N"
+      TRUE ~ NA_character_  # Use NA for non-common variables
     ),
     
-    # Assign formats (SAS formats)
+    # Assign formats (can be NA)
     format = case_when(
       Variable %in% c("TRTSDT", "TRTEDT", "ADT", "STARTDT") ~ "DATE9.",
       Variable == "AVALU" ~ "$20.",
       Variable == "AVALC" ~ "$40.",
-      type == "float" ~ "8.2",
+      type == "float" ~ NA_character_,  # No default format for float
       TRUE ~ NA_character_
-    ),
-    
-    # Order (preserve original order)
-    order = row_number()
+    )
   ) %>%
   select(
     variable = Variable,
-    type,
     length = Length,
     label = Label,
+    type,
     common,
-    format,
-    order
-  )
+    format
+  ) %>%
+  # Ensure correct column order
+  select(variable, length, label, type, common, format)
 
 #===============================================================================
-# CONTROLLED TERMINOLOGY SPECIFICATION
+# CONTROLLED TERMINOLOGY (CODE LIST) SPECIFICATION
 #===============================================================================
 
-# Create controlled terminology specification
-# Origin values: "CDISC", "Sponsor", "NCI", or other sources
+# Correct column names: code_id, name, type, codes
+# Need to restructure into long format with code_id
 
+# First create individual codelists
 ct_spec <- tibble::tribble(
-  ~variable, ~code, ~decode, ~origin,
+  ~code_id, ~name, ~type, ~code, ~decode, ~origin,
   
-  # ---- CDISC Standard Terms ----
+  # PARAMCD codelist
+  "CL.PARAMCD", "Parameter Code", "PARAMCD", "PFS", "Progression-Free Survival", "CDISC",
+  "CL.PARAMCD", "Parameter Code", "PARAMCD", "OS", "Overall Survival", "CDISC",
+  "CL.PARAMCD", "Parameter Code", "PARAMCD", "TTP", "Time to Progression", "CDISC",
+  "CL.PARAMCD", "Parameter Code", "PARAMCD", "TTNT", "Time to Next Treatment", "Sponsor",
   
-  # PARAMCD (CDISC standard codes where applicable)
-  "PARAMCD", "PFS", "Progression-Free Survival", "CDISC",
-  "PARAMCD", "OS", "Overall Survival", "CDISC",
-  "PARAMCD", "TTP", "Time to Progression", "CDISC",
-  "PARAMCD", "TTNT", "Time to Next Treatment", "Sponsor",  # Sponsor-defined
+  # PARCAT1 codelist
+  "CL.PARCAT1", "Parameter Category 1", "PARCAT1", "EFFICACY", "Efficacy", "Sponsor",
   
-  # AVALU (CDISC standard units)
-  "AVALU", "DAYS", "Days", "CDISC",
+  # PARCAT2 codelist
+  "CL.PARCAT2", "Parameter Category 2", "PARCAT2", "TIME TO EVENT", "Time to Event", "Sponsor",
   
-  # SEX (CDISC CT)
-  "SEX", "M", "Male", "CDISC",
-  "SEX", "F", "Female", "CDISC",
-  "SEX", "U", "Unknown", "CDISC",
+  # AVALU codelist
+  "CL.AVALU", "Analysis Value Unit", "AVALU", "DAYS", "Days", "CDISC",
   
-  # NY codelist (standard CDISC for flags)
-  "ANL01FL", "Y", "Yes", "CDISC",
-  "ANL01FL", "", "No", "CDISC",
-  "ANL02FL", "Y", "Yes", "CDISC",
-  "ANL02FL", "", "No", "CDISC",
-  "ANL03FL", "Y", "Yes", "CDISC",
-  "ANL03FL", "", "No", "CDISC",
-  "ANL04FL", "Y", "Yes", "CDISC",
-  "ANL04FL", "", "No", "CDISC",
+  # AVALC codelist
+  "CL.AVALC", "Analysis Value Character", "AVALC", "EVENT", "Event", "Sponsor",
+  "CL.AVALC", "Analysis Value Character", "AVALC", "CENSORED", "Censored", "Sponsor",
   
-  # ATPT / AVISIT (CDISC standard timepoints)
-  "ATPT", "BASELINE", "Baseline", "CDISC",
-  "AVISIT", "BASELINE", "Baseline", "CDISC",
+  # AUCSSCAT codelist
+  "CL.AUCSSCAT", "AUC Category", "AUCSSCAT", "Low", "Low Exposure", "Sponsor",
+  "CL.AUCSSCAT", "AUC Category", "AUCSSCAT", "Medium", "Medium Exposure", "Sponsor",
+  "CL.AUCSSCAT", "AUC Category", "AUCSSCAT", "High", "High Exposure", "Sponsor",
   
-  # DTYPE (CDISC derivation types)
-  "DTYPE", "AVERAGE", "Average", "CDISC",
-  "DTYPE", "MINIMUM", "Minimum", "CDISC",
-  "DTYPE", "MAXIMUM", "Maximum", "CDISC",
+  # AUCSSQ codelist
+  "CL.AUCSSQ", "AUC Quartile", "AUCSSQ", "Q1", "Quartile 1", "Sponsor",
+  "CL.AUCSSQ", "AUC Quartile", "AUCSSQ", "Q2", "Quartile 2", "Sponsor",
+  "CL.AUCSSQ", "AUC Quartile", "AUCSSQ", "Q3", "Quartile 3", "Sponsor",
+  "CL.AUCSSQ", "AUC Quartile", "AUCSSQ", "Q4", "Quartile 4", "Sponsor",
   
-  # ADTF (CDISC date imputation flags)
-  "ADTF", "D", "Day", "CDISC",
-  "ADTF", "M", "Month", "CDISC",
-  "ADTF", "Y", "Year", "CDISC",
+  # AUCSSMED codelist
+  "CL.AUCSSMED", "AUC Median Split", "AUCSSMED", "Below Median", "Below Median", "Sponsor",
+  "CL.AUCSSMED", "AUC Median Split", "AUCSSMED", "Above Median", "Above Median", "Sponsor",
   
-  # ---- Sponsor-Specific Terms ----
+  # AGEGR1 codelist
+  "CL.AGEGR1", "Age Group 1", "AGEGR1", "<65", "Less than 65 years", "Sponsor",
+  "CL.AGEGR1", "Age Group 1", "AGEGR1", "65-75", "65 to 75 years", "Sponsor",
+  "CL.AGEGR1", "Age Group 1", "AGEGR1", ">75", "Greater than 75 years", "Sponsor",
   
-  # Parameter categories (sponsor-defined)
-  "PARCAT1", "EFFICACY", "Efficacy", "Sponsor",
-  "PARCAT2", "TIME TO EVENT", "Time to Event", "Sponsor",
+  # WTBLGR1 codelist
+  "CL.WTBLGR1", "Weight Group 1", "WTBLGR1", "<70 kg", "Less than 70 kg", "Sponsor",
+  "CL.WTBLGR1", "Weight Group 1", "WTBLGR1", ">=70 kg", "Greater than or equal to 70 kg", "Sponsor",
   
-  # Event status (sponsor-defined)
-  "AVALC", "EVENT", "Event", "Sponsor",
-  "AVALC", "CENSORED", "Censored", "Sponsor",
+  # NY codelist (standard for flags)
+  "CL.NY", "No Yes Response", "NY", "Y", "Yes", "CDISC",
+  "CL.NY", "No Yes Response", "NY", "", "No", "CDISC",
   
-  # Exposure categories (sponsor-defined tertiles)
-  "AUCSSCAT", "Low", "Low Exposure (Tertile 1)", "Sponsor",
-  "AUCSSCAT", "Medium", "Medium Exposure (Tertile 2)", "Sponsor",
-  "AUCSSCAT", "High", "High Exposure (Tertile 3)", "Sponsor",
+  # SEX codelist (standard CDISC)
+  "CL.SEX", "Sex", "SEX", "M", "Male", "CDISC",
+  "CL.SEX", "Sex", "SEX", "F", "Female", "CDISC",
+  "CL.SEX", "Sex", "SEX", "U", "Unknown", "CDISC",
   
-  # Exposure quartiles (sponsor-defined)
-  "AUCSSQ", "Q1", "Quartile 1", "Sponsor",
-  "AUCSSQ", "Q2", "Quartile 2", "Sponsor",
-  "AUCSSQ", "Q3", "Quartile 3", "Sponsor",
-  "AUCSSQ", "Q4", "Quartile 4", "Sponsor",
+  # ATPT codelist
+  "CL.ATPT", "Analysis Timepoint", "ATPT", "BASELINE", "Baseline", "CDISC",
   
-  # Exposure median split (sponsor-defined)
-  "AUCSSMED", "Below Median", "Below Median Exposure", "Sponsor",
-  "AUCSSMED", "Above Median", "Above Median Exposure", "Sponsor",
+  # AVISIT codelist
+  "CL.AVISIT", "Analysis Visit", "AVISIT", "BASELINE", "Baseline", "CDISC",
   
-  # Age groups (sponsor-defined)
-  "AGEGR1", "<65", "Less than 65 years", "Sponsor",
-  "AGEGR1", "65-75", "65 to 75 years", "Sponsor",
-  "AGEGR1", ">75", "Greater than 75 years", "Sponsor",
-  
-  # Weight groups (sponsor-defined)
-  "WTBLGR1", "<70 kg", "Less than 70 kg", "Sponsor",
-  "WTBLGR1", ">=70 kg", "Greater than or equal to 70 kg", "Sponsor",
-  
-  # Treatment arms (study-specific)
-  "TRT01P", "Placebo", "Placebo", "Sponsor",
-  "TRT01P", "Xanomeline Low Dose", "Xanomeline Low Dose", "Sponsor",
-  "TRT01P", "Xanomeline High Dose", "Xanomeline High Dose", "Sponsor",
-  "TRT01A", "Placebo", "Placebo", "Sponsor",
-  "TRT01A", "Xanomeline Low Dose", "Xanomeline Low Dose", "Sponsor",
-  "TRT01A", "Xanomeline High Dose", "Xanomeline High Dose", "Sponsor",
-  "ARM", "Placebo", "Placebo", "Sponsor",
-  "ARM", "Xanomeline Low Dose", "Xanomeline Low Dose", "Sponsor",
-  "ARM", "Xanomeline High Dose", "Xanomeline High Dose", "Sponsor",
-  "ACTARM", "Placebo", "Placebo", "Sponsor",
-  "ACTARM", "Xanomeline Low Dose", "Xanomeline Low Dose", "Sponsor",
-  "ACTARM", "Xanomeline High Dose", "Xanomeline High Dose", "Sponsor"
+  # Treatment codelists (study-specific)
+  "CL.TRT", "Treatment", "TRT", "Placebo", "Placebo", "Sponsor",
+  "CL.TRT", "Treatment", "TRT", "Xanomeline Low Dose", "Xanomeline Low Dose", "Sponsor",
+  "CL.TRT", "Treatment", "TRT", "Xanomeline High Dose", "Xanomeline High Dose", "Sponsor"
 )
 
-# Note: Add study-specific RACE, ETHNIC terms if needed based on actual data
+# Now create the codes dataframe in the format metacore expects
+# Format: code_id, code (value), decode (label)
+code_list <- ct_spec %>%
+  select(code_id, code, decode) %>%
+  group_by(code_id) %>%
+  nest(codes = c(code, decode)) %>%
+  mutate(
+    # Get name and type from first occurrence
+    name = map_chr(code_id, ~ct_spec$name[ct_spec$code_id == .x][1]),
+    type = map_chr(code_id, ~ct_spec$type[ct_spec$code_id == .x][1])
+  ) %>%
+  select(code_id, name, type, codes)
+
 #===============================================================================
-# VALUE LEVEL METADATA
+# VALUE LEVEL METADATA SPECIFICATION
 #===============================================================================
 
-# Variables that are conditional or have special rules
+# Correct format: variable, where, type, length, label, common, format, origin
+# Origin column IS needed here
 value_spec <- tibble::tribble(
-  ~variable, ~where, ~type, ~length, ~label, ~format,
+  ~variable, ~where, ~type, ~length, ~label, ~common, ~format, ~origin,
   
   # Optional variables (may not be present in all records)
-  "ADTF", "!is.na(ADTF)", "text", 1, "Analysis Date Imputation Flag", "$1.",
-  "DTYPE", "!is.na(DTYPE)", "text", 8, "Derivation Type", "$8.",
-  "SRCDOM", "!is.na(SRCDOM)", "text", 8, "Source Data", "$8.",
-  "SRCVAR", "!is.na(SRCVAR)", "text", 40, "Source Variable", "$40.",
-  "SRCSEQ", "!is.na(SRCSEQ)", "integer", 8, "Source Sequence Number", "8.",
-  "ALBBL", "!is.na(ALBBL)", "float", 8, "Baseline Albumin (g/dL)", "8.2",
+  "ADTF", "!is.na(ADTF)", "text", 1, "Analysis Date Imputation Flag", NA, "$1.", "Assigned",
+  "DTYPE", "!is.na(DTYPE)", "text", 8, "Derivation Type", NA, "$8.", "Assigned",
+  "SRCDOM", "!is.na(SRCDOM)", "text", 8, "Source Data", NA, "$8.", "Predecessor",
+  "SRCVAR", "!is.na(SRCVAR)", "text", 40, "Source Variable", NA, "$40.", "Predecessor",
+  "SRCSEQ", "!is.na(SRCSEQ)", "integer", 8, "Source Sequence Number", NA, NA, "Predecessor",
+  "ALBBL", "!is.na(ALBBL)", "float", 8, "Baseline Albumin (g/dL)", NA, NA, "Predecessor",
   
-  # Exposure variables (only for active treatment)
-  "AUCSS", "DOSE > 0", "float", 8, "Steady-State AUC (ug*h/mL)", "8.2",
-  "CMAXSS", "DOSE > 0", "float", 8, "Steady-State Cmax (ug/mL)", "8.3",
-  "AUCSSCAT", "DOSE > 0", "text", 20, "AUC Category (Tertiles)", "$20.",
-  "AUCSSQ", "DOSE > 0", "text", 20, "AUC Quartile", "$20."
+  # Exposure variables (conditional on active treatment)
+  "AUCSS", "DOSE > 0", "float", 8, "Steady-State AUC (ug*h/mL)", "N", NA, "Assigned",
+  "CMAXSS", "DOSE > 0", "float", 8, "Steady-State Cmax (ug/mL)", "N", NA, "Assigned",
+  "AUCSSCAT", "DOSE > 0", "text", 20, "AUC Category (Tertiles)", "N", "$20.", "Assigned",
+  "AUCSSQ", "DOSE > 0", "text", 20, "AUC Quartile", "N", "$20.", "Assigned"
 )
 
 #===============================================================================
-# DERIVATIONS
+# DERIVATIONS SPECIFICATION
 #===============================================================================
 
-derivation_spec <- tibble::tribble(
-  ~variable, ~derivation_type, ~derivation,
+# Correct column names: derivation_id, derivation
+# derivation_id should match variable name
+derivations_spec <- tibble::tribble(
+  ~derivation_id, ~derivation,
   
   # Core derivations
-  "EVENT", "Formula", "1 - CNSR",
-  "AVALU", "Assigned", "DAYS (for time-to-event)",
-  "AVALC", "Conditional", "EVENT if EVENT=1, CENSORED if CNSR=1",
+  "EVENT", "1 - CNSR",
+  "AVALU", "Assigned value: DAYS (for time-to-event)",
+  "AVALC", "EVENT if EVENT=1, CENSORED if CNSR=1",
   
   # Numeric identifiers
-  "STUDYIDN", "Parsed", "Numeric from USUBJID word 1",
-  "SITEIDN", "Parsed", "Numeric from USUBJID word 2",
-  "USUBJIDN", "Parsed", "Numeric from USUBJID word 3",
-  "SUBJIDN", "Numeric", "Numeric version of SUBJID",
+  "STUDYIDN", "Numeric from USUBJID word 1 (separated by hyphen)",
+  "SITEIDN", "Numeric from USUBJID word 2 (separated by hyphen)",
+  "USUBJIDN", "Numeric from USUBJID word 3 (separated by hyphen)",
+  "SUBJIDN", "Numeric version of SUBJID",
   
   # Demographics numeric
-  "SEXN", "Coded", "1=M, 2=F, 3=U",
-  "RACEN", "Coded", "1-6 coded values",
-  "ETHNICN", "Coded", "1-3 coded values",
-  "AGEGR1", "Conditional", "<65, 65-75, >75 based on AGE",
-  "AGEGR1N", "Coded", "1=<65, 2=65-75, 3=>75",
+  "SEXN", "1=M, 2=F, 3=U",
+  "RACEN", "1=AMERICAN INDIAN OR ALASKA NATIVE, 2=ASIAN, 3=BLACK OR AFRICAN AMERICAN, 4=NATIVE HAWAIIAN OR OTHER PACIFIC ISLANDER, 5=WHITE, 6=OTHER",
+  "ETHNICN", "1=HISPANIC OR LATINO, 2=NOT HISPANIC OR LATINO, 3=OTHER",
+  "AGEGR1", "Conditional: <65, 65-75, >75 based on AGE",
+  "AGEGR1N", "1=<65, 2=65-75, 3=>75",
   
   # Treatment numeric
-  "ARMN", "Coded", "0=Placebo, 1=Low, 2=High, 3=Other",
-  "ACTARMN", "Coded", "0=Placebo, 1=Low, 2=High, 3=Other",
-  "TRT01PN", "Coded", "Numeric version of TRT01P",
-  "TRT01AN", "Coded", "Numeric version of TRT01A",
+  "ARMN", "0=Placebo, 1=Xanomeline Low Dose, 2=Xanomeline High Dose, 3=OTHER",
+  "ACTARMN", "0=Placebo, 1=Xanomeline Low Dose, 2=Xanomeline High Dose, 3=OTHER",
+  "TRT01PN", "Numeric version of TRT01P (same mapping as ARMN)",
+  "TRT01AN", "Numeric version of TRT01A (same mapping as ACTARMN)",
   
   # Vitals
-  "BMIBL", "Computed", "WTBL / (HTBL/100)^2",
-  "BSABL", "Computed", "Mosteller formula",
-  "WTBLGR1", "Conditional", "<70 kg vs >=70 kg",
+  "BMIBL", "WTBL / (HTBL/100)^2",
+  "BSABL", "Mosteller formula: 0.007184 * WTBL^0.425 * HTBL^0.725",
+  "WTBLGR1", "Conditional: <70 kg vs >=70 kg based on WTBL",
   
   # Labs
-  "TBILBL", "Renamed", "BILIBL",
-  "CRCLBL", "Computed", "Cockcroft-Gault equation",
-  "EGFRBL", "Computed", "CKD-EPI equation",
+  "TBILBL", "Renamed from BILIBL",
+  "CRCLBL", "Cockcroft-Gault equation based on CREATBL, AGE, WTBL, SEX",
+  "EGFRBL", "CKD-EPI equation based on CREATBL, AGE, SEX",
   
   # Exposure transformations
-  "AUCSSLOG", "Computed", "log(AUCSS + 0.01)",
-  "CMAXSSLOG", "Computed", "log(CMAXSS + 0.01)",
-  "CAVGSSLOG", "Computed", "log(CAVGSS + 0.01)",
-  "AUCSSSTD", "Computed", "(AUCSS - mean) / SD (active subjects only)",
-  "CMAXSSSTD", "Computed", "(CMAXSS - mean) / SD (active subjects only)",
-  "AUCSSN", "Computed", "AUCSS / median(AUCSS) (active subjects only)",
-  "AUCSSDOSE", "Computed", "AUCSS / DOSE",
-  "CMAXSSDOSE", "Computed", "CMAXSS / DOSE",
+  "AUCSSLOG", "log(AUCSS + 0.01)",
+  "CMAXSSLOG", "log(CMAXSS + 0.01)",
+  "CAVGSSLOG", "log(CAVGSS + 0.01)",
+  "AUCSSSTD", "(AUCSS - mean(AUCSS)) / sd(AUCSS) for active subjects only",
+  "CMAXSSSTD", "(CMAXSS - mean(CMAXSS)) / sd(CMAXSS) for active subjects only",
+  "AUCSSN", "AUCSS / median(AUCSS) for active subjects only",
+  "AUCSSDOSE", "AUCSS / DOSE",
+  "CMAXSSDOSE", "CMAXSS / DOSE",
   
   # Exposure categories
-  "AUCSSCAT", "Categorical", "Tertiles of AUCSS (active subjects)",
-  "AUCSSCATN", "Coded", "1=Low, 2=Medium, 3=High",
-  "AUCSSQ", "Categorical", "Quartiles of AUCSS (active subjects)",
-  "AUCSSQN", "Coded", "1-4 for Q1-Q4",
-  "AUCSSMED", "Conditional", "Below/Above median AUCSS",
+  "AUCSSCAT", "Tertiles of AUCSS for active subjects: Low, Medium, High",
+  "AUCSSCATN", "1=Low, 2=Medium, 3=High",
+  "AUCSSQ", "Quartiles of AUCSS for active subjects: Q1, Q2, Q3, Q4",
+  "AUCSSQN", "1=Q1, 2=Q2, 3=Q3, 4=Q4",
+  "AUCSSMED", "Below Median if AUCSS < median(AUCSS), Above Median otherwise",
   
   # Analysis variables
-  "ATPT", "Assigned", "BASELINE",
-  "ATPTN", "Assigned", "0",
-  "AVISIT", "Assigned", "BASELINE",
-  "AVISITN", "Assigned", "0",
+  "ATPT", "Assigned: BASELINE",
+  "ATPTN", "Assigned: 0",
+  "AVISIT", "Assigned: BASELINE",
+  "AVISITN", "Assigned: 0",
   
   # Analysis flags
-  "ANL01FL", "Conditional", "Y if PARAMCD=PFS",
-  "ANL02FL", "Conditional", "Y if PARAMCD=OS",
-  "ANL03FL", "Conditional", "Y if PARAMCD=TTP",
-  "ANL04FL", "Conditional", "Y if PARAMCD=TTNT",
+  "ANL01FL", "Y if PARAMCD=PFS (primary endpoint), blank otherwise",
+  "ANL02FL", "Y if PARAMCD=OS (secondary endpoint), blank otherwise",
+  "ANL03FL", "Y if PARAMCD=TTP (tertiary endpoint), blank otherwise",
+  "ANL04FL", "Y if PARAMCD=TTNT (treatment discontinuation), blank otherwise",
   
   # Categories
-  "PARCAT1", "Assigned", "EFFICACY",
-  "PARCAT2", "Assigned", "TIME TO EVENT",
+  "PARCAT1", "Assigned: EFFICACY",
+  "PARCAT2", "Assigned: TIME TO EVENT",
   
   # Sequence
-  "ASEQ", "Derived", "Sequence number within USUBJID"
+  "ASEQ", "Sequential numbering within USUBJID ordered by PARAMN, AVISITN"
 )
 
 #===============================================================================
 # CREATE METACORE OBJECT
 #===============================================================================
 
-# Build metacore object
+# Build metacore object with correct argument names
 metacore <- metacore(
   ds_spec = ds_spec,
   var_spec = var_spec,
-  codelist = ct_spec,
+  code_list = code_list,
   value_spec = value_spec,
-  derivations = derivation_spec,
+  derivations = derivations_spec,
   supp = NULL
 )
 
@@ -307,12 +297,16 @@ message("✓ Saved: specifications/ADEE_metacore.rds")
 # SAVE AS EXCEL FOR EDITING
 #===============================================================================
 
+# Save human-readable version with origin column
+ct_spec_excel <- ct_spec %>%
+  select(code_id, name, type, code, decode, origin)
+
 spec_list <- list(
   Dataset = ds_spec,
   Variables = var_spec,
-  Controlled_Terms = ct_spec,
+  Code_Lists = ct_spec_excel,
   Value_Level = value_spec,
-  Derivations = derivation_spec
+  Derivations = derivations_spec
 )
 
 writexl::write_xlsx(spec_list, "specifications/ADEE_spec.xlsx")
@@ -330,29 +324,29 @@ cat(strrep("=", 80), "\n\n")
 
 cat("Dataset:", ds_spec$dataset, "\n")
 cat("Label:", ds_spec$label, "\n")
-cat("Structure:", ds_spec$structure, "\n")
-cat("Keys:", ds_spec$keys, "\n\n")
+cat("Structure:", ds_spec$structure, "\n\n")
 
 cat("Variables:", nrow(var_spec), "\n")
-cat("  Common variables:", sum(var_spec$common == "Y"), "\n")
-cat("  Dataset-specific:", sum(var_spec$common == "N"), "\n\n")
+cat("  Common variables:", sum(var_spec$common == "Y", na.rm = TRUE), "\n")
+cat("  Dataset-specific:", sum(is.na(var_spec$common)), "\n\n")
 
-cat("Controlled Terms:", nrow(ct_spec), "\n")
-cat("  Variables with CT:", length(unique(ct_spec$variable)), "\n\n")
+cat("Code Lists:", nrow(code_list), "\n")
+cat("  Total controlled terms:", nrow(ct_spec), "\n")
+cat("  CDISC terms:", sum(ct_spec$origin == "CDISC"), "\n")
+cat("  Sponsor terms:", sum(ct_spec$origin == "Sponsor"), "\n\n")
 
 cat("Value-Level Metadata:", nrow(value_spec), "\n")
-cat("Derivations:", nrow(derivation_spec), "\n\n")
+cat("Derivations:", nrow(derivations_spec), "\n\n")
 
-cat("Variable Breakdown:\n")
-cat("  Identifiers:", sum(grepl("^(STUDYID|USUBJID|SUBJID|SITEID)", var_spec$variable)), "\n")
-cat("  Treatment:", sum(grepl("^(ARM|TRT01|ACT)", var_spec$variable)), "\n")
-cat("  Demographics:", sum(grepl("^(AGE|SEX|RACE|ETHNIC)", var_spec$variable)), "\n")
-cat("  Parameters:", sum(grepl("^(PARAM|PARCAT)", var_spec$variable)), "\n")
-cat("  Analysis values:", sum(grepl("^(AVAL|ADT|ADY)", var_spec$variable)), "\n")
-cat("  Exposure metrics:", sum(grepl("^(AUCSS|CMAXSS|CAVGSS|CMINSS|CLSS)", var_spec$variable)), "\n")
-cat("  Baseline covariates:", sum(grepl("BL$", var_spec$variable)), "\n")
-cat("  Analysis flags:", sum(grepl("^ANL", var_spec$variable)), "\n\n")
+cat("Code List Summary:\n")
+code_summary <- ct_spec %>%
+  group_by(code_id, name) %>%
+  summarise(n_codes = n(), .groups = "drop") %>%
+  arrange(code_id)
 
+print(code_summary)
+
+cat("\n")
 cat("Next steps:\n")
 cat("  1. Review specifications/ADEE_spec.xlsx\n")
 cat("  2. Edit/refine as needed\n")
