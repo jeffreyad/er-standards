@@ -14,6 +14,7 @@ library(dplyr)
 library(readr)
 library(writexl)
 library(tidyr)
+library(purrr)
 
 # Create specifications directory
 if (!dir.exists("specifications")) dir.create("specifications", recursive = TRUE)
@@ -282,7 +283,7 @@ derivations_spec <- tibble::tribble(
 metacore <- metacore(
   ds_spec = ds_spec,
   var_spec = var_spec,
-  code_list = code_list,
+  codelist = code_list,
   value_spec = value_spec,
   derivations = derivations_spec,
   supp = NULL
