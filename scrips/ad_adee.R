@@ -234,111 +234,78 @@ cat("  Derived: CRCLBL, EGFRBL\n\n")
 #===============================================================================
 # DERIVE EXPOSURE METRICS
 #===============================================================================
-
-cat("Deriving exposure metrics...\n\n")
-
-# In production, exposure metrics would come from ADPC or population PK analysis
-# For this example, we'll simulate exposure based on dose and covariates
-
-exposure_data <- adsl_vslb %>%
-  mutate(
-    # Get dose from treatment arm
-    DOSE = case_when(
-      ARM == "Placebo" ~ 0,
-      ARM == "Xanomeline Low Dose" ~ 54,
-      ARM == "Xanomeline High Dose" ~ 81,
-      TRUE ~ NA_real_
-    ),
-    
-    # Simulate individual clearance (L/h)
-    # CL depends on renal function and weight
-    CL_EST = 5 * (CRCLBL / 100)^0.75 * (WTBL / 70)^(-0.25),
-    
-    # Simulate steady-state AUC (dose/CL with variability)
-    # In production, use actual ADPC values or PopPK predictions
-    AUCSS = if_else(
-      DOSE > 0,
-      (DOSE / CL_EST) * exp(rnorm(n(), 0, 0.3)),  # 30% CV
-      0
-    ),
-    
-    # Simulate Cmax (proportional to AUC with different variability)
-    CMAXSS = if_else(
-      DOSE > 0,
-      AUCSS * 0.18 * exp(rnorm(n(), 0, 0.25)),  # Ka-dependent
-      0
-    ),
-    
-    # Average concentration
-    CAVGSS = if_else(
-      DOSE > 0,
-      AUCSS / 24,  # Assuming QD dosing
-      0
-    ),
-    
-    # Trough concentration (assume 2-compartment)
-    CMINSS = if_else(
-      DOSE > 0,
-      CAVGSS * 0.6 * exp(rnorm(n(), 0, 0.35)),
-      0
-    ),
-    
-    # Individual clearance (for reference)
-    CLSS = if_else(DOSE > 0, DOSE / AUCSS, NA_real_)
-  ) %>%
-  select(-CL_EST)  # Remove intermediate calculation
-
 ## Derive exposure transformations and categories ----
+
+cat("Deriving exposure transformations and categories...\n\n")
+
+# Calculate summary statistics from active treatment subjects only
+# (for standardization and normalization)
+aucss_active <- exposure_data %>%
+  filter(DOSE > 0) %>%
+  pull(AUCSS)
+
+aucss_mean <- mean(aucss_active, na.rm = TRUE)
+aucss_sd <- sd(aucss_active, na.rm = TRUE)
+aucss_median <- median(aucss_active, na.rm = TRUE)
+
+cmaxss_active <- exposure_data %>%
+  filter(DOSE > 0) %>%
+  pull(CMAXSS)
+
+cmaxss_mean <- mean(cmaxss_active, na.rm = TRUE)
+cmaxss_sd <- sd(cmaxss_active, na.rm = TRUE)
 
 exposure_final <- exposure_data %>%
   mutate(
-    # Log transformations
-    AUCSSLOG = log(AUCSS + 0.01),  # Add small constant to handle zeros
+    # Log transformations (add small constant to handle zeros)
+    AUCSSLOG = log(AUCSS + 0.01),
     CMAXSSLOG = log(CMAXSS + 0.01),
+    CAVGSSLOG = log(CAVGSS + 0.01),
     
-    # Standardized (z-score) - only for non-placebo
+    # Standardized (z-score) - only for active treatment
     AUCSSSTD = if_else(
       DOSE > 0,
-      scale(AUCSS[DOSE > 0])[,1],
+      (AUCSS - aucss_mean) / aucss_sd,
       NA_real_
     ),
     
-    # Normalized (ratio to median)
+    CMAXSSSTD = if_else(
+      DOSE > 0,
+      (CMAXSS - cmaxss_mean) / cmaxss_sd,
+      NA_real_
+    ),
+    
+    # Normalized (ratio to median) - only for active treatment
     AUCSSN = if_else(
       DOSE > 0,
-      AUCSS / median(AUCSS[DOSE > 0], na.rm = TRUE),
+      AUCSS / aucss_median,
       NA_real_
     ),
     
     # Dose-normalized
-    AUCSSDOSE = if_else(DOSE > 0, AUCSS / DOSE, NA_real_)
+    AUCSSDOSE = if_else(DOSE > 0, AUCSS / DOSE, NA_real_),
+    CMAXSSDOSE = if_else(DOSE > 0, CMAXSS / DOSE, NA_real_)
   )
 
 # Categorical exposure variables (only for non-placebo)
-active_subjects <- exposure_final %>% filter(DOSE > 0)
-
-# Tertiles
-tertile_breaks <- quantile(active_subjects$AUCSS, 
+# Calculate breaks from active subjects
+tertile_breaks <- quantile(aucss_active, 
                             probs = c(0, 1/3, 2/3, 1), 
                             na.rm = TRUE)
 
-# Quartiles
-quartile_breaks <- quantile(active_subjects$AUCSS,
+quartile_breaks <- quantile(aucss_active,
                              probs = c(0, 0.25, 0.5, 0.75, 1),
                              na.rm = TRUE)
-
-# Median
-median_aucss <- median(active_subjects$AUCSS, na.rm = TRUE)
 
 exposure_final <- exposure_final %>%
   mutate(
     # Tertiles
     AUCSSCAT = if_else(
       DOSE > 0,
-      cut(AUCSS, 
-          breaks = tertile_breaks,
-          labels = c("Low", "Medium", "High"),
-          include.lowest = TRUE),
+      as.character(cut(AUCSS, 
+                       breaks = tertile_breaks,
+                       labels = c("Low", "Medium", "High"),
+                       include.lowest = TRUE)),
       NA_character_
     ),
     
@@ -352,10 +319,10 @@ exposure_final <- exposure_final %>%
     # Quartiles
     AUCSSQ = if_else(
       DOSE > 0,
-      cut(AUCSS,
-          breaks = quartile_breaks,
-          labels = c("Q1", "Q2", "Q3", "Q4"),
-          include.lowest = TRUE),
+      as.character(cut(AUCSS,
+                       breaks = quartile_breaks,
+                       labels = c("Q1", "Q2", "Q3", "Q4"),
+                       include.lowest = TRUE)),
       NA_character_
     ),
     
@@ -370,15 +337,18 @@ exposure_final <- exposure_final %>%
     # Above/below median
     AUCSSMED = if_else(
       DOSE > 0,
-      if_else(AUCSS >= median_aucss, "Above Median", "Below Median"),
+      if_else(AUCSS >= aucss_median, "Above Median", "Below Median"),
       NA_character_
     )
   )
 
-cat("Exposure metrics derived:\n")
-cat("  Primary: AUCSS, CMAXSS, CAVGSS, CMINSS, CLSS\n")
-cat("  Transformations: AUCSSLOG, AUCSSSTD, AUCSSN, AUCSSDOSE\n")
-cat("  Categories: AUCSSCAT, AUCSSQ, AUCSSMED\n\n")
+cat("Exposure transformations and categories derived:\n")
+cat("  Active treatment subjects:", length(aucss_active), "\n")
+cat("  AUCSS mean (active):", round(aucss_mean, 2), "\n")
+cat("  AUCSS SD (active):", round(aucss_sd, 2), "\n")
+cat("  AUCSS median (active):", round(aucss_median, 2), "\n")
+cat("  Tertile breaks:", paste(round(tertile_breaks, 2), collapse = ", "), "\n")
+cat("  Quartile breaks:", paste(round(quartile_breaks, 2), collapse = ", "), "\n\n")
 
 #===============================================================================
 # CREATE ADEE BASE DATASET
@@ -389,6 +359,7 @@ cat("Creating ADEE base dataset from ADTTE...\n\n")
 ## Filter to efficacy endpoints ----
 
 adee_base <- adtte %>%
+  select(-ARMCD, -ARM, -ACTARMCD, -ACTARM, -AGE, -SEX) %>%
   # Keep time-to-event efficacy endpoints
   filter(PARAMCD %in% c("OS", "PFS", "TTP", "TTNT")) %>%
   
@@ -462,7 +433,7 @@ adee_parcat <- adee_flags %>%
 adee_seq <- adee_parcat %>%
   derive_var_obs_number(
     by_vars = exprs(STUDYID, USUBJID),
-    order = exprs(PARAMN, AVISITN),
+    order = exprs(PARAMCD, AVISITN),
     new_var = ASEQ,
     check_type = "error"
   )
@@ -481,7 +452,7 @@ adee <- adee_seq %>%
     
     # Treatment
     ARM, ARMN, ACTARM, ACTARMN,
-    TRT01P, TRT01PN, TRT01A, TRT01AN,
+    # TRT01P, TRT01PN, TRT01A, TRT01AN,
     TRTSDT, TRTEDT, TRTDURD,
     
     # Demographics
@@ -491,11 +462,11 @@ adee <- adee_seq %>%
     ETHNIC, ETHNICN,
     
     # Parameter information
-    PARAMCD, PARAM, PARAMN,
+    PARAMCD, PARAM,
     PARCAT1, PARCAT2,
     
     # Analysis value (time-to-event)
-    AVAL, AVALU, AVALC,
+    AVAL,
     
     # Dates and relative days
     STARTDT, ADT, ADTF, ADY,
@@ -535,7 +506,7 @@ adee <- adee_seq %>%
     # Record identifiers
     ASEQ, DTYPE
   ) %>%
-  arrange(USUBJID, PARAMN, AVISITN)
+  arrange(USUBJID, PARAMCD, AVISITN)
 
 #===============================================================================
 # DATA QUALITY CHECKS
