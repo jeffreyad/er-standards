@@ -1,30 +1,32 @@
 #===============================================================================
 # Program: ADTRR.R
 # 
-# Purpose: Create ADTRR (Tumor Response Analysis Dataset)
+# Purpose: Create ADTRR (Tumor Response for Exposure-Response Analysis)
 #
-# Description: Derives tumor response analysis dataset following BDS 
-#              structure with longitudinal tumor measurements and RECIST 1.1
-#              evaluations combined with exposure metrics.
+# Description: Derives tumor response analysis dataset combining longitudinal 
+#              tumor measurements, RECIST 1.1 evaluations, and exposure metrics
+#              for exposure-response analysis.
 #
 # Input: 
 #   - ADSL: Subject-level analysis dataset
-#   - ADRS: Response analysis dataset (tumor measurements)
-#   - ADVS: Vital signs (for baseline covariates)
-#   - ADLB: Laboratory data (for baseline covariates)
+#   - ADTR: Tumor measurements (from admiralonco)
+#   - ADRS: Response evaluations (from admiralonco)
+#   - ADVS: Vital signs
+#   - ADLB: Laboratory data
 #
 # Output: 
-#   - ADTRR: Tumor response analysis dataset
+#   - ADTRR: Tumor response for E-R analysis
 #
 # Structure: BDS (Basic Data Structure)
 #   - Multiple records per subject (one per parameter per visit)
-#   - PARAMCD identifies measurement type (TUMSIZE, BOR, NADIR)
-#   - Longitudinal tumor measurements with RECIST evaluations
-#   - Exposure metrics at each assessment
+#   - PARAMCD identifies measurement type (TSIZE, BOR, NADIR)
+#   - Longitudinal tumor measurements with exposure metrics
 #
 # Author: Jeff Dickinson
-# Date: 2026-01-21
-# Version: 1.0
+# Date: 2026-01-22
+# Version: 1.1
+#
+# Note: Variable names limited to 8 characters for SAS compatibility
 #
 #===============================================================================
 
@@ -69,13 +71,10 @@ if (file.exists("specifications/ADTRR_spec.xlsx")) {
 library(pharmaverseadam)
 
 adsl <- pharmaverseadam::adsl
-adrs <- pharmaverseadam::adrs_onco
-adtr <- pharmaverseadam::adtr_onco
+adtr <- pharmaverseadam::adtr_onco  # Has tumor measurements
+adrs <- pharmaverseadam::adrs_onco  # Has response evaluations
 adlb <- pharmaverseadam::adlb
 advs <- pharmaverseadam::advs
-
-count(adrs, PARAMCD, PARAM)
-count(adtr, PARAMCD, PARAM)
 
 #===============================================================================
 # PREPARE ADSL - ADD DERIVED VARIABLES
@@ -221,217 +220,108 @@ adsl_vslb <- adsl_vs %>%
 # DERIVE EXPOSURE METRICS
 #===============================================================================
 
-# In production, exposure would come from ADPC or PopPK analysis
-# For demonstration, simulating exposure based on dose and covariates
+# Load configuration
+source("config/exposure_config.R")
 
-set.seed(12345)
+# Source the exposure metrics function
+source("R/derive_exposure_metrics.R")
 
-exposure_data <- adsl_vslb %>%
-  mutate(
-    # Dose from treatment arm
-    DOSE = case_when(
-      ARM == "Placebo" ~ 0,
-      ARM == "Xanomeline Low Dose" ~ 54,
-      ARM == "Xanomeline High Dose" ~ 81,
-      TRUE ~ NA_real_
-    ),
-    
-    # Simulate individual clearance
-    CL_EST = 5 * (CRCLBL / 100)^0.75 * (WTBL / 70)^(-0.25),
-    
-    # Simulate steady-state AUC
-    AUCSS = if_else(DOSE > 0, (DOSE / CL_EST) * exp(rnorm(n(), 0, 0.3)), 0),
-    CMAXSS = if_else(DOSE > 0, AUCSS * 0.18 * exp(rnorm(n(), 0, 0.25)), 0),
-    CAVGSS = if_else(DOSE > 0, AUCSS / 24, 0),
-    CMINSS = if_else(DOSE > 0, CAVGSS * 0.6 * exp(rnorm(n(), 0, 0.35)), 0),
-    CLSS = if_else(DOSE > 0, DOSE / AUCSS, NA_real_)
-  ) %>%
-  select(-CL_EST)
+# Load ADPC if using production source
+if (EXPOSURE_SOURCE == "adpc") {
+  # adpc <- haven::read_sas("path/to/adpc.sas7bdat")
+  # Or from pharmaverse if available:
+  # adpc <- pharmaverseadam::adpc
+  stop("ADPC dataset not configured. Update path in ADTRR.R or set EXPOSURE_SOURCE to 'simulated'")
+} else {
+  adpc <- NULL
+}
 
-## Exposure transformations and categories ----
-
-# Calculate statistics from active subjects only
-aucss_active <- exposure_data %>% filter(DOSE > 0) %>% pull(AUCSS)
-aucss_mean <- mean(aucss_active, na.rm = TRUE)
-aucss_sd <- sd(aucss_active, na.rm = TRUE)
-aucss_median <- median(aucss_active, na.rm = TRUE)
-
-tertile_breaks <- quantile(aucss_active, probs = c(0, 1/3, 2/3, 1), na.rm = TRUE)
-quartile_breaks <- quantile(aucss_active, probs = c(0, 0.25, 0.5, 0.75, 1), na.rm = TRUE)
-
-exposure_final <- exposure_data %>%
-  mutate(
-    # Log transformations
-    AUCSSLOG = log(AUCSS + 0.01),
-    CMAXSSLOG = log(CMAXSS + 0.01),
-    CAVGSSLOG = log(CAVGSS + 0.01),
-    
-    # Standardized (z-score)
-    AUCSSSTD = if_else(DOSE > 0, (AUCSS - aucss_mean) / aucss_sd, NA_real_),
-    
-    # Normalized (ratio to median)
-    AUCSSN = if_else(DOSE > 0, AUCSS / aucss_median, NA_real_),
-    
-    # Dose-normalized
-    AUCSSDOSE = if_else(DOSE > 0, AUCSS / DOSE, NA_real_),
-    
-    # Tertiles
-    AUCSSCAT = if_else(
-      DOSE > 0,
-      as.character(cut(AUCSS, breaks = tertile_breaks,
-                       labels = c("Low", "Medium", "High"),
-                       include.lowest = TRUE)),
-      NA_character_
-    ),
-    AUCSSCATN = case_when(
-      AUCSSCAT == "Low" ~ 1,
-      AUCSSCAT == "Medium" ~ 2,
-      AUCSSCAT == "High" ~ 3,
-      TRUE ~ NA_real_
-    ),
-    
-    # Quartiles
-    AUCSSQ = if_else(
-      DOSE > 0,
-      as.character(cut(AUCSS, breaks = quartile_breaks,
-                       labels = c("Q1", "Q2", "Q3", "Q4"),
-                       include.lowest = TRUE)),
-      NA_character_
-    ),
-    AUCSSQN = case_when(
-      AUCSSQ == "Q1" ~ 1,
-      AUCSSQ == "Q2" ~ 2,
-      AUCSSQ == "Q3" ~ 3,
-      AUCSSQ == "Q4" ~ 4,
-      TRUE ~ NA_real_
-    ),
-    
-    # Above/below median
-    AUCSSMED = if_else(
-      DOSE > 0,
-      if_else(AUCSS >= aucss_median, "Above Median", "Below Median"),
-      NA_character_
-    )
-  )
+# Derive exposure metrics
+exposure_final <- derive_exposure_metrics(
+  adsl_data = adsl_vslb,
+  source = EXPOSURE_SOURCE,
+  adpc_data = adpc,
+  seed = EXPOSURE_SEED,
+  tertile_var = TERTILE_VARIABLE
+)
 
 #===============================================================================
-# CREATE TUMOR SIZE PARAMETER (TUMSIZE)
+# CREATE TUMOR SIZE PARAMETER FROM ADTR
 #===============================================================================
 
-# Filter to tumor assessment records from ADRS
-# Assuming ADRS has PARAMCD for tumor measurements
-
-adsl_vars <- names(adsl)
+# Use SDIAM (Sum of Diameters) from adtr_onco
+# Get variable names for clean dropping
+adsl_vars <- names(exposure_final)
 adtr_vars <- names(adtr)
-
-# Get variables that are in both datasets
 common_vars <- intersect(adsl_vars, adtr_vars)
-
-# Remove the key variables you want to keep for joining
 vars_to_drop <- setdiff(common_vars, c("STUDYID", "USUBJID"))
 
-count(adtr, PARAMCD, PARAM)
-
-tumsize_base <- adtr %>%
-  # Filter to tumor size parameter (adjust PARAMCD as needed)
-  filter(PARAMCD %in% c("SDIAM", "SLDINV", "SLDTRG", "SLDBSLN")) %>%
-  
-  # Create standardized TUMSIZE parameter
+tsize_base <- adtr %>%
+  filter(PARAMCD == "SDIAM") %>%
   mutate(
-    PARAMCD = "TUMSIZE",
-    PARAM = "Sum of Longest Diameters (mm)",
+    PARAMCD = "TSIZE",  # 8 chars max
+    PARAM = "Target Lesions Sum of Diameters",
     PARAMN = 1
   ) %>%
-  
-  # Remove overlapping variables (keep ADSL versions)
   select(-any_of(vars_to_drop)) %>%
-  # Merge exposure and covariates
   derive_vars_merged(
     dataset_add = exposure_final,
     by_vars = exprs(STUDYID, USUBJID)
   )
 
 #===============================================================================
-# DERIVE BASELINE AND CHANGE FROM BASELINE
+# DERIVE BASELINE AND CHANGE
 #===============================================================================
 
-tumsize_chg <- tumsize_base %>%
-  # Derive baseline
+tsize_chg <- tsize_base %>%
   derive_var_base(
     by_vars = exprs(STUDYID, USUBJID, PARAMCD),
     source_var = AVAL,
     new_var = BASE,
     filter = ABLFL == "Y"
   ) %>%
-  
-  # Derive change from baseline
   derive_var_chg() %>%
-  
-  # Derive percent change from baseline
   derive_var_pchg()
 
 #===============================================================================
-# DERIVE BEST OVERALL RESPONSE (BOR)
+# ADD BOR FROM ADRS
 #===============================================================================
 
-# Derive confirmed BOR using RECIST 1.1
-bor <- tumsize_chg %>%
-  filter(AVISITN > 0) %>%  # Post-baseline only
-  derive_param_confirmed_bor(
-    dataset_adsl = adsl,
-    filter_source = PARAMCD == "TUMSIZE",
-    source_pd = AVALC == "PD",
-    source_cr = AVALC == "CR",
-    source_pr = AVALC == "PR",
-    source_sd = AVALC == "SD",
-    reference_date = TRTSDT,
-    ref_start_window = 28,
-    set_values_to = exprs(
-      PARAMCD = "BOR",
-      PARAM = "Best Overall Response",
-      PARAMN = 2,
-      AVAL = AVALN,
-      AVALC = case_when(
-        AVALN == 4 ~ "CR",
-        AVALN == 3 ~ "PR",
-        AVALN == 2 ~ "SD",
-        AVALN == 1 ~ "PD",
-        TRUE ~ NA_character_
-      )
-    )
-  )
+# Get BOR from ADRS (already derived)
+# Get variable names for clean dropping
+adrs_vars <- names(adrs)
+common_vars_adrs <- intersect(adsl_vars, adrs_vars)
+vars_to_drop_adrs <- setdiff(common_vars_adrs, c("STUDYID", "USUBJID"))
 
-# Add BOR numeric and category
-bor <- bor %>%
+bor <- adrs %>%
+  filter(PARAMCD == "BOR") %>%
   mutate(
-    BORN = AVALN,
-    AVALC = case_when(
-      BORN == 4 ~ "CR",
-      BORN == 3 ~ "PR",
-      BORN == 2 ~ "SD",
-      BORN == 1 ~ "PD",
-      TRUE ~ NA_character_
-    )
+    PARAMN = 2,
+    BORN = AVALN  # Add numeric version
+  ) %>%
+  select(-any_of(vars_to_drop_adrs)) %>%
+  derive_vars_merged(
+    dataset_add = exposure_final,
+    by_vars = exprs(STUDYID, USUBJID)
   )
 
 #===============================================================================
-# DERIVE NADIR (BEST RESPONSE)
+# DERIVE NADIR (8-CHAR VARIABLES)
 #===============================================================================
 
-# Derive nadir (minimum tumor size post-baseline)
-nadir <- tumsize_chg %>%
+nadir <- tsize_chg %>%
   filter(AVISITN > 0 & !is.na(AVAL)) %>%
   group_by(STUDYID, USUBJID) %>%
   filter(AVAL == min(AVAL, na.rm = TRUE)) %>%
-  slice(1) %>%  # Take first occurrence if multiple
+  slice(1) %>%
   ungroup() %>%
   mutate(
     PARAMCD = "NADIR",
     PARAM = "Nadir Tumor Size",
     PARAMN = 3,
     NADIR = AVAL,
-    NADIR_PCHG = PCHG,
-    NADIR_VISIT = AVISIT
+    NADPCHG = PCHG,      # NADIR_PCHG shortened to 8 chars
+    NADVST = AVISIT      # NADIR_VISIT shortened to 8 chars
   )
 
 #===============================================================================
@@ -439,7 +329,7 @@ nadir <- tumsize_chg %>%
 #===============================================================================
 
 adtrr_base <- bind_rows(
-  tumsize_chg,
+  tsize_chg,
   bor,
   nadir
 ) %>%
@@ -452,20 +342,25 @@ adtrr_base <- bind_rows(
 adtrr_prefinal <- adtrr_base %>%
   # Analysis flags
   mutate(
-    # ABLFL should exist from source data
-    ABLFL = if_else(AVISITN == 0, "Y", ""),
+    # Baseline flag (should exist from source, but ensure it's there)
+    ABLFL = if_else(is.na(ABLFL) & AVISITN == 0, "Y", 
+                    if_else(is.na(ABLFL), "", ABLFL)),
     
-    # Analysis flags
-    ANL01FL = if_else(AVISITN > 0, "Y", ""),  # Post-baseline
-    ANL02FL = if_else(AVALC %in% c("CR", "PR"), "Y", ""),  # Responders
-    ANL03FL = if_else(!is.na(PCHG), "Y", "")  # Has change from baseline
+    # Post-baseline flag
+    ANL01FL = if_else(AVISITN > 0, "Y", ""),
+    
+    # Responders (CR or PR)
+    ANL02FL = if_else(AVALC %in% c("CR", "PR"), "Y", ""),
+    
+    # Has change from baseline
+    ANL03FL = if_else(!is.na(PCHG), "Y", "")
   ) %>%
   
   # Parameter categories
   mutate(
     PARCAT1 = "TUMOR RESPONSE",
     PARCAT2 = case_when(
-      PARAMCD == "TUMSIZE" ~ "MEASUREMENT",
+      PARAMCD == "TSIZE" ~ "MEASUREMENT",
       PARAMCD == "BOR" ~ "OVERALL RESPONSE",
       PARAMCD == "NADIR" ~ "BEST RESPONSE",
       TRUE ~ NA_character_
@@ -474,7 +369,7 @@ adtrr_prefinal <- adtrr_base %>%
   
   # Ensure AVALU exists
   mutate(
-    AVALU = if_else(PARAMCD == "TUMSIZE", "mm", NA_character_)
+    AVALU = if_else(PARAMCD == "TSIZE" & is.na(AVALU), "mm", AVALU)
   ) %>%
   
   # Sequence number
@@ -485,7 +380,7 @@ adtrr_prefinal <- adtrr_base %>%
     check_type = "error"
   ) %>%
   
-  # Select variables
+  # Select variables (8-char names)
   select(
     # Identifiers
     STUDYID, STUDYIDN, USUBJID, USUBJIDN, SUBJID, SUBJIDN,
@@ -506,7 +401,7 @@ adtrr_prefinal <- adtrr_base %>%
     PARAMCD, PARAM, PARAMN,
     PARCAT1, PARCAT2,
     
-    # Visit information
+    # Visit
     AVISITN, AVISIT,
     ADT, any_of("ADY"),
     
@@ -516,8 +411,8 @@ adtrr_prefinal <- adtrr_base %>%
     # Baseline and change
     BASE, CHG, PCHG,
     
-    # Response variables
-    any_of(c("BOR", "BORN", "NADIR", "NADIR_PCHG", "NADIR_VISIT")),
+    # Response (8-char names)
+    any_of(c("BOR", "BORN", "NADIR", "NADPCHG", "NADVST")),
     
     # Flags
     ABLFL, ANL01FL, ANL02FL, ANL03FL,
@@ -525,18 +420,19 @@ adtrr_prefinal <- adtrr_base %>%
     # Exposure - Primary
     DOSE, AUCSS, CMAXSS, CAVGSS, CMINSS, CLSS,
     
-    # Exposure - Transformations
-    AUCSSLOG, AUCSSSTD, AUCSSN, AUCSSDOSE,
+    # Exposure - Transformations (8-char names)
+    AUCSLOG, CMXSLOG, CAVGLOG,
+    AUCSSSTD, CMXSSSTD,
+    AUCSSN,
+    AUCSSDOS, CMXSSDOS,
     
-    # Exposure - Categories
-    AUCSSCAT, AUCSSCATN,
+    # Exposure - Categories (8-char names)
+    AUCSSCAT, AUCSCATN,
     AUCSSQ, AUCSSQN,
     AUCSSMED,
     
-    # Baseline covariates - Vitals
+    # Baseline covariates
     WTBL, WTBLGR1, HTBL, BMIBL, BSABL,
-    
-    # Baseline covariates - Labs
     CREATBL, CRCLBL, EGFRBL,
     ALTBL, ASTBL, TBILBL, any_of("ALBBL"),
     
@@ -592,16 +488,81 @@ if (!is.null(metacore)) {
     xportr_label(metacore) %>%
     xportr_format(metacore) %>%
     xportr_df_label(metacore) %>%
-    xportr_write(file.path(dir, "adtr.xpt"))
+    xportr_write(file.path(dir, "adtrr.xpt"))
   
-  message("✓ Saved: adam/adtr.xpt (with metacore attributes)")
+  message("✓ Saved: adam/adtrr.xpt (with metacore attributes)")
 } else {
   # Without metacore specifications (basic XPT)
   if (requireNamespace("haven", quietly = TRUE)) {
-    haven::write_xpt(adtr, file.path(dir, "adtr.xpt"), version = 5)
-    message("✓ Saved: adam/adtr.xpt (basic format)")
+    haven::write_xpt(adtrr, file.path(dir, "adtrr.xpt"), version = 5)
+    message("✓ Saved: adam/adtrr.xpt (basic format)")
   }
 }
+
+#===============================================================================
+# SUMMARY OUTPUT
+#===============================================================================
+
+cat("\n")
+cat("="*80, "\n", sep = "")
+cat("ADTRR DERIVATION SUMMARY\n")
+cat("="*80, "\n", sep = "")
+cat("\n")
+
+cat("Dataset Structure:\n")
+cat("  Total records:", nrow(adtrr), "\n")
+cat("  Unique subjects:", length(unique(adtrr$USUBJID)), "\n")
+cat("\n")
+
+cat("Records by Parameter:\n")
+param_summary <- adtrr %>%
+  count(PARAMCD, PARAM) %>%
+  arrange(PARAMCD)
+print(param_summary)
+cat("\n")
+
+cat("Records by Visit (TSIZE only):\n")
+visit_summary <- adtrr %>%
+  filter(PARAMCD == "TSIZE") %>%
+  count(AVISITN, AVISIT) %>%
+  arrange(AVISITN)
+print(visit_summary)
+cat("\n")
+
+cat("Response Distribution (BOR):\n")
+if ("BOR" %in% adtrr$PARAMCD) {
+  bor_summary <- adtrr %>%
+    filter(PARAMCD == "BOR") %>%
+    count(AVALC, name = "N") %>%
+    mutate(Percent = round(100 * N / sum(N), 1))
+  print(bor_summary)
+} else {
+  cat("  No BOR records found\n")
+}
+cat("\n")
+
+cat("Exposure Categories:\n")
+exp_summary <- adtrr %>%
+  filter(!is.na(AUCSSCAT)) %>%
+  distinct(USUBJID, .keep_all = TRUE) %>%
+  count(AUCSSCAT, name = "N_Subjects")
+print(exp_summary)
+cat("\n")
+
+cat("Analysis Flags:\n")
+flag_summary <- adtrr %>%
+  summarise(
+    Baseline = sum(ABLFL == "Y", na.rm = TRUE),
+    Post_Baseline = sum(ANL01FL == "Y", na.rm = TRUE),
+    Responders = sum(ANL02FL == "Y", na.rm = TRUE),
+    Has_Change = sum(ANL03FL == "Y", na.rm = TRUE)
+  )
+print(flag_summary)
+cat("\n")
+
+cat("="*80, "\n", sep = "")
+cat("ADTRR derivation complete!\n")
+cat("="*80, "\n", sep = "")
 
 #===============================================================================
 # END OF PROGRAM
