@@ -1,0 +1,445 @@
+%===============================================================================
+% Bibliography for Exposure-Response Data Standards Framework
+%
+% Purpose: Citations for FDA guidance, CDISC standards, R packages, and
+%          relevant publications for exposure-response analysis
+%
+% Author: Jeff Dickinson
+% Date: 2026-01-22
+%===============================================================================
+
+%===============================================================================
+% FDA GUIDANCE DOCUMENTS
+%===============================================================================
+
+@techreport{fda2003er,
+  title        = {Guidance for Industry: Exposure-Response Relationships — Study Design, Data Analysis, and Regulatory Applications},
+  author       = {{U.S. Food and Drug Administration}},
+  institution  = {U.S. Department of Health and Human Services, Food and Drug Administration, Center for Drug Evaluation and Research (CDER), Center for Biologics Evaluation and Research (CBER)},
+  year         = {2003},
+  month        = {April},
+  type         = {Guidance for Industry},
+  url          = {https://www.fda.gov/media/71277/download},
+  note         = {Accessed: 2026-01-22}
+}
+
+@techreport{fda2020poppk,
+  title        = {Population Pharmacokinetics: Guidance for Industry},
+  author       = {{U.S. Food and Drug Administration}},
+  institution  = {U.S. Department of Health and Human Services, Food and Drug Administration, Center for Drug Evaluation and Research (CDER), Center for Biologics Evaluation and Research (CBER)},
+  year         = {2022},
+  month        = {July},
+  type         = {Guidance for Industry},
+  url          = {https://www.fda.gov/regulatory-information/search-fda-guidance-documents/population-pharmacokinetics},
+  note         = {Accessed: 2026-01-22}
+}
+
+@techreport{fda2019cancer,
+  title        = {Clinical Trial Endpoints for the Approval of Cancer Drugs and Biologics: Guidance for Industry},
+  author       = {{U.S. Food and Drug Administration}},
+  institution  = {U.S. Department of Health and Human Services, Food and Drug Administration, Center for Drug Evaluation and Research (CDER), Center for Biologics Evaluation and Research (CBER)},
+  year         = {2018},
+  month        = {December},
+  type         = {Guidance for Industry},
+  url          = {https://www.fda.gov/media/71195/download},
+  note         = {Accessed: 2026-01-22}
+}
+
+%===============================================================================
+% CDISC STANDARDS
+%===============================================================================
+
+@manual{cdisc2021adam,
+  title        = {Analysis Data Model Implementation Guide (ADaM IG) Version 1.3},
+  author       = {{Clinical Data Interchange Standards Consortium (CDISC)}},
+  organization = {CDISC},
+  year         = {2021},
+  month        = {June},
+  url          = {https://www.cdisc.org/standards/foundational/adam},
+  note         = {Accessed: 2026-01-22}
+}
+
+@manual{cdisc2023sdtm,
+  title        = {Study Data Tabulation Model Implementation Guide (SDTM IG) Version 3.4},
+  author       = {{Clinical Data Interchange Standards Consortium (CDISC)}},
+  organization = {CDISC},
+  year         = {2023},
+  month        = {November},
+  url          = {https://www.cdisc.org/standards/foundational/sdtm},
+  note         = {Accessed: 2026-01-22}
+}
+
+@manual{cdisc2016taug,
+  title        = {Therapeutic Area User Guide for Oncology (TAUG-Onco) Version 1.1},
+  author       = {{Clinical Data Interchange Standards Consortium (CDISC)}},
+  organization = {CDISC},
+  year         = {2016},
+  month        = {September},
+  url          = {https://www.cdisc.org/standards/therapeutic-areas/oncology},
+  note         = {Accessed: 2026-01-22}
+}
+
+@article{cdisc2021ard,
+  title        = {Analysis Results Data (ARD) Model for Clinical Trial Reporting},
+  author       = {{Clinical Data Interchange Standards Consortium (CDISC)}},
+  journal      = {CDISC Standards},
+  year         = {2021},
+  url          = {https://www.cdisc.org/standards/foundational/ard},
+  note         = {Accessed: 2026-01-22}
+}
+
+%===============================================================================
+% RECIST CRITERIA
+%===============================================================================
+
+@article{eisenhauer2009recist,
+  title        = {New Response Evaluation Criteria in Solid Tumours: Revised RECIST Guideline (Version 1.1)},
+  author       = {Eisenhauer, E. A. and Therasse, P. and Bogaerts, J. and Schwartz, L. H. and Sargent, D. and Ford, R. and Dancey, J. and Arbuck, S. and Gwyther, S. and Mooney, M. and Rubinstein, L. and Shankar, L. and Dodd, L. and Kaplan, R. and Lacombe, D. and Verweij, J.},
+  journal      = {European Journal of Cancer},
+  volume       = {45},
+  number       = {2},
+  pages        = {228--247},
+  year         = {2009},
+  doi          = {10.1016/j.ejca.2008.10.026},
+  pmid         = {19097774}
+}
+
+%===============================================================================
+% R PACKAGES - ADMIRAL
+%===============================================================================
+
+@manual{admiral2024,
+  title        = {admiral: ADaM in R Asset Library},
+  author       = {Ben Straub and Stefan Bundfuss and Jeffrey Dickinson and Ross Farrugia and Edoardo Mancini and Sadchla Mascary and Pooja Kumari and Zelos Zhu and Thomas Neitmann and Kangjie Zhang and Sophie Shapcott and Samia Kabi and Lucy Palmen and Stefan Thoma and Annie Yang and Gordon Miller and {admiral development team}},
+  year         = {2024},
+  note         = {R package version 1.1.1},
+  url          = {https://pharmaverse.github.io/admiral/},
+  doi          = {10.5281/zenodo.7598197}
+}
+
+@manual{admiralonco2024,
+  title        = {admiralonco: Oncology Extension Package for ADaM in R Asset Library},
+  author       = {Stefan Bundfuss and Edoardo Mancini and Teckla Akinyi and Annie Yang and Stefan Thoma and Heng Wang and Vinh Nguyen and Samia Kabi and Pavan Kumar and Gordon Miller and {admiral development team}},
+  year         = {2024},
+  note         = {R package version 1.1.0},
+  url          = {https://pharmaverse.github.io/admiralonco/}
+}
+
+@manual{admiralpeds2024,
+  title        = {admiralpeds: Pediatric Extension Package for ADaM in R Asset Library},
+  author       = {Katy Martin and Asha Chakma and Ben Straub and Jeffrey Dickinson and {admiral development team}},
+  year         = {2024},
+  note         = {R package version 0.1.0},
+  url          = {https://pharmaverse.github.io/admiralpeds/}
+}
+
+%===============================================================================
+% R PACKAGES - PHARMAVERSE
+%===============================================================================
+
+@manual{metacore2024,
+  title        = {metacore: A Centralized Metadata Object},
+  author       = {Christina Fillmore and Becca Krouse and Jeffrey Dickinson},
+  year         = {2024},
+  note         = {R package version 0.1.4},
+  url          = {https://pharmaverse.github.io/metacore/}
+}
+
+@manual{metatools2024,
+  title        = {metatools: Enable the Use of metacore to Build and Check ADaM Datasets},
+  author       = {Christina Fillmore and Becca Krouse and Jeffrey Dickinson and Edoardo Mancini},
+  year         = {2024},
+  note         = {R package version 0.1.6},
+  url          = {https://pharmaverse.github.io/metatools/}
+}
+
+@manual{xportr2024,
+  title        = {xportr: Utilities to Output CDISC SDTM/ADaM XPT Files},
+  author       = {Eli Miller and Ethan Brockmann and Vedha Viyash and Andre Verissimo and Coline Zeballos and Ben Straub and Zelos Zhu and {xportr development team}},
+  year         = {2024},
+  note         = {R package version 0.4.0},
+  url          = {https://pharmaverse.github.io/xportr/}
+}
+
+@manual{pharmaverseadam2024,
+  title        = {pharmaverseadam: Example ADaM Datasets from the pharmaverse Family},
+  author       = {Christina Fillmore and Edoardo Mancini and Jeffrey Dickinson and Ross Farrugia and Ben Straub},
+  year         = {2024},
+  note         = {R package version 1.0.0},
+  url          = {https://pharmaverse.github.io/pharmaverseadam/}
+}
+
+%===============================================================================
+% R PACKAGES - CORE
+%===============================================================================
+
+@manual{r2024,
+  title        = {R: A Language and Environment for Statistical Computing},
+  author       = {{R Core Team}},
+  organization = {R Foundation for Statistical Computing},
+  address      = {Vienna, Austria},
+  year         = {2024},
+  url          = {https://www.R-project.org/}
+}
+
+@manual{dplyr2023,
+  title        = {dplyr: A Grammar of Data Manipulation},
+  author       = {Hadley Wickham and Romain François and Lionel Henry and Kirill Müller and Davis Vaughan},
+  year         = {2023},
+  note         = {R package version 1.1.4},
+  url          = {https://CRAN.R-project.org/package=dplyr}
+}
+
+@manual{tidyr2024,
+  title        = {tidyr: Tidy Messy Data},
+  author       = {Hadley Wickham and Davis Vaughan and Maximilian Girlich},
+  year         = {2024},
+  note         = {R package version 1.3.1},
+  url          = {https://CRAN.R-project.org/package=tidyr}
+}
+
+@manual{ggplot2016,
+  title        = {ggplot2: Elegant Graphics for Data Analysis},
+  author       = {Hadley Wickham},
+  publisher    = {Springer-Verlag New York},
+  year         = {2016},
+  isbn         = {978-3-319-24277-4},
+  url          = {https://ggplot2.tidyverse.org}
+}
+
+@manual{haven2023,
+  title        = {haven: Import and Export 'SPSS', 'Stata' and 'SAS' Files},
+  author       = {Hadley Wickham and Evan Miller and Danny Smith},
+  year         = {2023},
+  note         = {R package version 2.5.4},
+  url          = {https://CRAN.R-project.org/package=haven}
+}
+
+%===============================================================================
+% STATISTICAL METHODS
+%===============================================================================
+
+@book{bonate2011,
+  title        = {Pharmacokinetic-Pharmacodynamic Modeling and Simulation},
+  author       = {Bonate, Peter L.},
+  edition      = {2nd},
+  publisher    = {Springer},
+  address      = {New York, NY},
+  year         = {2011},
+  isbn         = {978-1-4419-9484-4},
+  doi          = {10.1007/978-1-4419-9485-1}
+}
+
+@book{pinheiro2000,
+  title        = {Mixed-Effects Models in S and S-PLUS},
+  author       = {Pinheiro, José C. and Bates, Douglas M.},
+  publisher    = {Springer},
+  address      = {New York, NY},
+  year         = {2000},
+  isbn         = {978-0-387-98957-0},
+  doi          = {10.1007/b98882}
+}
+
+@book{davidian1995,
+  title        = {Nonlinear Models for Repeated Measurement Data},
+  author       = {Davidian, Marie and Giltinan, David M.},
+  publisher    = {Chapman \& Hall/CRC},
+  address      = {Boca Raton, FL},
+  year         = {1995},
+  isbn         = {978-0-412-04341-0}
+}
+
+@article{sheiner1991,
+  title        = {Analysis of Pharmacokinetic Data Using Parametric Models},
+  author       = {Sheiner, Lewis B. and Beal, Stuart L.},
+  journal      = {Journal of Pharmacokinetics and Biopharmaceutics},
+  volume       = {19},
+  number       = {6},
+  pages        = {553--566},
+  year         = {1991},
+  doi          = {10.1007/BF01062962},
+  pmid         = {1797515}
+}
+
+@article{holford2000,
+  title        = {A Time to Event Tutorial for Pharmacometricians},
+  author       = {Holford, Nick},
+  journal      = {CPT: Pharmacometrics \& Systems Pharmacology},
+  volume       = {2},
+  number       = {5},
+  pages        = {e43},
+  year         = {2013},
+  doi          = {10.1038/psp.2013.18},
+  pmid         = {23887721}
+}
+
+%===============================================================================
+% EXPOSURE-RESPONSE ANALYSIS
+%===============================================================================
+
+@article{duffull2005,
+  title        = {The Use of Simulations in Population Pharmacokinetic-Pharmacodynamic Analyses: Counteracting the N-of-1 Trial},
+  author       = {Duffull, Stephen B. and Waterhouse, Timothy H. and Eccleston, John A.},
+  journal      = {Journal of Pharmacokinetics and Pharmacodynamics},
+  volume       = {32},
+  number       = {3-4},
+  pages        = {575--593},
+  year         = {2005},
+  doi          = {10.1007/s10928-005-0076-2},
+  pmid         = {16284919}
+}
+
+@article{bruno2019,
+  title        = {Exposure-Response Relationships for Monoclonal Antibodies},
+  author       = {Bruno, René and Hille, Daniël and Fridlyand, Anna and Sievers, Andrea and Lowe, Peter and Bruins Slot, Koen and Cleton, Astrid},
+  journal      = {Clinical Pharmacokinetics},
+  volume       = {58},
+  number       = {3},
+  pages        = {297--312},
+  year         = {2019},
+  doi          = {10.1007/s40262-018-0702-3},
+  pmid         = {30043251}
+}
+
+@article{mould2007,
+  title        = {Basic Concepts in Population Modeling, Simulation, and Model-Based Drug Development},
+  author       = {Mould, Diane R. and Upton, Richard N.},
+  journal      = {CPT: Pharmacometrics \& Systems Pharmacology},
+  volume       = {1},
+  number       = {9},
+  pages        = {e6},
+  year         = {2012},
+  doi          = {10.1038/psp.2012.4},
+  pmid         = {23835886}
+}
+
+@article{karlsson1999,
+  title        = {The Importance of Modeling Interoccasion Variability in Population Pharmacokinetic Analyses},
+  author       = {Karlsson, Mats O. and Sheiner, Lewis B.},
+  journal      = {Journal of Pharmacokinetics and Biopharmaceutics},
+  volume       = {21},
+  number       = {6},
+  pages        = {735--750},
+  year         = {1993},
+  doi          = {10.1007/BF01113502},
+  pmid         = {8138894}
+}
+
+%===============================================================================
+% CLINICAL TRIAL DESIGN
+%===============================================================================
+
+@book{piantadosi2017,
+  title        = {Clinical Trials: A Methodologic Perspective},
+  author       = {Piantadosi, Steven},
+  edition      = {3rd},
+  publisher    = {Wiley},
+  address      = {Hoboken, NJ},
+  year         = {2017},
+  isbn         = {978-1-118-95920-1},
+  doi          = {10.1002/9781118960141}
+}
+
+@book{chow2017,
+  title        = {Sample Size Calculations in Clinical Research},
+  author       = {Chow, Shein-Chung and Shao, Jun and Wang, Hansheng and Lokhnygina, Yuliya},
+  edition      = {3rd},
+  publisher    = {Chapman \& Hall/CRC},
+  address      = {Boca Raton, FL},
+  year         = {2017},
+  isbn         = {978-1-138-74671-2}
+}
+
+%===============================================================================
+% SURVIVAL ANALYSIS
+%===============================================================================
+
+@book{klein2003,
+  title        = {Survival Analysis: Techniques for Censored and Truncated Data},
+  author       = {Klein, John P. and Moeschberger, Melvin L.},
+  edition      = {2nd},
+  publisher    = {Springer},
+  address      = {New York, NY},
+  year         = {2003},
+  isbn         = {978-0-387-95399-1},
+  doi          = {10.1007/b97377}
+}
+
+@book{collett2015,
+  title        = {Modelling Survival Data in Medical Research},
+  author       = {Collett, David},
+  edition      = {3rd},
+  publisher    = {Chapman \& Hall/CRC},
+  address      = {Boca Raton, FL},
+  year         = {2015},
+  isbn         = {978-1-4398-7408-9}
+}
+
+@article{cox1972,
+  title        = {Regression Models and Life-Tables},
+  author       = {Cox, D. R.},
+  journal      = {Journal of the Royal Statistical Society: Series B (Methodological)},
+  volume       = {34},
+  number       = {2},
+  pages        = {187--202},
+  year         = {1972},
+  doi          = {10.1111/j.2517-6161.1972.tb00899.x}
+}
+
+%===============================================================================
+% ONCOLOGY ENDPOINTS
+%===============================================================================
+
+@article{sargent2005,
+  title        = {Disease-Free Survival Versus Overall Survival as a Primary End Point for Adjuvant Colon Cancer Studies: Individual Patient Data From 20,898 Patients on 18 Randomized Trials},
+  author       = {Sargent, Daniel J. and Wieand, H. Sam and Haller, Daniel G. and Gray, Richard and Benedetti, Jacqueline K. and Buyse, Marc and Labianca, Roberto and Seitz, James F. and O'Callaghan, Christopher J. and Francini, Guido and Grothey, Axel and O'Connell, Michael and Saltz, Leonard B. and Schilsky, Richard L. and Goldberg, Richard M. and de Gramont, Aimery},
+  journal      = {Journal of Clinical Oncology},
+  volume       = {23},
+  number       = {34},
+  pages        = {8664--8670},
+  year         = {2005},
+  doi          = {10.1200/JCO.2005.01.6071},
+  pmid         = {16260700}
+}
+
+@article{pazdur2008,
+  title        = {Endpoints for Assessing Drug Activity in Clinical Trials},
+  author       = {Pazdur, Richard},
+  journal      = {The Oncologist},
+  volume       = {13},
+  number       = {S2},
+  pages        = {19--21},
+  year         = {2008},
+  doi          = {10.1634/theoncologist.13-S2-19},
+  pmid         = {18434634}
+}
+
+%===============================================================================
+% REPRODUCIBLE RESEARCH
+%===============================================================================
+
+@book{gandrud2020,
+  title        = {Reproducible Research with R and RStudio},
+  author       = {Gandrud, Christopher},
+  edition      = {3rd},
+  publisher    = {Chapman \& Hall/CRC},
+  address      = {Boca Raton, FL},
+  year         = {2020},
+  isbn         = {978-0-367-14404-4}
+}
+
+@article{peng2011,
+  title        = {Reproducible Research in Computational Science},
+  author       = {Peng, Roger D.},
+  journal      = {Science},
+  volume       = {334},
+  number       = {6060},
+  pages        = {1226--1227},
+  year         = {2011},
+  doi          = {10.1126/science.1213847},
+  pmid         = {22144613}
+}
+
+%===============================================================================
+% END OF BIBLIOGRAPHY
+%===============================================================================
