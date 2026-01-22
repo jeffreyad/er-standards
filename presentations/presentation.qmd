@@ -756,3 +756,10 @@ Thank you!
 -   Standards should accommodate
 -   Document decisions clearly
 :::
+
+## Acknowledgments
+
+Synthetic data and code examples were developed with assistance from Claude 
+(Anthropic, 2024), an AI assistant. All code was reviewed, tested, and 
+validated by the author. Any errors or omissions are the responsibility of 
+the author.

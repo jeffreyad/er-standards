@@ -366,6 +366,16 @@ Analysis of the three domain-specific implementations revealed several common pa
 These commonalities enable: - Shared utility functions - Consistent validation approaches\
 - Unified documentation templates - Cross-domain QC checks
 
+## Methods
+
+### Data Standards Development
+
+Exposure-response data standards were developed following FDA guidance 
+[@fda2003er] and CDISC ADaM IG v1.3 [@cdisc2021adam]. Example datasets 
+(ADEE, ADES, ADTR) were implemented using admiral [@admiral2024] and 
+admiralonco [@admiralonco2024] R packages.
+
+
 # Discussion
 
 ## Advantages of Standardization
@@ -386,7 +396,10 @@ These commonalities enable: - Shared utility functions - Consistent validation a
 
 # Acknowledgments
 
-\[Include acknowledgments\]
+Synthetic data and code examples were developed with assistance from Claude 
+(Anthropic, 2024), an AI assistant. All code was reviewed, tested, and 
+validated by the author. Any errors or omissions are the responsibility of 
+the author.
 
 # References
 
@@ -447,6 +460,15 @@ These commonalities enable: - Shared utility functions - Consistent validation a
 -   {admiral} package references
 -   Key ER modeling papers
 -   RECIST 1.1 criteria publication
+
+
+
+## Acknowledgments
+
+Synthetic data and code examples were developed with assistance from Claude 
+(Anthropic, 2024), an AI assistant. All code was reviewed, tested, and 
+validated by the author. Any errors or omissions are the responsibility of 
+the author.
 
 # Contact Information
 
