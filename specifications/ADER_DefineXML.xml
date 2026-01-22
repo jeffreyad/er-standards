@@ -1,0 +1,449 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ODM xmlns="http://www.cdisc.org/ns/odm/v1.3"
+     xmlns:def="http://www.cdisc.org/ns/def/v2.0"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     ODMVersion="1.3.2"
+     FileOID="ADER_Define"
+     FileType="Snapshot"
+     CreationDateTime="2026-01-20T17:53:28">
+  
+  <Study OID="STUDY001">
+    <GlobalVariables>
+      <StudyName>ER Standards Framework</StudyName>
+      <StudyDescription>Exposure-Response Data Standards</StudyDescription>
+      <ProtocolName>ER Standards</ProtocolName>
+    </GlobalVariables>
+    
+    <MetaDataVersion OID="MDV.001" Name="ER Standards Metadata">
+      
+      <!-- ItemGroupDef for ADER -->
+      <ItemGroupDef OID="IG.ADER" 
+                    Name="ADER" 
+                    Repeating="Yes" 
+                    IsReferenceData="No" 
+                    SASDatasetName="ADER"
+                    Domain="ADER"
+                    def:Class="Custom (Wide Format)"
+                    def:Structure="Custom (Wide Format)">
+        <Description>
+          <TranslatedText xml:lang="en">Exposure-Response Analysis Dataset</TranslatedText>
+        </Description>
+        
+        <ItemRef ItemOID="IT.ADER.STUDYID" OrderNumber="1" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.ADER.STUDYIDN" OrderNumber="2" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.SITEID" OrderNumber="3" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.SITEIDN" OrderNumber="4" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.USUBJID" OrderNumber="5" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.ADER.USUBJIDN" OrderNumber="6" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.SUBJID" OrderNumber="7" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.ADER.SUBJIDN" OrderNumber="8" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.AGE" OrderNumber="9" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.SEX" OrderNumber="10" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.SEXN" OrderNumber="11" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.RACE" OrderNumber="12" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.RACEN" OrderNumber="13" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.ETHNIC" OrderNumber="14" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.ETHNICN" OrderNumber="15" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.COHORT" OrderNumber="16" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.COHORTC" OrderNumber="17" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.ARMN" OrderNumber="18" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.ACTARMN" OrderNumber="19" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.ROUTE" OrderNumber="20" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.ROUTEN" OrderNumber="21" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.FORM" OrderNumber="22" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.FORMN" OrderNumber="23" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.COUNTRY" OrderNumber="24" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.COUNTRYN" OrderNumber="25" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.COUNTRYL" OrderNumber="26" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.OS" OrderNumber="27" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.OSIND" OrderNumber="28" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.PFS" OrderNumber="29" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.PFSIND" OrderNumber="30" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.BOR" OrderNumber="31" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.WTBL" OrderNumber="32" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.HTBL" OrderNumber="33" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.BMIBL" OrderNumber="34" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.BSABL" OrderNumber="35" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.CREATBL" OrderNumber="36" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.CRCLBL" OrderNumber="37" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.EGFRBL" OrderNumber="38" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.ALTBL" OrderNumber="39" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.ASTBL" OrderNumber="40" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADER.TBILBL" OrderNumber="41" Mandatory="No" />
+      </ItemGroupDef>
+      
+      <!-- ItemDefs for ADER -->
+      <ItemDef OID="IT.ADER.STUDYID" Name="STUDYID" DataType="text" Length="20">
+        <Description>
+          <TranslatedText xml:lang="en">Study Identifier</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.STUDYIDN" Name="STUDYIDN" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Study Identifier (N)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Numeric version</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.SITEID" Name="SITEID" DataType="text" Length="10">
+        <Description>
+          <TranslatedText xml:lang="en">Study Site Identifier</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.SITEIDN" Name="SITEIDN" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Study Site Identifier (N)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Numeric version</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.USUBJID" Name="USUBJID" DataType="text" Length="40">
+        <Description>
+          <TranslatedText xml:lang="en">Unique Subject Identifier</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.USUBJIDN" Name="USUBJIDN" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Unique Subject Identifier (N)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Numeric version</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.SUBJID" Name="SUBJID" DataType="text" Length="20">
+        <Description>
+          <TranslatedText xml:lang="en">Subject Identifier for the Study</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.SUBJIDN" Name="SUBJIDN" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Subject Identifier (N)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Numeric version</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.AGE" Name="AGE" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Age</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Years</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.SEX" Name="SEX" DataType="text" Length="1" def:CodeListOID="CL.SEX">
+        <Description>
+          <TranslatedText xml:lang="en">Sex</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">M, F, U</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.SEXN" Name="SEXN" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Sex (N)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">1=M, 2=F, 3=U</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.RACE" Name="RACE" DataType="text" Length="40" def:CodeListOID="CL.RACE">
+        <Description>
+          <TranslatedText xml:lang="en">Race</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.RACEN" Name="RACEN" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Race (N)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">1-6 coded</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.ETHNIC" Name="ETHNIC" DataType="text" Length="40" def:CodeListOID="CL.ETHNIC">
+        <Description>
+          <TranslatedText xml:lang="en">Ethnicity</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.ETHNICN" Name="ETHNICN" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Ethnicity (N)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">1-3 coded</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.COHORT" Name="COHORT" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Cohort</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Treatment group number</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.COHORTC" Name="COHORTC" DataType="text" Length="40">
+        <Description>
+          <TranslatedText xml:lang="en">Cohort (C)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Treatment group description</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.ARMN" Name="ARMN" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Planned Arm (N)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">0-3 coded</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.ACTARMN" Name="ACTARMN" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Actual Arm (N)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">0-3 coded</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.ROUTE" Name="ROUTE" DataType="text" Length="40" def:CodeListOID="CL.ROUTE">
+        <Description>
+          <TranslatedText xml:lang="en">Route of Administration</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.ROUTEN" Name="ROUTEN" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Route of Administration (N)</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.FORM" Name="FORM" DataType="text" Length="40" def:CodeListOID="CL.FRM">
+        <Description>
+          <TranslatedText xml:lang="en">Dosage Form</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.FORMN" Name="FORMN" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Dosage Form (N)</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.COUNTRY" Name="COUNTRY" DataType="text" Length="3" def:CodeListOID="CL.COUNTRY">
+        <Description>
+          <TranslatedText xml:lang="en">Country</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">ISO 3-char code</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.COUNTRYN" Name="COUNTRYN" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Country (N)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Numeric code</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.COUNTRYL" Name="COUNTRYL" DataType="text" Length="40">
+        <Description>
+          <TranslatedText xml:lang="en">Country Name</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Full country name</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.OS" Name="OS" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Overall Survival (Days)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Time to death/censor</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.OSIND" Name="OSIND" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Overall Survival Event Indicator</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">1=event, 0=censored</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.PFS" Name="PFS" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Progression-Free Survival (Days)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Time to progression/death</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.PFSIND" Name="PFSIND" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">PFS Event Indicator</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">1=event, 0=censored</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.BOR" Name="BOR" DataType="text" Length="8" def:CodeListOID="CL.OVRLRESP">
+        <Description>
+          <TranslatedText xml:lang="en">Best Overall Response</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">CR, PR, SD, PD</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.WTBL" Name="WTBL" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Baseline Weight (kg)</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.HTBL" Name="HTBL" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Baseline Height (cm)</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.BMIBL" Name="BMIBL" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Baseline BMI (kg/m^2)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Computed from WTBL, HTBL</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.BSABL" Name="BSABL" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Baseline BSA (m^2)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Mosteller formula</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.CREATBL" Name="CREATBL" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Baseline Serum Creatinine (mg/dL)</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.CRCLBL" Name="CRCLBL" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Baseline Creatinine Clearance (mL/min)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Cockcroft-Gault</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.EGFRBL" Name="EGFRBL" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Baseline eGFR (mL/min/1.73m^2)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">CKD-EPI equation</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.ALTBL" Name="ALTBL" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Baseline ALT (U/L)</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.ASTBL" Name="ASTBL" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Baseline AST (U/L)</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADER.TBILBL" Name="TBILBL" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Baseline Total Bilirubin (mg/dL)</TranslatedText>
+        </Description>
+      </ItemDef>
+
+    </MetaDataVersion>
+  </Study>
+</ODM>

@@ -1,0 +1,769 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ODM xmlns="http://www.cdisc.org/ns/odm/v1.3"
+     xmlns:def="http://www.cdisc.org/ns/def/v2.0"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     ODMVersion="1.3.2"
+     FileOID="ADEE_Define"
+     FileType="Snapshot"
+     CreationDateTime="2026-01-20T17:53:28">
+  
+  <Study OID="STUDY001">
+    <GlobalVariables>
+      <StudyName>ER Standards Framework</StudyName>
+      <StudyDescription>Exposure-Response Data Standards</StudyDescription>
+      <ProtocolName>ER Standards</ProtocolName>
+    </GlobalVariables>
+    
+    <MetaDataVersion OID="MDV.001" Name="ER Standards Metadata">
+      
+      <!-- ItemGroupDef for ADEE -->
+      <ItemGroupDef OID="IG.ADEE" 
+                    Name="ADEE" 
+                    Repeating="Yes" 
+                    IsReferenceData="No" 
+                    SASDatasetName="ADEE"
+                    Domain="ADEE"
+                    def:Class="Basic Data Structure"
+                    def:Structure="Basic Data Structure">
+        <Description>
+          <TranslatedText xml:lang="en">Exposure-Efficacy Analysis Dataset</TranslatedText>
+        </Description>
+        
+        <ItemRef ItemOID="IT.ADEE.STUDYID" OrderNumber="1" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.ADEE.USUBJID" OrderNumber="2" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.ADEE.SUBJID" OrderNumber="3" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.ADEE.SITEID" OrderNumber="4" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.AGE" OrderNumber="5" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.AGEGR1" OrderNumber="6" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.AGEGR1N" OrderNumber="7" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.SEX" OrderNumber="8" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.SEXN" OrderNumber="9" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.RACE" OrderNumber="10" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.RACEN" OrderNumber="11" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.ETHNIC" OrderNumber="12" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.ARM" OrderNumber="13" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.ARMN" OrderNumber="14" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.ACTARM" OrderNumber="15" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.ACTARMN" OrderNumber="16" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.TRTSDT" OrderNumber="17" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.TRTEDT" OrderNumber="18" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.TRTDURD" OrderNumber="19" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.PARAMCD" OrderNumber="20" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.ADEE.PARAM" OrderNumber="21" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.ADEE.PARAMN" OrderNumber="22" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.PARCAT1" OrderNumber="23" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.PARCAT2" OrderNumber="24" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.AVAL" OrderNumber="25" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.AVALU" OrderNumber="26" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.AVALC" OrderNumber="27" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.ADT" OrderNumber="28" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.ADTF" OrderNumber="29" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.ADY" OrderNumber="30" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.STARTDT" OrderNumber="31" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.CNSR" OrderNumber="32" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.EVENT" OrderNumber="33" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.EVNTDESC" OrderNumber="34" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.SRCDOM" OrderNumber="35" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.SRCVAR" OrderNumber="36" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.SRCSEQ" OrderNumber="37" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.ATPT" OrderNumber="38" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.ATPTN" OrderNumber="39" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.AVISIT" OrderNumber="40" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.AVISITN" OrderNumber="41" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.AUCSS" OrderNumber="42" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.AUCSSLOG" OrderNumber="43" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.AUCSSSTD" OrderNumber="44" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.AUCSSN" OrderNumber="45" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.AUCSSDOSE" OrderNumber="46" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.AUCSSCAT" OrderNumber="47" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.AUCSSCATN" OrderNumber="48" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.AUCSSQ" OrderNumber="49" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.AUCSSQN" OrderNumber="50" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.CMAXSS" OrderNumber="51" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.CAVGSS" OrderNumber="52" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.CMINSS" OrderNumber="53" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.WTBL" OrderNumber="54" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.WTBLGR1" OrderNumber="55" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.HTBL" OrderNumber="56" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.BMIBL" OrderNumber="57" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.BSABL" OrderNumber="58" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.CREATBL" OrderNumber="59" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.CRCLBL" OrderNumber="60" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.EGFRBL" OrderNumber="61" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.ALTBL" OrderNumber="62" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.ASTBL" OrderNumber="63" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.TBILBL" OrderNumber="64" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.ALBBL" OrderNumber="65" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.ANL01FL" OrderNumber="66" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.ANL02FL" OrderNumber="67" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.ANL03FL" OrderNumber="68" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.ANL04FL" OrderNumber="69" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.ASEQ" OrderNumber="70" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADEE.DTYPE" OrderNumber="71" Mandatory="No" />
+      </ItemGroupDef>
+      
+      <!-- ItemDefs for ADEE -->
+      <ItemDef OID="IT.ADEE.STUDYID" Name="STUDYID" DataType="text" Length="20">
+        <Description>
+          <TranslatedText xml:lang="en">Study Identifier</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.USUBJID" Name="USUBJID" DataType="text" Length="40">
+        <Description>
+          <TranslatedText xml:lang="en">Unique Subject Identifier</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.SUBJID" Name="SUBJID" DataType="text" Length="20">
+        <Description>
+          <TranslatedText xml:lang="en">Subject Identifier for the Study</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.SITEID" Name="SITEID" DataType="text" Length="10">
+        <Description>
+          <TranslatedText xml:lang="en">Study Site Identifier</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.AGE" Name="AGE" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Age</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Years</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.AGEGR1" Name="AGEGR1" DataType="text" Length="20" def:CodeListOID="CL.AGEGR1">
+        <Description>
+          <TranslatedText xml:lang="en">Pooled Age Group 1</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">&lt;65, 65-75, &gt;75</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.AGEGR1N" Name="AGEGR1N" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Pooled Age Group 1 (N)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">1, 2, 3</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.SEX" Name="SEX" DataType="text" Length="1" def:CodeListOID="CL.SEX">
+        <Description>
+          <TranslatedText xml:lang="en">Sex</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">M, F, U</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.SEXN" Name="SEXN" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Sex (N)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">1=M, 2=F, 3=U</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.RACE" Name="RACE" DataType="text" Length="40" def:CodeListOID="CL.RACE">
+        <Description>
+          <TranslatedText xml:lang="en">Race</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.RACEN" Name="RACEN" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Race (N)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">1-6 coded</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.ETHNIC" Name="ETHNIC" DataType="text" Length="40" def:CodeListOID="CL.ETHNIC">
+        <Description>
+          <TranslatedText xml:lang="en">Ethnicity</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.ARM" Name="ARM" DataType="text" Length="40">
+        <Description>
+          <TranslatedText xml:lang="en">Description of Planned Arm</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.ARMN" Name="ARMN" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Planned Arm (N)</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.ACTARM" Name="ACTARM" DataType="text" Length="40">
+        <Description>
+          <TranslatedText xml:lang="en">Description of Actual Arm</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.ACTARMN" Name="ACTARMN" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Actual Arm (N)</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.TRTSDT" Name="TRTSDT" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Date of First Exposure to Treatment</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">SAS date</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.TRTEDT" Name="TRTEDT" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Date of Last Exposure to Treatment</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">SAS date</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.TRTDURD" Name="TRTDURD" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Total Treatment Duration (Days)</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.PARAMCD" Name="PARAMCD" DataType="text" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Parameter Code</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">OS, PFS, TTP, TTNT</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.PARAM" Name="PARAM" DataType="text" Length="200">
+        <Description>
+          <TranslatedText xml:lang="en">Parameter</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Full description</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.PARAMN" Name="PARAMN" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Parameter (N)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">For sorting</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.PARCAT1" Name="PARCAT1" DataType="text" Length="40">
+        <Description>
+          <TranslatedText xml:lang="en">Parameter Category 1</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">EFFICACY</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.PARCAT2" Name="PARCAT2" DataType="text" Length="40">
+        <Description>
+          <TranslatedText xml:lang="en">Parameter Category 2</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">TIME TO EVENT</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.AVAL" Name="AVAL" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Value</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Time in days</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.AVALU" Name="AVALU" DataType="text" Length="20" def:CodeListOID="CL.UNIT">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Value Unit</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">DAYS</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.AVALC" Name="AVALC" DataType="text" Length="40">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Value (C)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">CENSORED, EVENT</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.ADT" Name="ADT" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Date</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">SAS date</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.ADTF" Name="ADTF" DataType="text" Length="1" def:CodeListOID="CL.STENRF">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Date Imputation Flag</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.ADY" Name="ADY" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Relative Day</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Relative to TRTSDT</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.STARTDT" Name="STARTDT" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Time to Event Origin Date for Subject</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Usually TRTSDT</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.CNSR" Name="CNSR" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Censor</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">1=censored, 0=event</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.EVENT" Name="EVENT" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Event Indicator</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">1=event, 0=censored</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.EVNTDESC" Name="EVNTDESC" DataType="text" Length="200">
+        <Description>
+          <TranslatedText xml:lang="en">Event or Censoring Description</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.SRCDOM" Name="SRCDOM" DataType="text" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Source Data</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Source domain</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.SRCVAR" Name="SRCVAR" DataType="text" Length="40">
+        <Description>
+          <TranslatedText xml:lang="en">Source Variable</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Source variable name</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.SRCSEQ" Name="SRCSEQ" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Source Sequence Number</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Source AESEQ, etc.</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.ATPT" Name="ATPT" DataType="text" Length="40">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Timepoint</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">BASELINE, MONTH 6</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.ATPTN" Name="ATPTN" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Timepoint (N)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">0, 6</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.AVISIT" Name="AVISIT" DataType="text" Length="40">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Visit</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">BASELINE, WEEK 24</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.AVISITN" Name="AVISITN" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Visit (N)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">0, 24</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.AUCSS" Name="AUCSS" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Steady-State AUC (ug*h/mL)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Primary exposure metric</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.AUCSSLOG" Name="AUCSSLOG" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Log-Transformed AUC</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">ln(AUCSS)</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.AUCSSSTD" Name="AUCSSSTD" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Standardized AUC</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">(AUCSS-mean)/SD</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.AUCSSN" Name="AUCSSN" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Normalized AUC</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">AUCSS/median</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.AUCSSDOSE" Name="AUCSSDOSE" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Dose-Normalized AUC (ug*h/mL per mg)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">AUCSS/DOSE</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.AUCSSCAT" Name="AUCSSCAT" DataType="text" Length="20">
+        <Description>
+          <TranslatedText xml:lang="en">AUC Category (Tertiles)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Low, Medium, High</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.AUCSSCATN" Name="AUCSSCATN" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">AUC Category (N)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">1, 2, 3</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.AUCSSQ" Name="AUCSSQ" DataType="text" Length="20">
+        <Description>
+          <TranslatedText xml:lang="en">AUC Quartile</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Q1, Q2, Q3, Q4</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.AUCSSQN" Name="AUCSSQN" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">AUC Quartile (N)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">1, 2, 3, 4</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.CMAXSS" Name="CMAXSS" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Steady-State Cmax (ug/mL)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Alternative exposure</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.CAVGSS" Name="CAVGSS" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Steady-State Cavg (ug/mL)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Alternative exposure</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.CMINSS" Name="CMINSS" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Steady-State Cmin (ug/mL)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Trough concentration</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.WTBL" Name="WTBL" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Baseline Weight (kg)</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.WTBLGR1" Name="WTBLGR1" DataType="text" Length="20">
+        <Description>
+          <TranslatedText xml:lang="en">Baseline Weight Group 1</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">&lt;70 kg, &gt;=70 kg</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.HTBL" Name="HTBL" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Baseline Height (cm)</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.BMIBL" Name="BMIBL" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Baseline BMI (kg/m^2)</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.BSABL" Name="BSABL" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Baseline BSA (m^2)</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.CREATBL" Name="CREATBL" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Baseline Serum Creatinine (mg/dL)</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.CRCLBL" Name="CRCLBL" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Baseline Creatinine Clearance (mL/min)</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.EGFRBL" Name="EGFRBL" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Baseline eGFR (mL/min/1.73m^2)</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.ALTBL" Name="ALTBL" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Baseline ALT (U/L)</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.ASTBL" Name="ASTBL" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Baseline AST (U/L)</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.TBILBL" Name="TBILBL" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Baseline Total Bilirubin (mg/dL)</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.ALBBL" Name="ALBBL" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Baseline Albumin (g/dL)</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.ANL01FL" Name="ANL01FL" DataType="text" Length="1" def:CodeListOID="CL.NY">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Flag 01</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Y=primary endpoint (PFS)</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.ANL02FL" Name="ANL02FL" DataType="text" Length="1" def:CodeListOID="CL.NY">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Flag 02</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Y=secondary endpoint (OS)</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.ANL03FL" Name="ANL03FL" DataType="text" Length="1" def:CodeListOID="CL.NY">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Flag 03</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Y=sensitivity analysis</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.ANL04FL" Name="ANL04FL" DataType="text" Length="1" def:CodeListOID="CL.NY">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Flag 04</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Y=subgroup analysis</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.ASEQ" Name="ASEQ" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Sequence Number</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Unique within USUBJID</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADEE.DTYPE" Name="DTYPE" DataType="text" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Derivation Type</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">AVERAGE, MINIMUM, etc.</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+    </MetaDataVersion>
+  </Study>
+</ODM>

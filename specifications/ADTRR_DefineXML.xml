@@ -1,0 +1,403 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ODM xmlns="http://www.cdisc.org/ns/odm/v1.3"
+     xmlns:def="http://www.cdisc.org/ns/def/v2.0"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     ODMVersion="1.3.2"
+     FileOID="ADTR_Define"
+     FileType="Snapshot"
+     CreationDateTime="2026-01-20T17:53:28">
+  
+  <Study OID="STUDY001">
+    <GlobalVariables>
+      <StudyName>ER Standards Framework</StudyName>
+      <StudyDescription>Exposure-Response Data Standards</StudyDescription>
+      <ProtocolName>ER Standards</ProtocolName>
+    </GlobalVariables>
+    
+    <MetaDataVersion OID="MDV.001" Name="ER Standards Metadata">
+      
+      <!-- ItemGroupDef for ADTR -->
+      <ItemGroupDef OID="IG.ADTR" 
+                    Name="ADTR" 
+                    Repeating="Yes" 
+                    IsReferenceData="No" 
+                    SASDatasetName="ADTR"
+                    Domain="ADTR"
+                    def:Class="Basic Data Structure"
+                    def:Structure="Basic Data Structure">
+        <Description>
+          <TranslatedText xml:lang="en">Tumor Response Analysis Dataset</TranslatedText>
+        </Description>
+        
+        <ItemRef ItemOID="IT.ADTR.STUDYID" OrderNumber="1" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.ADTR.USUBJID" OrderNumber="2" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.ADTR.SUBJID" OrderNumber="3" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.ADTR.AGE" OrderNumber="4" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADTR.SEX" OrderNumber="5" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADTR.WTBL" OrderNumber="6" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADTR.BMIBL" OrderNumber="7" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADTR.DOSE" OrderNumber="8" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADTR.PARAMCD" OrderNumber="9" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.ADTR.PARAM" OrderNumber="10" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.ADTR.AVISITN" OrderNumber="11" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADTR.AVISIT" OrderNumber="12" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADTR.ADT" OrderNumber="13" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADTR.ADY" OrderNumber="14" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADTR.AVAL" OrderNumber="15" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADTR.AVALU" OrderNumber="16" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADTR.AVALC" OrderNumber="17" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADTR.AVALN" OrderNumber="18" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADTR.BASE" OrderNumber="19" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADTR.CHG" OrderNumber="20" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADTR.PCHG" OrderNumber="21" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADTR.BOR" OrderNumber="22" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADTR.BORN" OrderNumber="23" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADTR.NADIR" OrderNumber="24" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADTR.NADIR_PCHG" OrderNumber="25" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADTR.NADIR_VISIT" OrderNumber="26" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADTR.ABLFL" OrderNumber="27" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADTR.ANL01FL" OrderNumber="28" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADTR.ANL02FL" OrderNumber="29" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADTR.AUCSS" OrderNumber="30" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADTR.AUCSSLOG" OrderNumber="31" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADTR.AUCSSCAT" OrderNumber="32" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADTR.ASEQ" OrderNumber="33" Mandatory="No" />
+      </ItemGroupDef>
+      
+      <!-- ItemDefs for ADTR -->
+      <ItemDef OID="IT.ADTR.STUDYID" Name="STUDYID" DataType="text" Length="20">
+        <Description>
+          <TranslatedText xml:lang="en">Study Identifier</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.USUBJID" Name="USUBJID" DataType="text" Length="40">
+        <Description>
+          <TranslatedText xml:lang="en">Unique Subject Identifier</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.SUBJID" Name="SUBJID" DataType="text" Length="20">
+        <Description>
+          <TranslatedText xml:lang="en">Subject Identifier for the Study</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.AGE" Name="AGE" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Age</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Years</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.SEX" Name="SEX" DataType="text" Length="1" def:CodeListOID="CL.SEX">
+        <Description>
+          <TranslatedText xml:lang="en">Sex</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.WTBL" Name="WTBL" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Baseline Weight (kg)</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.BMIBL" Name="BMIBL" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Baseline BMI (kg/m^2)</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.DOSE" Name="DOSE" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Dose (mg)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Administered dose</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.PARAMCD" Name="PARAMCD" DataType="text" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Parameter Code</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">TUMSIZE, BOR, NADIR</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.PARAM" Name="PARAM" DataType="text" Length="200">
+        <Description>
+          <TranslatedText xml:lang="en">Parameter</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Parameter description</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.AVISITN" Name="AVISITN" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Visit (N)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">0, 1, 2, 3, ...</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.AVISIT" Name="AVISIT" DataType="text" Length="40">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Visit</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">BASELINE, WEEK 6, ...</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.ADT" Name="ADT" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Date</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">SAS date</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.ADY" Name="ADY" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Relative Day</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Relative to TRTSDT</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.AVAL" Name="AVAL" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Value</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Tumor size (mm) or response</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.AVALU" Name="AVALU" DataType="text" Length="20" def:CodeListOID="CL.UNIT">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Value Unit</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">mm (for TUMSIZE)</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.AVALC" Name="AVALC" DataType="text" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Value (C)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">CR, PR, SD, PD</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.AVALN" Name="AVALN" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Value (N)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">4=CR, 3=PR, 2=SD, 1=PD</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.BASE" Name="BASE" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Baseline Value</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Baseline tumor size (mm)</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.CHG" Name="CHG" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Change from Baseline</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">AVAL - BASE</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.PCHG" Name="PCHG" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Percent Change from Baseline</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">((AVAL-BASE)/BASE)*100</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.BOR" Name="BOR" DataType="text" Length="8" def:CodeListOID="CL.OVRLRESP">
+        <Description>
+          <TranslatedText xml:lang="en">Best Overall Response</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">CR, PR, SD, PD</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.BORN" Name="BORN" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Best Overall Response (N)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">4=CR, 3=PR, 2=SD, 1=PD</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.NADIR" Name="NADIR" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Nadir Tumor Size (mm)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Minimum post-baseline</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.NADIR_PCHG" Name="NADIR_PCHG" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Nadir Percent Change</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">% change at nadir</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.NADIR_VISIT" Name="NADIR_VISIT" DataType="text" Length="40">
+        <Description>
+          <TranslatedText xml:lang="en">Nadir Visit</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Visit of minimum value</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.ABLFL" Name="ABLFL" DataType="text" Length="1" def:CodeListOID="CL.NY">
+        <Description>
+          <TranslatedText xml:lang="en">Baseline Record Flag</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Y for baseline (AVISITN=0)</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.ANL01FL" Name="ANL01FL" DataType="text" Length="1" def:CodeListOID="CL.NY">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Flag 01</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Y for post-baseline</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.ANL02FL" Name="ANL02FL" DataType="text" Length="1" def:CodeListOID="CL.NY">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Flag 02</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Y for responders (CR/PR)</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.AUCSS" Name="AUCSS" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Steady-State AUC (ug*h/mL)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Primary exposure metric</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.AUCSSLOG" Name="AUCSSLOG" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Log-Transformed AUC</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">ln(AUCSS)</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.AUCSSCAT" Name="AUCSSCAT" DataType="text" Length="20">
+        <Description>
+          <TranslatedText xml:lang="en">AUC Category (Tertiles)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Low, Medium, High</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADTR.ASEQ" Name="ASEQ" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Sequence Number</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Unique within USUBJID</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+    </MetaDataVersion>
+  </Study>
+</ODM>

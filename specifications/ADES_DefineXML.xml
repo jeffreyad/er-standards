@@ -1,0 +1,477 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ODM xmlns="http://www.cdisc.org/ns/odm/v1.3"
+     xmlns:def="http://www.cdisc.org/ns/def/v2.0"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     ODMVersion="1.3.2"
+     FileOID="ADES_Define"
+     FileType="Snapshot"
+     CreationDateTime="2026-01-20T17:53:28">
+  
+  <Study OID="STUDY001">
+    <GlobalVariables>
+      <StudyName>ER Standards Framework</StudyName>
+      <StudyDescription>Exposure-Response Data Standards</StudyDescription>
+      <ProtocolName>ER Standards</ProtocolName>
+    </GlobalVariables>
+    
+    <MetaDataVersion OID="MDV.001" Name="ER Standards Metadata">
+      
+      <!-- ItemGroupDef for ADES -->
+      <ItemGroupDef OID="IG.ADES" 
+                    Name="ADES" 
+                    Repeating="Yes" 
+                    IsReferenceData="No" 
+                    SASDatasetName="ADES"
+                    Domain="ADES"
+                    def:Class="Basic Data Structure (Multi-Level)"
+                    def:Structure="Basic Data Structure (Multi-Level)">
+        <Description>
+          <TranslatedText xml:lang="en">Exposure-Safety Analysis Dataset</TranslatedText>
+        </Description>
+        
+        <ItemRef ItemOID="IT.ADES.STUDYID" OrderNumber="1" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.ADES.USUBJID" OrderNumber="2" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.ADES.SUBJID" OrderNumber="3" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.ADES.AGE" OrderNumber="4" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.SEX" OrderNumber="5" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.SEXN" OrderNumber="6" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.RACE" OrderNumber="7" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.WTBL" OrderNumber="8" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.BMIBL" OrderNumber="9" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.PARAMCD" OrderNumber="10" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.ADES.PARAM" OrderNumber="11" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.ADES.AVAL" OrderNumber="12" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.AVALU" OrderNumber="13" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.ADT" OrderNumber="14" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.ADY" OrderNumber="15" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.TRTDURD" OrderNumber="16" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.N_AES" OrderNumber="17" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.N_SAE" OrderNumber="18" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.N_GRADE3" OrderNumber="19" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.N_GRADE4" OrderNumber="20" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.RATE_AES" OrderNumber="21" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.RATE_SAE" OrderNumber="22" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.ANY_AE" OrderNumber="23" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.ANY_SAE" OrderNumber="24" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.AEDECOD" OrderNumber="25" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.AEBODSYS" OrderNumber="26" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.AESTDY" OrderNumber="27" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.AEENDY" OrderNumber="28" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.AETOXGR" OrderNumber="29" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.AESER" OrderNumber="30" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.AEREL" OrderNumber="31" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.N_EVENTS" OrderNumber="32" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.MAX_GRADE" OrderNumber="33" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.RATE" OrderNumber="34" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.AUCSS" OrderNumber="35" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.AUCSSCAT" OrderNumber="36" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.ANL01FL" OrderNumber="37" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.ANL02FL" OrderNumber="38" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.ANL03FL" OrderNumber="39" Mandatory="No" />
+        <ItemRef ItemOID="IT.ADES.ASEQ" OrderNumber="40" Mandatory="No" />
+      </ItemGroupDef>
+      
+      <!-- ItemDefs for ADES -->
+      <ItemDef OID="IT.ADES.STUDYID" Name="STUDYID" DataType="text" Length="20">
+        <Description>
+          <TranslatedText xml:lang="en">Study Identifier</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.USUBJID" Name="USUBJID" DataType="text" Length="40">
+        <Description>
+          <TranslatedText xml:lang="en">Unique Subject Identifier</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.SUBJID" Name="SUBJID" DataType="text" Length="20">
+        <Description>
+          <TranslatedText xml:lang="en">Subject Identifier for the Study</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.AGE" Name="AGE" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Age</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Years</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.SEX" Name="SEX" DataType="text" Length="1" def:CodeListOID="CL.SEX">
+        <Description>
+          <TranslatedText xml:lang="en">Sex</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.SEXN" Name="SEXN" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Sex (N)</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.RACE" Name="RACE" DataType="text" Length="40" def:CodeListOID="CL.RACE">
+        <Description>
+          <TranslatedText xml:lang="en">Race</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.WTBL" Name="WTBL" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Baseline Weight (kg)</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.BMIBL" Name="BMIBL" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Baseline BMI (kg/m^2)</TranslatedText>
+        </Description>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.PARAMCD" Name="PARAMCD" DataType="text" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Parameter Code</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">SUBJSUM, AEVENT, or AEDECOD</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.PARAM" Name="PARAM" DataType="text" Length="200">
+        <Description>
+          <TranslatedText xml:lang="en">Parameter</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Parameter description</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.AVAL" Name="AVAL" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Value</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Count or indicator</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.AVALU" Name="AVALU" DataType="text" Length="20">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Value Unit</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">COUNT, EVENT, RATE</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.ADT" Name="ADT" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Date</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">SAS date (event level)</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.ADY" Name="ADY" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Relative Day</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Relative to TRTSDT</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.TRTDURD" Name="TRTDURD" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Total Treatment Duration (Days)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Exposure time</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.N_AES" Name="N_AES" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Total Number of AEs</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Subject-level summary</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.N_SAE" Name="N_SAE" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Number of Serious AEs</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Subject-level summary</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.N_GRADE3" Name="N_GRADE3" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Number of Grade 3+ AEs</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Subject-level summary</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.N_GRADE4" Name="N_GRADE4" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Number of Grade 4 AEs</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Subject-level summary</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.RATE_AES" Name="RATE_AES" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">AE Rate (per 100 patient-days)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">N_AES/TRTDURD*100</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.RATE_SAE" Name="RATE_SAE" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">SAE Rate (per 100 patient-days)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">N_SAE/TRTDURD*100</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.ANY_AE" Name="ANY_AE" DataType="text" Length="1" def:CodeListOID="CL.NY">
+        <Description>
+          <TranslatedText xml:lang="en">Any AE Flag</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Y if N_AES &gt; 0</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.ANY_SAE" Name="ANY_SAE" DataType="text" Length="1" def:CodeListOID="CL.NY">
+        <Description>
+          <TranslatedText xml:lang="en">Any SAE Flag</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Y if N_SAE &gt; 0</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.AEDECOD" Name="AEDECOD" DataType="text" Length="200" def:CodeListOID="CL.AEDECOD">
+        <Description>
+          <TranslatedText xml:lang="en">Adverse Event Dictionary-Derived Term</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">MedDRA Preferred Term</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.AEBODSYS" Name="AEBODSYS" DataType="text" Length="200" def:CodeListOID="CL.AEBODSYS">
+        <Description>
+          <TranslatedText xml:lang="en">Body System or Organ Class</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">MedDRA System Organ Class</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.AESTDY" Name="AESTDY" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Study Day of Start of Adverse Event</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Relative to TRTSDT</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.AEENDY" Name="AEENDY" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Study Day of End of Adverse Event</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Relative to TRTSDT</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.AETOXGR" Name="AETOXGR" DataType="text" Length="2" def:CodeListOID="CL.AETOXGR">
+        <Description>
+          <TranslatedText xml:lang="en">Standard Toxicity Grade</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">CTCAE grade (1-5)</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.AESER" Name="AESER" DataType="text" Length="1" def:CodeListOID="CL.NY">
+        <Description>
+          <TranslatedText xml:lang="en">Serious Event</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Regulatory serious</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.AEREL" Name="AEREL" DataType="text" Length="40" def:CodeListOID="CL.AEREL">
+        <Description>
+          <TranslatedText xml:lang="en">Causality</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Investigator assessment</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.N_EVENTS" Name="N_EVENTS" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Number of Event Occurrences</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Parameter-level count</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.MAX_GRADE" Name="MAX_GRADE" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Maximum Toxicity Grade</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Maximum across events</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.RATE" Name="RATE" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Event Rate (per 100 patient-days)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Parameter-level rate</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.AUCSS" Name="AUCSS" DataType="float" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Steady-State AUC (ug*h/mL)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Primary exposure metric</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.AUCSSCAT" Name="AUCSSCAT" DataType="text" Length="20">
+        <Description>
+          <TranslatedText xml:lang="en">AUC Category (Tertiles)</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Low, Medium, High</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.ANL01FL" Name="ANL01FL" DataType="text" Length="1" def:CodeListOID="CL.NY">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Flag 01</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Y=all AEs</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.ANL02FL" Name="ANL02FL" DataType="text" Length="1" def:CodeListOID="CL.NY">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Flag 02</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Y=serious AEs only</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.ANL03FL" Name="ANL03FL" DataType="text" Length="1" def:CodeListOID="CL.NY">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Flag 03</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Y=grade 3+ only</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+      <ItemDef OID="IT.ADES.ASEQ" Name="ASEQ" DataType="integer" Length="8">
+        <Description>
+          <TranslatedText xml:lang="en">Analysis Sequence Number</TranslatedText>
+        </Description>
+        <def:Origin Type="Assigned">
+          <Description>
+            <TranslatedText xml:lang="en">Unique within USUBJID</TranslatedText>
+          </Description>
+        </def:Origin>
+      </ItemDef>
+
+    </MetaDataVersion>
+  </Study>
+</ODM>
