@@ -49,13 +49,8 @@ filter <- dplyr::filter
 # LOAD SPECIFICATIONS
 #===============================================================================
 
-# Load metacore specifications
-# In production, load from spec file (Excel, JSON, etc.)
-# metacore <- spec_to_metacore("specifications/ADEE_spec.xlsx")
-
-# For demonstration, create minimal metacore object
-# Replace with actual spec file in production
-# metacore <- spec_to_metacore("path/to/ADEE_spec.xlsx", where_sep_sheet = FALSE)
+metacore <- spec_to_metacore("specifications/ADEE_spec.xlsx", where_sep_sheet = FALSE) |> 
+select_dataset("ADEE")
 
 #===============================================================================
 # LOAD INPUT DATA
@@ -509,3 +504,25 @@ if (requireNamespace("haven", quietly = TRUE)) {
 #===============================================================================
 # END OF PROGRAM
 #===============================================================================
+
+
+adee <- adee_prefinal %>%
+  drop_unspec_vars(metacore) %>% # Drop unspecified variables from specs
+  check_variables(metacore, strict = FALSE) %>% # Check all variables specified are present and no more
+  check_ct_data(metacore) %>% # Checks all variables with CT only contain values within the CT
+  order_cols(metacore) %>% # Orders the columns according to the spec
+  sort_by_key(metacore) # Sorts the rows by the sort keys
+
+dir <- "data/adam" # Change to whichever directory you want to save the dataset in
+
+adee_xpt <- adee %>%
+  xportr_type(metacore, domain = "ADEE") %>% # Coerce variable type to match spec
+  xportr_length(metacore) %>% # Assigns SAS length from a variable level metadata
+  xportr_label(metacore) %>% # Assigns variable label from metacore specifications
+  xportr_format(metacore) %>% # Assigns variable format from metacore specifications
+  xportr_df_label(metacore) %>% # Assigns dataset label from metacore specifications
+  xportr_write(file.path(dir, "adee.xpt")) # Write xpt v5 transport file
+
+# Save output ----
+
+save(adee, file = file.path(dir, "adee.rda"), compress = "bzip2")
