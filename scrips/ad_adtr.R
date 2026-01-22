@@ -1,7 +1,7 @@
 #===============================================================================
-# Program: ADTR.R
+# Program: ADTRR.R
 # 
-# Purpose: Create ADTR (Tumor Response Analysis Dataset)
+# Purpose: Create ADTRR (Tumor Response Analysis Dataset)
 #
 # Description: Derives tumor response analysis dataset following BDS 
 #              structure with longitudinal tumor measurements and RECIST 1.1
@@ -14,7 +14,7 @@
 #   - ADLB: Laboratory data (for baseline covariates)
 #
 # Output: 
-#   - ADTR: Tumor response analysis dataset
+#   - ADTRR: Tumor response analysis dataset
 #
 # Structure: BDS (Basic Data Structure)
 #   - Multiple records per subject (one per parameter per visit)
@@ -48,12 +48,12 @@ filter <- dplyr::filter
 #===============================================================================
 
 # Load metacore specifications
-if (file.exists("specifications/ADTR_spec.xlsx")) {
-  metacore <- spec_to_metacore("specifications/ADTR_spec.xlsx", 
+if (file.exists("specifications/ADTRR_spec.xlsx")) {
+  metacore <- spec_to_metacore("specifications/ADTRR_spec.xlsx", 
                                where_sep_sheet = FALSE)
   message("✓ Loaded metacore specifications from Excel")
-} else if (file.exists("specifications/ADTR_metacore.rds")) {
-  metacore <- readRDS("specifications/ADTR_metacore.rds")
+} else if (file.exists("specifications/ADTRR_metacore.rds")) {
+  metacore <- readRDS("specifications/ADTRR_metacore.rds")
   message("✓ Loaded metacore specifications from RDS")
 } else {
   message("⚠ No metacore specifications found - proceeding without")
@@ -70,8 +70,12 @@ library(pharmaverseadam)
 
 adsl <- pharmaverseadam::adsl
 adrs <- pharmaverseadam::adrs_onco
+adtr <- pharmaverseadam::adtr_onco
 adlb <- pharmaverseadam::adlb
 advs <- pharmaverseadam::advs
+
+count(adrs, PARAMCD, PARAM)
+count(adtr, PARAMCD, PARAM)
 
 #===============================================================================
 # PREPARE ADSL - ADD DERIVED VARIABLES
@@ -317,9 +321,20 @@ exposure_final <- exposure_data %>%
 # Filter to tumor assessment records from ADRS
 # Assuming ADRS has PARAMCD for tumor measurements
 
-tumsize_base <- adrs %>%
+adsl_vars <- names(adsl)
+adtr_vars <- names(adtr)
+
+# Get variables that are in both datasets
+common_vars <- intersect(adsl_vars, adtr_vars)
+
+# Remove the key variables you want to keep for joining
+vars_to_drop <- setdiff(common_vars, c("STUDYID", "USUBJID"))
+
+count(adtr, PARAMCD, PARAM)
+
+tumsize_base <- adtr %>%
   # Filter to tumor size parameter (adjust PARAMCD as needed)
-  filter(PARAMCD %in% c("SLDINV", "SLDTRG", "SLDBSLN")) %>%
+  filter(PARAMCD %in% c("SDIAM", "SLDINV", "SLDTRG", "SLDBSLN")) %>%
   
   # Create standardized TUMSIZE parameter
   mutate(
@@ -329,11 +344,7 @@ tumsize_base <- adrs %>%
   ) %>%
   
   # Remove overlapping variables (keep ADSL versions)
-  select(-any_of(c(
-    "ARM", "ACTARM", "AGE", "SEX", "RACE", "ETHNIC",
-    "TRTSDT", "TRTEDT", "TRTDURD"
-  ))) %>%
-  S
+  select(-any_of(vars_to_drop)) %>%
   # Merge exposure and covariates
   derive_vars_merged(
     dataset_add = exposure_final,
@@ -427,7 +438,7 @@ nadir <- tumsize_chg %>%
 # COMBINE ALL PARAMETERS
 #===============================================================================
 
-adtr_base <- bind_rows(
+adtrr_base <- bind_rows(
   tumsize_chg,
   bor,
   nadir
@@ -438,7 +449,7 @@ adtr_base <- bind_rows(
 # ADD ANALYSIS VARIABLES
 #===============================================================================
 
-adtr_prefinal <- adtr_base %>%
+adtrr_prefinal <- adtrr_base %>%
   # Analysis flags
   mutate(
     # ABLFL should exist from source data
@@ -542,7 +553,7 @@ adtr_prefinal <- adtr_base %>%
 
 if (!is.null(metacore)) {
   # Apply metacore specifications
-  adtr <- adtr_prefinal %>%
+  adtrr <- adtrr_prefinal %>%
     drop_unspec_vars(metacore) %>%
     check_variables(metacore, strict = FALSE) %>%
     check_ct_data(metacore, na_acceptable = TRUE) %>%
@@ -552,7 +563,7 @@ if (!is.null(metacore)) {
   message("✓ Metacore checks passed")
 } else {
   # Use prefinal dataset if no metacore
-  adtr <- adtr_prefinal
+  adtrr <- adtrr_prefinal
   message("⚠ Proceeding without metacore checks")
 }
 
@@ -565,18 +576,18 @@ dir <- "adam"
 if (!dir.exists(dir)) dir.create(dir, recursive = TRUE)
 
 # Save as RDS (R native format)
-saveRDS(adtr, file.path(dir, "adtr.rds"))
-message("✓ Saved: adam/adtr.rds")
+saveRDS(adtrr, file.path(dir, "adtrr.rds"))
+message("✓ Saved: adam/adtrr.rds")
 
 # Save as CSV (for review)
-write.csv(adtr, file.path(dir, "adtr.csv"), row.names = FALSE, na = "")
-message("✓ Saved: adam/adtr.csv")
+write.csv(adtrr, file.path(dir, "adtrr.csv"), row.names = FALSE, na = "")
+message("✓ Saved: adam/adtrr.csv")
 
 # Apply xportr and save as XPT
 if (!is.null(metacore)) {
   # With metacore specifications
-  adtr_xpt <- adtr %>%
-    xportr_type(metacore, domain = "ADTR") %>%
+  adtrr_xpt <- adtrr %>%
+    xportr_type(metacore, domain = "ADTRR") %>%
     xportr_length(metacore) %>%
     xportr_label(metacore) %>%
     xportr_format(metacore) %>%
@@ -599,7 +610,7 @@ if (!is.null(metacore)) {
 
 ---
 
-## **Key Features of ADTR:**
+## **Key Features of ADTRR:**
 
 ### **1. Three Parameter Types:**
 - **TUMSIZE** (PARAMN=1): Longitudinal tumor measurements
