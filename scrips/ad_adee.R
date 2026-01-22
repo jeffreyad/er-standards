@@ -13,10 +13,9 @@
 #   - ADTTE: Time-to-event analysis dataset
 #   - ADVS: Vital signs
 #   - ADLB: Laboratory data
-#   - metacore: Dataset specifications
 #
 # Output: 
-#   - ADEE: Exposure-efficacy analysis dataset (RDS, XPT, CSV)
+#   - ADEE: Exposure-efficacy analysis dataset
 #
 # Structure: BDS (Basic Data Structure)
 #   - One record per subject per parameter per analysis timepoint
@@ -25,8 +24,10 @@
 #   - Multiple exposure representations
 #
 # Author: Jeff Dickinson
-# Date: 2026-01-21
+# Date: 2026-01-22
 # Version: 1.2
+#
+# Note: Variable names limited to 8 characters for SAS compatibility
 #
 #===============================================================================
 
@@ -46,11 +47,21 @@ select <- dplyr::select
 filter <- dplyr::filter
 
 #===============================================================================
-# LOAD SPECIFICATIONS
+# LOAD SPECIFICATIONS (if available)
 #===============================================================================
 
-metacore <- spec_to_metacore("specifications/ADEE_spec.xlsx", where_sep_sheet = FALSE) |> 
-select_dataset("ADEE")
+# Load metacore specifications
+if (file.exists("specifications/ADEE_spec.xlsx")) {
+  metacore <- spec_to_metacore("specifications/ADEE_spec.xlsx", 
+                               where_sep_sheet = FALSE)
+  message("✓ Loaded metacore specifications from Excel")
+} else if (file.exists("specifications/ADEE_metacore.rds")) {
+  metacore <- readRDS("specifications/ADEE_metacore.rds")
+  message("✓ Loaded metacore specifications from RDS")
+} else {
+  message("⚠ No metacore specifications found - proceeding without")
+  metacore <- NULL
+}
 
 #===============================================================================
 # LOAD INPUT DATA
@@ -220,7 +231,7 @@ adsl_vslb <- adsl_vs %>%
   select(-BILIBL)
 
 #===============================================================================
-# DERIVE EXPOSURE METRICS
+# DERIVE EXPOSURE METRICS (8-CHAR NAMES)
 #===============================================================================
 
 # In production, exposure would come from ADPC or PopPK analysis
@@ -250,7 +261,7 @@ exposure_data <- adsl_vslb %>%
   ) %>%
   select(-CL_EST)
 
-## Exposure transformations and categories ----
+## Exposure transformations and categories (8-char names) ----
 
 # Calculate statistics from active subjects only
 aucss_active <- exposure_data %>% filter(DOSE > 0) %>% pull(AUCSS)
@@ -267,23 +278,23 @@ quartile_breaks <- quantile(aucss_active, probs = c(0, 0.25, 0.5, 0.75, 1), na.r
 
 exposure_final <- exposure_data %>%
   mutate(
-    # Log transformations
-    AUCSSLOG = log(AUCSS + 0.01),
-    CMAXSSLOG = log(CMAXSS + 0.01),
-    CAVGSSLOG = log(CAVGSS + 0.01),
+    # Log transformations (8 chars: remove one 'S')
+    AUCSLOG = log(AUCSS + 0.01),     # AUCSSLOG → AUCSLOG
+    CMXSLOG = log(CMAXSS + 0.01),    # CMAXSSLOG → CMXSLOG
+    CAVGLOG = log(CAVGSS + 0.01),    # CAVGSSLOG → CAVGLOG
     
-    # Standardized (z-score)
+    # Standardized (z-score) - 8 chars exactly
     AUCSSSTD = if_else(DOSE > 0, (AUCSS - aucss_mean) / aucss_sd, NA_real_),
-    CMAXSSSTD = if_else(DOSE > 0, (CMAXSS - cmaxss_mean) / cmaxss_sd, NA_real_),
+    CMXSSSTD = if_else(DOSE > 0, (CMAXSS - cmaxss_mean) / cmaxss_sd, NA_real_),
     
     # Normalized (ratio to median)
     AUCSSN = if_else(DOSE > 0, AUCSS / aucss_median, NA_real_),
     
-    # Dose-normalized
-    AUCSSDOSE = if_else(DOSE > 0, AUCSS / DOSE, NA_real_),
-    CMAXSSDOSE = if_else(DOSE > 0, CMAXSS / DOSE, NA_real_),
+    # Dose-normalized (8 chars: remove 'E')
+    AUCSSDOS = if_else(DOSE > 0, AUCSS / DOSE, NA_real_),     # AUCSSDOSE → AUCSSDOS
+    CMXSSDOS = if_else(DOSE > 0, CMAXSS / DOSE, NA_real_),    # CMAXSSDOSE → CMXSSDOS
     
-    # Tertiles
+    # Tertiles (8 chars exactly)
     AUCSSCAT = if_else(
       DOSE > 0,
       as.character(cut(AUCSS, breaks = tertile_breaks,
@@ -291,7 +302,7 @@ exposure_final <- exposure_data %>%
                        include.lowest = TRUE)),
       NA_character_
     ),
-    AUCSSCATN = case_when(
+    AUCSCATN = case_when(   # AUCSSCATN → AUCSCATN
       AUCSSCAT == "Low" ~ 1,
       AUCSSCAT == "Medium" ~ 2,
       AUCSSCAT == "High" ~ 3,
@@ -314,7 +325,7 @@ exposure_final <- exposure_data %>%
       TRUE ~ NA_real_
     ),
     
-    # Above/below median
+    # Above/below median (8 chars exactly)
     AUCSSMED = if_else(
       DOSE > 0,
       if_else(AUCSS >= aucss_median, "Above Median", "Below Median"),
@@ -325,6 +336,16 @@ exposure_final <- exposure_data %>%
 #===============================================================================
 # CREATE ADEE BASE DATASET
 #===============================================================================
+
+# Get variable names from both datasets
+adsl_vars <- names(exposure_final)
+adtte_vars <- names(adtte)
+
+# Find common variables
+common_vars <- intersect(adsl_vars, adtte_vars)
+
+# Remove key variables to get variables to drop
+vars_to_drop <- setdiff(common_vars, c("STUDYID", "USUBJID"))
 
 adee_base <- adtte %>%
   # Filter to efficacy endpoints
@@ -341,13 +362,8 @@ adee_base <- adtte %>%
     )
   ) %>%
   
-  # Remove overlapping variables (keep ADSL versions)
-  select(-any_of(c(
-    "ARMCD", "ARM", "ACTARMCD", "ACTARM",
-    "AGE", "SEX", "RACE", "ETHNIC",
-    "COUNTRY", "SITEID",
-    "TRTSDT", "TRTEDT", "TRTDURD"
-  ))) %>%
+  # Remove overlapping variables (use clean method)
+  select(-any_of(vars_to_drop)) %>%
   
   # Merge exposure and covariates
   derive_vars_merged(
@@ -390,7 +406,7 @@ adee_prefinal <- adee_base %>%
     check_type = "error"
   ) %>%
   
-  # Select variables (before metacore processing)
+  # Select variables (with 8-char names)
   select(
     # Identifiers
     STUDYID, STUDYIDN, USUBJID, USUBJIDN, SUBJID, SUBJIDN,
@@ -427,13 +443,14 @@ adee_prefinal <- adee_base %>%
     # Exposure - Primary
     DOSE, AUCSS, CMAXSS, CAVGSS, CMINSS, CLSS,
     
-    # Exposure - Transformations
-    AUCSSLOG, AUCSSSTD, AUCSSN, AUCSSDOSE,
-    CMAXSSLOG, CMAXSSSTD, CMAXSSDOSE,
-    CAVGSSLOG,
+    # Exposure - Transformations (8-char names)
+    AUCSLOG, CMXSLOG, CAVGLOG,      # Shortened from *SSLOG
+    AUCSSSTD, CMXSSSTD,              # Exactly 8 chars
+    AUCSSN,
+    AUCSSDOS, CMXSSDOS,              # Shortened from *SSDOSE
     
-    # Exposure - Categories
-    AUCSSCAT, AUCSSCATN,
+    # Exposure - Categories (8-char names)
+    AUCSSCAT, AUCSCATN,              # AUCSCATN shortened
     AUCSSQ, AUCSSQN,
     AUCSSMED,
     
@@ -458,18 +475,21 @@ adee_prefinal <- adee_base %>%
 # APPLY METADATA AND PREPARE FOR EXPORT
 #===============================================================================
 
-# Apply metacore specifications (if metacore object is available)
-# Uncomment when metacore spec file is ready
-
-# adee <- adee_prefinal %>%
-#   drop_unspec_vars(metacore) %>%           # Drop unspecified variables
-#   check_variables(metacore, strict = FALSE) %>%  # Check variables match spec
-#   check_ct_data(metacore) %>%              # Check controlled terminology
-#   order_cols(metacore) %>%                 # Order columns per spec
-#   sort_by_key(metacore)                    # Sort by key variables
-
-# For now, use prefinal dataset as final
-adee <- adee_prefinal
+if (!is.null(metacore)) {
+  # Apply metacore specifications
+  adee <- adee_prefinal %>%
+    drop_unspec_vars(metacore) %>%
+    check_variables(metacore, strict = FALSE) %>%
+    check_ct_data(metacore, na_acceptable = TRUE) %>%
+    order_cols(metacore) %>%
+    sort_by_key(metacore)
+  
+  message("✓ Metacore checks passed")
+} else {
+  # Use prefinal dataset if no metacore
+  adee <- adee_prefinal
+  message("⚠ Proceeding without metacore checks")
+}
 
 #===============================================================================
 # SAVE OUTPUT
@@ -481,30 +501,35 @@ if (!dir.exists(dir)) dir.create(dir, recursive = TRUE)
 
 # Save as RDS (R native format)
 saveRDS(adee, file.path(dir, "adee.rds"))
+message("✓ Saved: adam/adee.rds")
 
 # Save as CSV (for review)
 write.csv(adee, file.path(dir, "adee.csv"), row.names = FALSE, na = "")
+message("✓ Saved: adam/adee.csv")
 
-# Apply xportr and save as XPT (if metacore is available)
-# Uncomment when metacore spec file is ready
-
-# adee_xpt <- adee %>%
-#   xportr_type(metacore, domain = "ADEE") %>%     # Coerce variable types
-#   xportr_length(metacore) %>%                    # Assign SAS lengths
-#   xportr_label(metacore) %>%                     # Assign variable labels
-#   xportr_format(metacore) %>%                    # Assign formats
-#   xportr_df_label(metacore) %>%                  # Assign dataset label
-#   xportr_write(file.path(dir, "adee.xpt"))       # Write XPT v5 file
-
-# For now, save XPT without metacore specifications
-if (requireNamespace("haven", quietly = TRUE)) {
-  haven::write_xpt(adee, file.path(dir, "adee.xpt"), version = 5)
+# Apply xportr and save as XPT
+if (!is.null(metacore)) {
+  # With metacore specifications
+  adee_xpt <- adee %>%
+    xportr_type(metacore, domain = "ADEE") %>%
+    xportr_length(metacore) %>%
+    xportr_label(metacore) %>%
+    xportr_format(metacore) %>%
+    xportr_df_label(metacore) %>%
+    xportr_write(file.path(dir, "adee.xpt"))
+  
+  message("✓ Saved: adam/adee.xpt (with metacore attributes)")
+} else {
+  # Without metacore specifications (basic XPT)
+  if (requireNamespace("haven", quietly = TRUE)) {
+    haven::write_xpt(adee, file.path(dir, "adee.xpt"), version = 5)
+    message("✓ Saved: adam/adee.xpt (basic format)")
+  }
 }
 
 #===============================================================================
 # END OF PROGRAM
 #===============================================================================
-
 
 adee <- adee_prefinal %>%
   drop_unspec_vars(metacore) %>% # Drop unspecified variables from specs
