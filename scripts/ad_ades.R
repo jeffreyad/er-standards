@@ -25,9 +25,10 @@
 #
 # Author: Jeff Dickinson
 # Date: 2026-01-22
-# Version: 1.0
+# Version: 1.1
 #
 # Note: Variable names limited to 8 characters for SAS compatibility
+#       Updated for pharmaverseadam ADAE (uses ASEV/ASEVN not AETOXGR)
 #
 #===============================================================================
 
@@ -322,6 +323,7 @@ exposure_final <- exposure_data %>%
 #===============================================================================
 
 # Derive subject-level summary parameters from ADAE
+# NOTE: pharmaverseadam uses ASEV/ASEVN (severity) not AETOXGR/AETOXGRN
 
 ## Any TEAE (Treatment-Emergent Adverse Event) ----
 teae_any <- adsl %>%
@@ -337,15 +339,15 @@ teae_any <- adsl %>%
     AVALC = if_else(AVAL == 1, "Y", "N")
   )
 
-## Any Grade 3+ TEAE ----
-teae_gr3 <- adsl %>%
+## Any Severe TEAE (using ASEVN = 3 for SEVERE) ----
+teae_sev <- adsl %>%
   select(STUDYID, USUBJID) %>%
   mutate(
-    PARAMCD = "TEAEGR3",
-    PARAM = "Any Grade 3+ Treatment-Emergent Adverse Event",
+    PARAMCD = "TEAESEV",  # Using ASEVN instead of AETOXGRN
+    PARAM = "Any Severe Treatment-Emergent Adverse Event",
     PARAMN = 2,
     AVAL = if_else(
-      USUBJID %in% (adae %>% filter(TRTEMFL == "Y" & AETOXGRN >= 3) %>% pull(USUBJID)),
+      USUBJID %in% (adae %>% filter(TRTEMFL == "Y" & ASEVN == 3) %>% pull(USUBJID)),
       1, 0
     ),
     AVALC = if_else(AVAL == 1, "Y", "N")
@@ -365,7 +367,7 @@ sae_any <- adsl %>%
     AVALC = if_else(AVAL == 1, "Y", "N")
   )
 
-## Any Treatment-Related AE ----
+## Any Treatment-Related AE (using AREL character values) ----
 trae_any <- adsl %>%
   select(STUDYID, USUBJID) %>%
   mutate(
@@ -373,7 +375,9 @@ trae_any <- adsl %>%
     PARAM = "Any Treatment-Related Adverse Event",
     PARAMN = 4,
     AVAL = if_else(
-      USUBJID %in% (adae %>% filter(AERELN %in% c(1, 2, 3)) %>% pull(USUBJID)),
+      USUBJID %in% (adae %>% 
+        filter(AREL %in% c("POSSIBLE", "PROBABLE", "RELATED")) %>% 
+        pull(USUBJID)),
       1, 0
     ),
     AVALC = if_else(AVAL == 1, "Y", "N")
@@ -396,7 +400,7 @@ aedcn <- adsl %>%
 # Combine subject-level parameters
 subject_params <- bind_rows(
   teae_any,
-  teae_gr3,
+  teae_sev,
   sae_any,
   trae_any,
   aedcn
@@ -413,6 +417,7 @@ common_vars <- intersect(adsl_vars, adae_vars)
 vars_to_drop <- setdiff(common_vars, c("STUDYID", "USUBJID"))
 
 # Create event-level records from ADAE
+# NOTE: Using actual pharmaverseadam variables (ASEV/ASEVN, AREL)
 event_params <- adae %>%
   filter(TRTEMFL == "Y") %>%  # Treatment-emergent only
   mutate(
@@ -421,14 +426,26 @@ event_params <- adae %>%
     PARAMN = 10,
     AVAL = 1,  # Event occurred
     AVALC = "Y",
+    
     # Keep AE-specific variables (8-char names)
+    # Using actual pharmaverseadam ADAE variables
     AEDECOD = AEDECOD,    # Preferred term
     AEBODSYS = AEBODSYS,  # System organ class
-    AETOXGR = AETOXGR,    # Toxicity grade (char)
-    AETOXGRN = AETOXGRN,  # Toxicity grade (num)
-    AESER = AESER,        # Serious flag
-    AEREL = AEREL,        # Relationship (char)
-    AERELN = AERELN,      # Relationship (num)
+    AESEV = ASEV,         # Severity (char): MILD, MODERATE, SEVERE
+    AESEVN = ASEVN,       # Severity (num): 1, 2, 3
+    AESER = AESER,        # Serious flag: Y/N
+    AEREL = AREL,         # Relationship (char): NOT RELATED, POSSIBLE, etc.
+    
+    # Create numeric relationship for analysis
+    AERELN = case_when(
+      AREL == "NOT RELATED" ~ 0,
+      AREL == "UNLIKELY RELATED" ~ 1,
+      AREL == "POSSIBLE" ~ 2,
+      AREL == "PROBABLE" ~ 3,
+      AREL == "RELATED" ~ 4,
+      TRUE ~ NA_real_
+    ),
+    
     AESTDT = ASTDT,       # AE start date (8 chars)
     AEENDT = AENDT        # AE end date (8 chars)
   ) %>%
@@ -463,7 +480,7 @@ ades_prefinal <- ades_base %>%
   mutate(
     # Subject-level parameters
     ANL01FL = if_else(PARAMCD == "TEAE", "Y", ""),      # Any TEAE
-    ANL02FL = if_else(PARAMCD == "TEAEGR3", "Y", ""),   # Grade 3+
+    ANL02FL = if_else(PARAMCD == "TEAESEV", "Y", ""),   # Severe
     ANL03FL = if_else(PARAMCD == "SAE", "Y", ""),       # Serious
     ANL04FL = if_else(PARAMCD == "TRAE", "Y", ""),      # Treatment-related
     
@@ -523,7 +540,8 @@ ades_prefinal <- ades_base %>%
     AVAL, AVALC,
     
     # AE-specific variables (event-level only, 8 chars)
-    any_of(c("AEDECOD", "AEBODSYS", "AETOXGR", "AETOXGRN", 
+    # Using actual pharmaverseadam variables
+    any_of(c("AEDECOD", "AEBODSYS", "AESEV", "AESEVN", 
              "AESER", "AEREL", "AERELN", "AESTDT", "AEENDT")),
     
     # Analysis flags
@@ -614,42 +632,3 @@ if (!is.null(metacore)) {
 #===============================================================================
 # END OF PROGRAM
 #===============================================================================
-# ```
-
-# ---
-
-# ## **Key Features of ADES:**
-
-# ### **1. Two-Level Structure:**
-
-# **Subject-Level Parameters (PARAMN 1-5):**
-# - One record per subject per parameter
-# - Summary flags (any TEAE, Grade 3+, SAE, etc.)
-# - AVAL = 0/1 (No/Yes)
-
-# **Event-Level Parameters (PARAMN ≥10):**
-# - Multiple records per subject (one per AE)
-# - Individual AE details
-# - AVAL = 1 (event occurred)
-
-# ### **2. Parameters Included:**
-
-# | PARAMCD | PARAMN | Description | Level |
-# |---------|--------|-------------|-------|
-# | TEAE | 1 | Any Treatment-Emergent AE | Subject |
-# | TEAEGR3 | 2 | Any Grade 3+ TEAE | Subject |
-# | SAE | 3 | Any Serious AE | Subject |
-# | TRAE | 4 | Any Treatment-Related AE | Subject |
-# | AEDCN | 5 | AE Leading to Discontinuation | Subject |
-# | AETERM | 10 | Individual AE Terms | Event |
-
-# ### **3. Example Output Structure:**
-# ```
-# USUBJID      PARAMCD   PARAMN  AVAL  AVALC  AEDECOD         AETOXGR  AUCSS  AUCSSCAT
-# 001-001-001  TEAE      1       1     Y      NA              NA       12.5   Low
-# 001-001-001  TEAEGR3   2       0     N      NA              NA       12.5   Low
-# 001-001-001  SAE       3       0     N      NA              NA       12.5   Low
-# 001-001-001  TRAE      4       1     Y      NA              NA       12.5   Low
-# 001-001-001  AEDCN     5       0     N      NA              NA       12.5   Low
-# 001-001-001  AETERM    10      1     Y      NAUSEA          MILD     12.5   Low
-# 001-001-001  AETERM    10      1     Y      HEADACHE        MODERATE 12.5   Low
