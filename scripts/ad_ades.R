@@ -455,20 +455,36 @@ event_params <- adae %>%
 # COMBINE SUBJECT AND EVENT LEVELS
 #===============================================================================
 
+# Ensure all AE-specific variables exist in subject_params (as NA)
+# This prevents issues when binding with event_params
+subject_params_complete <- subject_params %>%
+  derive_vars_merged(
+    dataset_add = exposure_final,
+    by_vars = exprs(STUDYID, USUBJID)
+  ) %>%
+  mutate(
+    # Add event-level variables as NA for subject-level records
+    AESTDT = as.Date(NA),
+    AEENDT = as.Date(NA),
+    AEDECOD = NA_character_,
+    AEBODSYS = NA_character_,
+    AESEV = NA_character_,
+    AESEVN = NA_integer_,
+    AESER = NA_character_,
+    AEREL = NA_character_,
+    AERELN = NA_real_
+  )
+
+event_params_complete <- event_params %>%
+  derive_vars_merged(
+    dataset_add = exposure_final,
+    by_vars = exprs(STUDYID, USUBJID)
+  )
+
+# Combine both levels
 ades_base <- bind_rows(
-  # Subject-level parameters (with exposure)
-  subject_params %>%
-    derive_vars_merged(
-      dataset_add = exposure_final,
-      by_vars = exprs(STUDYID, USUBJID)
-    ),
-  
-  # Event-level parameters (with exposure)
-  event_params %>%
-    derive_vars_merged(
-      dataset_add = exposure_final,
-      by_vars = exprs(STUDYID, USUBJID)
-    )
+  subject_params_complete,
+  event_params_complete
 )
 
 #===============================================================================
@@ -478,14 +494,11 @@ ades_base <- bind_rows(
 ades_prefinal <- ades_base %>%
   # Analysis flags
   mutate(
-    # Subject-level parameters
-    ANL01FL = if_else(PARAMCD == "TEAE", "Y", ""),      # Any TEAE
-    ANL02FL = if_else(PARAMCD == "TEAESEV", "Y", ""),   # Severe
-    ANL03FL = if_else(PARAMCD == "SAE", "Y", ""),       # Serious
-    ANL04FL = if_else(PARAMCD == "TRAE", "Y", ""),      # Treatment-related
-    
-    # Event-level flag
-    ANL05FL = if_else(PARAMCD == "AETERM", "Y", "")     # Individual events
+    ANL01FL = if_else(PARAMCD == "TEAE", "Y", ""),
+    ANL02FL = if_else(PARAMCD == "TEAESEV", "Y", ""),
+    ANL03FL = if_else(PARAMCD == "SAE", "Y", ""),
+    ANL04FL = if_else(PARAMCD == "TRAE", "Y", ""),
+    ANL05FL = if_else(PARAMCD == "AETERM", "Y", "")
   ) %>%
   
   # Parameter categories
@@ -498,21 +511,20 @@ ades_prefinal <- ades_base %>%
     )
   ) %>%
   
-  # Analysis timepoint (for subject-level = overall, for events = at event)
+  # Analysis timepoint
   mutate(
     AVISIT = if_else(PARAMN <= 5, "OVERALL", "AT EVENT"),
     AVISITN = if_else(PARAMN <= 5, 99, 0)
   ) %>%
   
-  # Sequence number
-  derive_var_obs_number(
-    by_vars = exprs(STUDYID, USUBJID),
-    order = exprs(PARAMN, any_of("AESTDT")),
-    new_var = ASEQ,
-    check_type = "error"
-  ) %>%
+  # Sort and create sequence number
+  # Use coalesce to handle NA dates (puts them first in sort)
+  arrange(USUBJID, PARAMN, coalesce(AESTDT, as.Date("1900-01-01"))) %>%
+  group_by(STUDYID, USUBJID) %>%
+  mutate(ASEQ = row_number()) %>%
+  ungroup() %>%
   
-  # Select variables (8-char names)
+  # Select and order variables
   select(
     # Identifiers
     STUDYID, STUDYIDN, USUBJID, USUBJIDN, SUBJID, SUBJIDN,
@@ -539,10 +551,9 @@ ades_prefinal <- ades_base %>%
     # Analysis values
     AVAL, AVALC,
     
-    # AE-specific variables (event-level only, 8 chars)
-    # Using actual pharmaverseadam variables
-    any_of(c("AEDECOD", "AEBODSYS", "AESEV", "AESEVN", 
-             "AESER", "AEREL", "AERELN", "AESTDT", "AEENDT")),
+    # AE-specific variables (all present now, NA for subject-level)
+    AEDECOD, AEBODSYS, AESEV, AESEVN,
+    AESER, AEREL, AERELN, AESTDT, AEENDT,
     
     # Analysis flags
     ANL01FL, ANL02FL, ANL03FL, ANL04FL, ANL05FL,
@@ -550,13 +561,13 @@ ades_prefinal <- ades_base %>%
     # Exposure - Primary
     DOSE, AUCSS, CMAXSS, CAVGSS, CMINSS, CLSS,
     
-    # Exposure - Transformations (8-char names)
+    # Exposure - Transformations
     AUCSLOG, CMXSLOG, CAVGLOG,
     AUCSSSTD, CMXSSSTD,
     AUCSSN,
     AUCSSDOS, CMXSSDOS,
     
-    # Exposure - Categories (8-char names)
+    # Exposure - Categories
     AUCSSCAT, AUCSCATN,
     AUCSSQ, AUCSSQN,
     AUCSSMED,
@@ -568,10 +579,7 @@ ades_prefinal <- ades_base %>%
     
     # Record identifiers
     ASEQ, any_of("DTYPE")
-  ) %>%
-  
-  # Sort
-  arrange(USUBJID, PARAMN, any_of("AESTDT"))
+  )
 
 #===============================================================================
 # APPLY METADATA AND PREPARE FOR EXPORT
