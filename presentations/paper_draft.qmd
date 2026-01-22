@@ -1,7 +1,7 @@
 ---
 title: "Standardizing Exposure-Response Data for Modeling and Simulation Using CDISC Principles and {admiral}"
 author: 
-  - name: Jeff Dickinson
+  - name: Jeffrey A. Dickinson
     affiliation: Navitas Data Sciences
     email: jeff.dickinson@navitaslifesciences.com
 date: today
@@ -9,10 +9,10 @@ format:
   pdf:
     documentclass: article
     number-sections: true
-    toc: true
+    toc: false
   docx:
     number-sections: true
-    toc: true
+    toc: false
 bibliography: references.bib
 ---
 
