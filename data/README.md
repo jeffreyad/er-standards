@@ -1,7 +1,7 @@
 # Example Datasets for ER Standards Framework
 
 ## Overview
-These datasets demonstrate the proposed standardized structure for 
+These datasets demonstrate the proposed standardized structure for
 Exposure-Response (ER) data in clinical trials.
 
 ## Files
