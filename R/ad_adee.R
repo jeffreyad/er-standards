@@ -231,107 +231,31 @@ adsl_vslb <- adsl_vs %>%
   select(-BILIBL)
 
 #===============================================================================
-# DERIVE EXPOSURE METRICS (8-CHAR NAMES)
+# DERIVE EXPOSURE METRICS
 #===============================================================================
 
-# In production, exposure would come from ADPC or PopPK analysis
-# For demonstration, simulating exposure based on dose and covariates
+# Load configuration
+source("config/exposure_config.R")
 
-set.seed(12345)
+# Source the exposure metrics function
+source("R/derive_exposure_metrics.R")
 
-exposure_data <- adsl_vslb %>%
-  mutate(
-    # Dose from treatment arm
-    DOSE = case_when(
-      ARM == "Placebo" ~ 0,
-      ARM == "Xanomeline Low Dose" ~ 54,
-      ARM == "Xanomeline High Dose" ~ 81,
-      TRUE ~ NA_real_
-    ),
-    
-    # Simulate individual clearance
-    CL_EST = 5 * (CRCLBL / 100)^0.75 * (WTBL / 70)^(-0.25),
-    
-    # Simulate steady-state AUC
-    AUCSS = if_else(DOSE > 0, (DOSE / CL_EST) * exp(rnorm(n(), 0, 0.3)), 0),
-    CMAXSS = if_else(DOSE > 0, AUCSS * 0.18 * exp(rnorm(n(), 0, 0.25)), 0),
-    CAVGSS = if_else(DOSE > 0, AUCSS / 24, 0),
-    CMINSS = if_else(DOSE > 0, CAVGSS * 0.6 * exp(rnorm(n(), 0, 0.35)), 0),
-    CLSS = if_else(DOSE > 0, DOSE / AUCSS, NA_real_)
-  ) %>%
-  select(-CL_EST)
+# Load ADPC if using production source
+if (EXPOSURE_SOURCE == "adpc") {
+  adpc <- haven::read_sas("path/to/adpc.sas7bdat")
+  # Or: adpc <- pharmaverseadam::adpc
+} else {
+  adpc <- NULL
+}
 
-## Exposure transformations and categories (8-char names) ----
-
-# Calculate statistics from active subjects only
-aucss_active <- exposure_data %>% filter(DOSE > 0) %>% pull(AUCSS)
-aucss_mean <- mean(aucss_active, na.rm = TRUE)
-aucss_sd <- sd(aucss_active, na.rm = TRUE)
-aucss_median <- median(aucss_active, na.rm = TRUE)
-
-cmaxss_active <- exposure_data %>% filter(DOSE > 0) %>% pull(CMAXSS)
-cmaxss_mean <- mean(cmaxss_active, na.rm = TRUE)
-cmaxss_sd <- sd(cmaxss_active, na.rm = TRUE)
-
-tertile_breaks <- quantile(aucss_active, probs = c(0, 1/3, 2/3, 1), na.rm = TRUE)
-quartile_breaks <- quantile(aucss_active, probs = c(0, 0.25, 0.5, 0.75, 1), na.rm = TRUE)
-
-exposure_final <- exposure_data %>%
-  mutate(
-    # Log transformations (8 chars: remove one 'S')
-    AUCSLOG = log(AUCSS + 0.01),     # AUCSSLOG → AUCSLOG
-    CMXSLOG = log(CMAXSS + 0.01),    # CMAXSSLOG → CMXSLOG
-    CAVGLOG = log(CAVGSS + 0.01),    # CAVGSSLOG → CAVGLOG
-    
-    # Standardized (z-score) - 8 chars exactly
-    AUCSSSTD = if_else(DOSE > 0, (AUCSS - aucss_mean) / aucss_sd, NA_real_),
-    CMXSSSTD = if_else(DOSE > 0, (CMAXSS - cmaxss_mean) / cmaxss_sd, NA_real_),
-    
-    # Normalized (ratio to median)
-    AUCSSN = if_else(DOSE > 0, AUCSS / aucss_median, NA_real_),
-    
-    # Dose-normalized (8 chars: remove 'E')
-    AUCSSDOS = if_else(DOSE > 0, AUCSS / DOSE, NA_real_),     # AUCSSDOSE → AUCSSDOS
-    CMXSSDOS = if_else(DOSE > 0, CMAXSS / DOSE, NA_real_),    # CMAXSSDOSE → CMXSSDOS
-    
-    # Tertiles (8 chars exactly)
-    AUCSSCAT = if_else(
-      DOSE > 0,
-      as.character(cut(AUCSS, breaks = tertile_breaks,
-                       labels = c("Low", "Medium", "High"),
-                       include.lowest = TRUE)),
-      NA_character_
-    ),
-    AUCSCATN = case_when(   # AUCSSCATN → AUCSCATN
-      AUCSSCAT == "Low" ~ 1,
-      AUCSSCAT == "Medium" ~ 2,
-      AUCSSCAT == "High" ~ 3,
-      TRUE ~ NA_real_
-    ),
-    
-    # Quartiles
-    AUCSSQ = if_else(
-      DOSE > 0,
-      as.character(cut(AUCSS, breaks = quartile_breaks,
-                       labels = c("Q1", "Q2", "Q3", "Q4"),
-                       include.lowest = TRUE)),
-      NA_character_
-    ),
-    AUCSSQN = case_when(
-      AUCSSQ == "Q1" ~ 1,
-      AUCSSQ == "Q2" ~ 2,
-      AUCSSQ == "Q3" ~ 3,
-      AUCSSQ == "Q4" ~ 4,
-      TRUE ~ NA_real_
-    ),
-    
-    # Above/below median (8 chars exactly)
-    AUCSSMED = if_else(
-      DOSE > 0,
-      if_else(AUCSS >= aucss_median, "Above Median", "Below Median"),
-      NA_character_
-    )
-  )
+# Derive exposure metrics
+exposure_final <- derive_exposure_metrics(
+  adsl_data = adsl_vslb,
+  source = EXPOSURE_SOURCE,
+  adpc_data = adpc,
+  seed = EXPOSURE_SEED,
+  tertile_var = TERTILE_VARIABLE
+)
 
 #===============================================================================
 # CREATE ADEE BASE DATASET
