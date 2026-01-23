@@ -1,4 +1,4 @@
-#===============================================================================
+# ===============================================================================
 # Script: S5_Generate_ADRS.R
 #
 # Purpose: Generate simulated ADRS (Response Analysis Dataset)
@@ -11,7 +11,7 @@
 # Author: Jeff Dickinson
 # Date: 2026-01-22
 #
-# Input: 
+# Input:
 #   - data/adsl_simulated.rds
 #   - data/adtr_simulated.rds
 #
@@ -20,7 +20,7 @@
 # Note: This script is called by S0_Generate_Example_Data.R but can also
 #       be run standalone. Requires ADTR to be generated first.
 #
-#===============================================================================
+# ===============================================================================
 
 library(dplyr)
 library(tidyr)
@@ -31,17 +31,17 @@ library(lubridate)
 source("R/simulation_functions.R")
 
 # Set seed for reproducibility
-set.seed(12349)  # Different seed from previous scripts
+set.seed(12349) # Different seed from previous scripts
 
-#===============================================================================
+# ===============================================================================
 # CONFIGURATION
-#===============================================================================
+# ===============================================================================
 
 # RECIST 1.1 criteria
-RECIST_CR_THRESHOLD <- -100  # Complete response (100% reduction)
-RECIST_PR_THRESHOLD <- -30   # Partial response (≥30% reduction)
-RECIST_PD_THRESHOLD <- 20    # Progressive disease (≥20% increase)
-RECIST_PD_ABSOLUTE <- 5      # Absolute increase of ≥5mm
+RECIST_CR_THRESHOLD <- -100 # Complete response (100% reduction)
+RECIST_PR_THRESHOLD <- -30 # Partial response (≥30% reduction)
+RECIST_PD_THRESHOLD <- 20 # Progressive disease (≥20% increase)
+RECIST_PD_ABSOLUTE <- 5 # Absolute increase of ≥5mm
 
 # Response confirmation window (weeks)
 CONFIRMATION_WINDOW <- 4
@@ -59,9 +59,9 @@ cat("    SD: Between PR and PD\n")
 cat("  Confirmation window:", CONFIRMATION_WINDOW, "weeks\n")
 cat(strrep("-", 80), "\n\n")
 
-#===============================================================================
+# ===============================================================================
 # STEP 1: LOAD ADSL AND ADTR
-#===============================================================================
+# ===============================================================================
 
 cat("Step 1: Loading input datasets...\n")
 
@@ -80,9 +80,9 @@ cat("  ✓ ADSL loaded:", nrow(adsl), "subjects\n")
 cat("  ✓ ADTR loaded:", nrow(adtr), "records\n")
 cat("  ✓ ADTR subjects:", length(unique(adtr$USUBJID)), "\n\n")
 
-#===============================================================================
+# ===============================================================================
 # STEP 2: DERIVE RESPONSE AT EACH VISIT (RECIST 1.1)
-#===============================================================================
+# ===============================================================================
 
 cat("Step 2: Deriving RECIST 1.1 response at each visit...\n")
 
@@ -94,42 +94,42 @@ adrs_visit <- adtr %>%
   mutate(
     # Step 1: Calculate cumulative minimum (includes current visit)
     CUM_MIN = cummin(AVAL),
-    
+
     # Step 2: Nadir is previous visit's cumulative minimum
     # For visit 1, nadir = baseline
     # For visit 2+, nadir = lag(cumulative min)
     NADIR = case_when(
-      AVISITN == 1 ~ BASE,                    # First visit
-      TRUE ~ lag(CUM_MIN, default = BASE[1])  # Subsequent visits
+      AVISITN == 1 ~ BASE, # First visit
+      TRUE ~ lag(CUM_MIN, default = BASE[1]) # Subsequent visits
     )
   ) %>%
-  select(-CUM_MIN) %>%  # Remove temporary variable
+  select(-CUM_MIN) %>% # Remove temporary variable
   ungroup() %>%
   mutate(
     # Percent change from baseline
     PCHG_BASE = if_else(BASE > 0, 100 * (AVAL - BASE) / BASE, NA_real_),
-    
+
     # Percent change from nadir
     PCHG_NADIR = if_else(NADIR > 0, 100 * (AVAL - NADIR) / NADIR, NA_real_),
-    
+
     # Absolute change from nadir
     CHG_NADIR = AVAL - NADIR,
-    
+
     # RECIST 1.1 response determination
     AVALC = case_when(
       # Complete Response: All lesions disappeared
       AVAL == 0 ~ "CR",
-      
+
       # Partial Response: ≥30% decrease from baseline
       PCHG_BASE <= RECIST_PR_THRESHOLD ~ "PR",
-      
+
       # Progressive Disease: ≥20% increase from nadir AND ≥5mm absolute increase
       PCHG_NADIR >= RECIST_PD_THRESHOLD & CHG_NADIR >= RECIST_PD_ABSOLUTE ~ "PD",
-      
+
       # Stable Disease: Everything else
       TRUE ~ "SD"
     ),
-    
+
     # Numeric version
     AVALN = case_when(
       AVALC == "CR" ~ 4,
@@ -138,7 +138,7 @@ adrs_visit <- adtr %>%
       AVALC == "PD" ~ 1,
       TRUE ~ 0
     ),
-    
+
     # Parameter
     PARAMCD = "OVR",
     PARAM = "Overall Response by Visit",
@@ -147,36 +147,36 @@ adrs_visit <- adtr %>%
   select(
     # Identifiers
     STUDYID, USUBJID, SUBJID, SITEID,
-    
+
     # Parameter
     PARAMCD, PARAM, PARAMN,
-    
+
     # Visit
     AVISITN, AVISIT,
-    
+
     # Dates
     ADT, ADY,
-    
+
     # Response
     AVALC, AVALN,
-    
+
     # Supporting values
     AVAL, BASE, NADIR, PCHG_BASE, PCHG_NADIR,
-    
+
     # Treatment
     ARM, ARMN, TRT01P, TRT01A,
     TRTSDT, TRTEDT, TRTDURD,
-    
+
     # Exposure
     DOSE, AUCSS, AUCSSSTD,
-    
+
     # Demographics
     AGE, AGEGR1, SEX, RACE, ETHNIC,
-    
+
     # Baseline covariates
     WEIGHT, HEIGHT, BMI, BSA,
     CREAT, CRCL, EGFR,
-    
+
     # Flags
     SAFFL, ITTFL
   )
@@ -195,9 +195,9 @@ last_visit_response <- adrs_visit %>%
 print(last_visit_response)
 cat("\n")
 
-#===============================================================================
+# ===============================================================================
 # STEP 3: DERIVE CONFIRMED RESPONSE
-#===============================================================================
+# ===============================================================================
 
 cat("Step 3: Deriving confirmed response...\n")
 
@@ -209,17 +209,17 @@ adrs_confirmed <- adrs_visit %>%
     # Next visit response
     NEXT_AVALC = lead(AVALC),
     NEXT_AVISITN = lead(AVISITN),
-    
+
     # Weeks between visits
-    WEEKS_BETWEEN = (NEXT_AVISITN - AVISITN) * 6,  # Approximate (visits are ~6 weeks apart)
-    
+    WEEKS_BETWEEN = (NEXT_AVISITN - AVISITN) * 6, # Approximate (visits are ~6 weeks apart)
+
     # Confirmed if same response at next visit and ≥4 weeks apart
     CONFIRMED = if_else(
       !is.na(NEXT_AVALC) & AVALC == NEXT_AVALC & WEEKS_BETWEEN >= CONFIRMATION_WINDOW,
       "Y",
       "N"
     ),
-    
+
     # Confirmed response (only CR/PR can be confirmed per RECIST)
     AVALC_CONF = case_when(
       AVALC %in% c("CR", "PR") & CONFIRMED == "Y" ~ paste0(AVALC, " (Confirmed)"),
@@ -231,9 +231,9 @@ adrs_confirmed <- adrs_visit %>%
 
 cat("  ✓ Confirmed response derived\n\n")
 
-#===============================================================================
+# ===============================================================================
 # STEP 4: DERIVE BEST OVERALL RESPONSE (BOR)
-#===============================================================================
+# ===============================================================================
 
 cat("Step 4: Deriving Best Overall Response (BOR)...\n")
 
@@ -250,22 +250,22 @@ adrs_bor <- adrs_confirmed %>%
       AVALN == 1 ~ "PD",
       TRUE ~ "NE"
     ),
-    
+
     # Was it confirmed?
     BOR_CONFIRMED = if_else(
       any(AVALC_CONF %in% c("CR (Confirmed)", "PR (Confirmed)")),
       "Y",
       "N"
     ),
-    
+
     # Best percent change
     BEST_PCHG = min(PCHG_BASE, na.rm = TRUE),
-    
+
     # Visit of best response
     BOR_VISIT = AVISIT[which.max(AVALN)],
     BOR_AVISITN = AVISITN[which.max(AVALN)],
     BOR_ADT = ADT[which.max(AVALN)],
-    
+
     # Keep first values for subject-level variables
     STUDYID = first(STUDYID),
     SUBJID = first(SUBJID),
@@ -294,7 +294,6 @@ adrs_bor <- adrs_confirmed %>%
     EGFR = first(EGFR),
     SAFFL = first(SAFFL),
     ITTFL = first(ITTFL),
-    
     .groups = "drop"
   ) %>%
   mutate(
@@ -302,11 +301,11 @@ adrs_bor <- adrs_confirmed %>%
     PARAMCD = "BOR",
     PARAM = "Best Overall Response",
     PARAMN = 2,
-    
+
     # Visit (overall)
     AVISIT = "OVERALL",
     AVISITN = 99,
-    
+
     # Date is date of BOR
     ADT = BOR_ADT,
     ADY = as.numeric(BOR_ADT - TRTSDT) + 1
@@ -323,9 +322,9 @@ bor_dist <- adrs_bor %>%
 print(bor_dist)
 cat("\n")
 
-#===============================================================================
+# ===============================================================================
 # STEP 5: COMBINE VISIT-LEVEL AND BOR RECORDS
-#===============================================================================
+# ===============================================================================
 
 cat("Step 5: Combining visit-level and BOR records...\n")
 
@@ -377,9 +376,9 @@ adrs_combined <- bind_rows(
 cat("  ✓ Records combined\n")
 cat("    Total records:", nrow(adrs_combined), "\n\n")
 
-#===============================================================================
+# ===============================================================================
 # STEP 6: ADD ADDITIONAL VARIABLES
-#===============================================================================
+# ===============================================================================
 
 cat("Step 6: Adding additional variables...\n")
 
@@ -391,70 +390,66 @@ adrs_simulated <- adrs_combined %>%
     SUBJIDN = as.numeric(SUBJID),
     USUBJIDN = match(USUBJID, unique(USUBJID))
   ) %>%
-  
   # Add analysis flags
   mutate(
     # All records for primary analysis
     ANL01FL = "Y",
-    
+
     # BOR records only
     ANL02FL = if_else(PARAMCD == "BOR", "Y", ""),
-    
+
     # Confirmed response (CR or PR)
     ANL03FL = if_else(AVALC %in% c("CR", "PR"), "Y", ""),
-    
+
     # Parameter category
     PARCAT1 = "TUMOR RESPONSE",
     PARCAT2 = if_else(PARAMCD == "BOR", "OVERALL", "BY VISIT")
   ) %>%
-  
   # Add sequence number
   group_by(STUDYID, USUBJID) %>%
   arrange(PARAMN, AVISITN) %>%
   mutate(ASEQ = row_number()) %>%
   ungroup() %>%
-  
   # Add character date
   mutate(ADTC = as.character(ADT)) %>%
-  
   # Reorder columns
   select(
     # Identifiers
     STUDYID, STUDYIDN, USUBJID, USUBJIDN, SUBJID, SUBJIDN,
     SITEID, SITEIDN,
     ASEQ,
-    
+
     # Treatment
     ARM, ARMN,
     TRT01P, TRT01A,
     TRTSDT, TRTEDT, TRTDURD,
-    
+
     # Demographics
     AGE, AGEGR1,
     SEX,
     RACE,
     ETHNIC,
-    
+
     # Parameter information
     PARAMCD, PARAM, PARAMN,
     PARCAT1, PARCAT2,
-    
+
     # Visit
     AVISITN, AVISIT,
-    
+
     # Dates
     ADT, ADY, ADTC,
-    
+
     # Analysis values
     AVALC, AVALN,
-    
+
     # Exposure
     DOSE, AUCSS, AUCSSSTD,
-    
+
     # Baseline covariates
     WEIGHT, HEIGHT, BMI, BSA,
     CREAT, CRCL, EGFR,
-    
+
     # Analysis flags
     ANL01FL, ANL02FL, ANL03FL,
     SAFFL, ITTFL
@@ -463,9 +458,9 @@ adrs_simulated <- adrs_combined %>%
 cat("  ✓ Additional variables added\n")
 cat("    Total variables:", ncol(adrs_simulated), "\n\n")
 
-#===============================================================================
+# ===============================================================================
 # STEP 7: SAVE OUTPUT
-#===============================================================================
+# ===============================================================================
 
 cat("Step 7: Saving ADRS...\n")
 
@@ -479,9 +474,9 @@ saveRDS(adrs_simulated, "data/adrs_simulated.rds")
 
 cat("  ✓ Saved: data/adrs_simulated.rds\n\n")
 
-#===============================================================================
+# ===============================================================================
 # SUMMARY
-#===============================================================================
+# ===============================================================================
 
 cat(strrep("-", 80), "\n")
 cat("ADRS GENERATION SUMMARY\n")
@@ -533,7 +528,7 @@ exp_response <- adrs_simulated %>%
   mutate(
     EXP_TERT = cut(
       AUCSSSTD,
-      breaks = quantile(AUCSSSTD, probs = c(0, 1/3, 2/3, 1), na.rm = TRUE),
+      breaks = quantile(AUCSSSTD, probs = c(0, 1 / 3, 2 / 3, 1), na.rm = TRUE),
       labels = c("Low", "Medium", "High"),
       include.lowest = TRUE
     )
@@ -554,6 +549,6 @@ cat(strrep("-", 80), "\n")
 cat("ADRS generation complete!\n")
 cat(strrep("-", 80), "\n\n")
 
-#===============================================================================
+# ===============================================================================
 # END OF SCRIPT
-#===============================================================================
+# ===============================================================================

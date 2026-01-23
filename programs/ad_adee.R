@@ -1,20 +1,20 @@
-#===============================================================================
+# ===============================================================================
 # Program: ADEE.R
-# 
+#
 # Purpose: Create ADEE (Exposure-Efficacy Analysis Dataset)
 #
-# Description: Derives exposure-efficacy analysis dataset following BDS 
+# Description: Derives exposure-efficacy analysis dataset following BDS
 #              structure with one record per subject per parameter per timepoint.
-#              Combines time-to-event endpoints (OS, PFS, TTP) with exposure 
+#              Combines time-to-event endpoints (OS, PFS, TTP) with exposure
 #              metrics from population PK analysis.
 #
-# Input: 
+# Input:
 #   - ADSL: Subject-level analysis dataset
 #   - ADTTE: Time-to-event analysis dataset
 #   - ADVS: Vital signs
 #   - ADLB: Laboratory data
 #
-# Output: 
+# Output:
 #   - ADEE: Exposure-efficacy analysis dataset
 #
 # Structure: BDS (Basic Data Structure)
@@ -29,7 +29,7 @@
 #
 # Note: Variable names limited to 8 characters for SAS compatibility
 #
-#===============================================================================
+# ===============================================================================
 
 # Load required packages
 library(admiral)
@@ -46,14 +46,15 @@ library(xportr)
 select <- dplyr::select
 filter <- dplyr::filter
 
-#===============================================================================
+# ===============================================================================
 # LOAD SPECIFICATIONS (if available)
-#===============================================================================
+# ===============================================================================
 
 # Load metacore specifications
 if (file.exists("specifications/ADEE_spec.xlsx")) {
-  metacore <- spec_to_metacore("specifications/ADEE_spec.xlsx", 
-                               where_sep_sheet = FALSE)
+  metacore <- spec_to_metacore("specifications/ADEE_spec.xlsx",
+    where_sep_sheet = FALSE
+  )
   message("✓ Loaded metacore specifications from Excel")
 } else if (file.exists("specifications/ADEE_metacore.rds")) {
   metacore <- readRDS("specifications/ADEE_metacore.rds")
@@ -63,9 +64,9 @@ if (file.exists("specifications/ADEE_spec.xlsx")) {
   metacore <- NULL
 }
 
-#===============================================================================
+# ===============================================================================
 # LOAD INPUT DATA
-#===============================================================================
+# ===============================================================================
 
 # Use haven::read_sas() or similar to read in production data
 # For illustration, using pharmaverseadam example data
@@ -76,9 +77,9 @@ adtte <- pharmaverseadam::adtte_onco
 adlb <- pharmaverseadam::adlb
 advs <- pharmaverseadam::advs
 
-#===============================================================================
+# ===============================================================================
 # PREPARE ADSL - ADD DERIVED VARIABLES
-#===============================================================================
+# ===============================================================================
 
 # Ensure TRT01P/TRT01A exist
 if (!"TRT01P" %in% names(adsl)) {
@@ -119,9 +120,9 @@ if (!"PARAMN" %in% names(adtte)) {
     )
 }
 
-#===============================================================================
+# ===============================================================================
 # DERIVE BASELINE COVARIATES
-#===============================================================================
+# ===============================================================================
 
 ## Numeric identifiers and demographics ----
 
@@ -132,7 +133,7 @@ adsl_cov <- adsl %>%
     SITEIDN = as.numeric(word(USUBJID, 2, sep = fixed("-"))),
     USUBJIDN = as.numeric(word(USUBJID, 3, sep = fixed("-"))),
     SUBJIDN = as.numeric(SUBJID),
-    
+
     # Demographics (numeric)
     SEXN = case_when(SEX == "M" ~ 1, SEX == "F" ~ 2, TRUE ~ 3),
     RACEN = case_when(
@@ -148,7 +149,7 @@ adsl_cov <- adsl %>%
       ETHNIC == "NOT HISPANIC OR LATINO" ~ 2,
       TRUE ~ 3
     ),
-    
+
     # Age groups
     AGEGR1 = case_when(
       AGE < 65 ~ "<65",
@@ -162,7 +163,7 @@ adsl_cov <- adsl %>%
       AGE >= 75 ~ 3,
       TRUE ~ NA_real_
     ),
-    
+
     # Treatment (numeric)
     ARMN = case_when(
       ARM == "Placebo" ~ 0,
@@ -220,7 +221,7 @@ adsl_vslb <- adsl_vs %>%
   mutate(
     TBILBL = BILIBL,
     CRCLBL = compute_egfr(
-      creat = CREATBL, creatu = "SI", age = AGE, 
+      creat = CREATBL, creatu = "SI", age = AGE,
       weight = WTBL, sex = SEX, method = "CRCL"
     ),
     EGFRBL = compute_egfr(
@@ -230,9 +231,9 @@ adsl_vslb <- adsl_vs %>%
   ) %>%
   select(-BILIBL)
 
-#===============================================================================
+# ===============================================================================
 # DERIVE EXPOSURE METRICS
-#===============================================================================
+# ===============================================================================
 
 # Load configuration
 source("config/exposure_config.R")
@@ -257,9 +258,9 @@ exposure_final <- derive_exposure_metrics(
   tertile_var = TERTILE_VARIABLE
 )
 
-#===============================================================================
+# ===============================================================================
 # CREATE ADEE BASE DATASET
-#===============================================================================
+# ===============================================================================
 
 # Get variable names from both datasets
 adsl_vars <- names(exposure_final)
@@ -274,7 +275,6 @@ vars_to_drop <- setdiff(common_vars, c("STUDYID", "USUBJID"))
 adee_base <- adtte %>%
   # Filter to efficacy endpoints
   filter(PARAMCD %in% c("OS", "PFS", "TTP", "TTNT")) %>%
-  
   # Add derived variables
   mutate(
     EVENT = 1 - CNSR,
@@ -285,19 +285,17 @@ adee_base <- adtte %>%
       TRUE ~ NA_character_
     )
   ) %>%
-  
   # Remove overlapping variables (use clean method)
   select(-any_of(vars_to_drop)) %>%
-  
   # Merge exposure and covariates
   derive_vars_merged(
     dataset_add = exposure_final,
     by_vars = exprs(STUDYID, USUBJID)
   )
 
-#===============================================================================
+# ===============================================================================
 # ADD ANALYSIS VARIABLES
-#===============================================================================
+# ===============================================================================
 
 adee_prefinal <- adee_base %>%
   # Analysis timepoint
@@ -307,7 +305,6 @@ adee_prefinal <- adee_base %>%
     AVISIT = "BASELINE",
     AVISITN = 0
   ) %>%
-  
   # Analysis flags
   mutate(
     ANL01FL = if_else(PARAMCD == "PFS", "Y", ""),
@@ -315,13 +312,11 @@ adee_prefinal <- adee_base %>%
     ANL03FL = if_else(PARAMCD == "TTP", "Y", ""),
     ANL04FL = if_else(PARAMCD == "TTNT", "Y", "")
   ) %>%
-  
   # Parameter categories
   mutate(
     PARCAT1 = "EFFICACY",
     PARCAT2 = "TIME TO EVENT"
   ) %>%
-  
   # Sequence number
   derive_var_obs_number(
     by_vars = exprs(STUDYID, USUBJID),
@@ -329,75 +324,73 @@ adee_prefinal <- adee_base %>%
     new_var = ASEQ,
     check_type = "error"
   ) %>%
-  
   # Select variables (with 8-char names)
   select(
     # Identifiers
     STUDYID, STUDYIDN, USUBJID, USUBJIDN, SUBJID, SUBJIDN,
     SITEID, SITEIDN,
-    
+
     # Treatment
     ARM, ARMN, ACTARM, ACTARMN,
     TRT01P, TRT01PN, TRT01A, TRT01AN,
     TRTSDT, TRTEDT, TRTDURD,
-    
+
     # Demographics
     AGE, AGEGR1, AGEGR1N,
     SEX, SEXN,
     RACE, RACEN,
     ETHNIC, ETHNICN,
-    
+
     # Parameter information
     PARAMCD, PARAM, PARAMN,
     PARCAT1, PARCAT2,
-    
+
     # Analysis values
     AVAL, AVALU, AVALC,
-    
+
     # Dates
     STARTDT, ADT, any_of(c("ADY", "ADTF")),
-    
+
     # Time-to-event specific
     CNSR, EVENT, EVNTDESC,
     any_of(c("SRCDOM", "SRCVAR", "SRCSEQ")),
-    
+
     # Analysis timepoint
     ATPT, ATPTN, AVISIT, AVISITN,
-    
+
     # Exposure - Primary
     DOSE, AUCSS, CMAXSS, CAVGSS, CMINSS, CLSS,
-    
+
     # Exposure - Transformations (8-char names)
-    AUCSLOG, CMXSLOG, CAVGLOG,      # Shortened from *SSLOG
-    AUCSSSTD, CMXSSSTD,              # Exactly 8 chars
+    AUCSLOG, CMXSLOG, CAVGLOG, # Shortened from *SSLOG
+    AUCSSSTD, CMXSSSTD, # Exactly 8 chars
     AUCSSN,
-    AUCSSDOS, CMXSSDOS,              # Shortened from *SSDOSE
-    
+    AUCSSDOS, CMXSSDOS, # Shortened from *SSDOSE
+
     # Exposure - Categories (8-char names)
-    AUCSSCAT, AUCSCATN,              # AUCSCATN shortened
+    AUCSSCAT, AUCSCATN, # AUCSCATN shortened
     AUCSSQ, AUCSSQN,
     AUCSSMED,
-    
+
     # Baseline covariates - Vitals
     WTBL, WTBLGR1, HTBL, BMIBL, BSABL,
-    
+
     # Baseline covariates - Labs
     CREATBL, CRCLBL, EGFRBL,
     ALTBL, ASTBL, TBILBL, any_of("ALBBL"),
-    
+
     # Analysis flags
     ANL01FL, ANL02FL, ANL03FL, ANL04FL,
-    
+
     # Record identifiers
     ASEQ, any_of("DTYPE")
   ) %>%
-  
   # Sort
   arrange(USUBJID, PARAMN, AVISITN)
 
-#===============================================================================
+# ===============================================================================
 # APPLY METADATA AND PREPARE FOR EXPORT
-#===============================================================================
+# ===============================================================================
 
 if (!is.null(metacore)) {
   # Apply metacore specifications
@@ -407,7 +400,7 @@ if (!is.null(metacore)) {
     check_ct_data(metacore, na_acceptable = TRUE) %>%
     order_cols(metacore) %>%
     sort_by_key(metacore)
-  
+
   message("✓ Metacore checks passed")
 } else {
   # Use prefinal dataset if no metacore
@@ -415,9 +408,9 @@ if (!is.null(metacore)) {
   message("⚠ Proceeding without metacore checks")
 }
 
-#===============================================================================
+# ===============================================================================
 # SAVE OUTPUT
-#===============================================================================
+# ===============================================================================
 
 # Create output directory
 dir <- "adam"
@@ -441,7 +434,7 @@ if (!is.null(metacore)) {
     xportr_format(metacore) %>%
     xportr_df_label(metacore) %>%
     xportr_write(file.path(dir, "adee.xpt"))
-  
+
   message("✓ Saved: adam/adee.xpt (with metacore attributes)")
 } else {
   # Without metacore specifications (basic XPT)
@@ -451,9 +444,9 @@ if (!is.null(metacore)) {
   }
 }
 
-#===============================================================================
+# ===============================================================================
 # END OF PROGRAM
-#===============================================================================
+# ===============================================================================
 
 adee <- adee_prefinal %>%
   drop_unspec_vars(metacore) %>% # Drop unspecified variables from specs

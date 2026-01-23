@@ -1,4 +1,4 @@
-#===============================================================================
+# ===============================================================================
 # Script: S1_Generate_ADSL.R
 #
 # Purpose: Generate simulated ADSL (Subject-Level Analysis Dataset)
@@ -17,7 +17,7 @@
 # Note: This script is called by S0_Generate_Example_Data.R but can also
 #       be run standalone.
 #
-#===============================================================================
+# ===============================================================================
 
 library(dplyr)
 library(tidyr)
@@ -29,9 +29,9 @@ source("R/simulation_functions.R")
 # Set seed for reproducibility
 set.seed(12345)
 
-#===============================================================================
+# ===============================================================================
 # CONFIGURATION
-#===============================================================================
+# ===============================================================================
 
 # Study parameters
 STUDY_ID <- "STUDY001"
@@ -42,7 +42,7 @@ STUDY_END <- as.Date("2025-12-31")
 
 # Treatment arms
 ARMS <- c("Placebo", "Drug Low Dose", "Drug High Dose")
-ARM_RATIO <- c(1, 1, 1)  # 1:1:1 randomization
+ARM_RATIO <- c(1, 1, 1) # 1:1:1 randomization
 
 # Doses (mg)
 DOSE_MAP <- c(
@@ -62,9 +62,9 @@ cat("  Sites:", N_SITES, "\n")
 cat("  Treatment arms:", paste(ARMS, collapse = ", "), "\n")
 cat(strrep("-", 80), "\n\n")
 
-#===============================================================================
+# ===============================================================================
 # STEP 1: GENERATE SUBJECT IDENTIFIERS
-#===============================================================================
+# ===============================================================================
 
 cat("Step 1: Generating subject identifiers...\n")
 
@@ -76,9 +76,9 @@ adsl_ids <- generate_subject_ids(
 
 cat("  ✓ Created", nrow(adsl_ids), "subject IDs\n\n")
 
-#===============================================================================
+# ===============================================================================
 # STEP 2: GENERATE DEMOGRAPHICS
-#===============================================================================
+# ===============================================================================
 
 cat("Step 2: Generating demographics...\n")
 
@@ -106,7 +106,7 @@ adsl_demo <- adsl_demo %>%
       ETHNIC == "NOT HISPANIC OR LATINO" ~ 2,
       TRUE ~ 3
     ),
-    
+
     # Age groups
     AGEGR1 = case_when(
       AGE < 65 ~ "<65",
@@ -120,19 +120,21 @@ adsl_demo <- adsl_demo %>%
       AGE >= 75 ~ 3,
       TRUE ~ NA_real_
     ),
-    
+
     # Country (all US for this example)
     COUNTRY = "USA"
   )
 
 cat("  ✓ Demographics generated\n")
 cat("    Age range:", min(adsl_demo$AGE), "-", max(adsl_demo$AGE), "\n")
-cat("    Sex distribution:", 
-    paste0(round(100 * mean(adsl_demo$SEX == "M")), "% Male"), "\n\n")
+cat(
+  "    Sex distribution:",
+  paste0(round(100 * mean(adsl_demo$SEX == "M")), "% Male"), "\n\n"
+)
 
-#===============================================================================
+# ===============================================================================
 # STEP 3: GENERATE VITALS
-#===============================================================================
+# ===============================================================================
 
 cat("Step 3: Generating baseline vitals...\n")
 
@@ -142,7 +144,7 @@ adsl_vitals <- generate_vitals(usubjid = adsl_ids$USUBJID)
 adsl_vitals <- adsl_vitals %>%
   mutate(
     BSA = compute_bsa(HEIGHT, WEIGHT),
-    
+
     # Weight group
     WTGR1 = case_when(
       WEIGHT < 70 ~ "<70 kg",
@@ -152,13 +154,15 @@ adsl_vitals <- adsl_vitals %>%
   )
 
 cat("  ✓ Vitals generated\n")
-cat("    Weight range:", round(min(adsl_vitals$WEIGHT), 1), "-", 
-    round(max(adsl_vitals$WEIGHT), 1), "kg\n")
+cat(
+  "    Weight range:", round(min(adsl_vitals$WEIGHT), 1), "-",
+  round(max(adsl_vitals$WEIGHT), 1), "kg\n"
+)
 cat("    Mean BMI:", round(mean(adsl_vitals$BMI), 1), "\n\n")
 
-#===============================================================================
+# ===============================================================================
 # STEP 4: GENERATE LABORATORY VALUES
-#===============================================================================
+# ===============================================================================
 
 cat("Step 4: Generating baseline laboratory values...\n")
 
@@ -177,19 +181,19 @@ adsl_labs <- adsl_labs %>%
   mutate(
     # Calculate eGFR (CKD-EPI)
     EGFR = compute_egfr_ckdepi(CREAT, AGE, SEX),
-    
+
     # Calculate CrCL (Cockcroft-Gault)
     CRCL = compute_crcl(CREAT, AGE, WEIGHT, SEX)
   ) %>%
-  select(-AGE, -SEX, -WEIGHT)  # Remove temporary variables
+  select(-AGE, -SEX, -WEIGHT) # Remove temporary variables
 
 cat("  ✓ Laboratory values generated\n")
 cat("    Mean eGFR:", round(mean(adsl_labs$EGFR), 1), "mL/min/1.73m²\n")
 cat("    Mean CrCL:", round(mean(adsl_labs$CRCL), 1), "mL/min\n\n")
 
-#===============================================================================
+# ===============================================================================
 # STEP 5: TREATMENT ASSIGNMENT
-#===============================================================================
+# ===============================================================================
 
 cat("Step 5: Assigning treatment...\n")
 
@@ -205,16 +209,16 @@ adsl_treatment <- adsl_treatment %>%
     # Planned treatment
     TRT01P = ARM,
     TRT01PN = as.numeric(factor(ARM, levels = ARMS)),
-    
+
     # Actual treatment (same as planned for this example)
     TRT01A = ARM,
     TRT01AN = TRT01PN,
-    
+
     # Actual arm (same as randomized)
     ACTARM = ARM,
     ACTARMCD = ARMCD,
     ACTARMN = as.numeric(factor(ACTARM, levels = ARMS)),
-    
+
     # Numeric ARM
     ARMN = as.numeric(factor(ARM, levels = ARMS))
   )
@@ -227,14 +231,16 @@ arm_dist <- adsl_treatment %>%
 cat("  ✓ Treatment assigned\n")
 cat("    Distribution:\n")
 for (i in 1:nrow(arm_dist)) {
-  cat("      ", arm_dist$ARM[i], ":", arm_dist$n[i], 
-      "(", arm_dist$Percent[i], "%)\n")
+  cat(
+    "      ", arm_dist$ARM[i], ":", arm_dist$n[i],
+    "(", arm_dist$Percent[i], "%)\n"
+  )
 }
 cat("\n")
 
-#===============================================================================
+# ===============================================================================
 # STEP 6: TREATMENT DATES
-#===============================================================================
+# ===============================================================================
 
 cat("Step 6: Generating treatment dates...\n")
 
@@ -249,25 +255,29 @@ adsl_dates <- adsl_dates %>%
   mutate(
     RFSTDTC = as.character(TRTSDT),
     RFENDTC = as.character(TRTEDT),
-    RFXSTDTC = as.character(TRTSDT),  # First exposure
-    RFXENDTC = as.character(TRTEDT),  # Last exposure
-    
+    RFXSTDTC = as.character(TRTSDT), # First exposure
+    RFXENDTC = as.character(TRTEDT), # Last exposure
+
     # Screening date (7-30 days before treatment)
     SCRFDT = TRTSDT - sample(7:30, n(), replace = TRUE),
-    
+
     # Randomization date (same as treatment start for this example)
     RANDDT = TRTSDT
   )
 
 cat("  ✓ Treatment dates generated\n")
-cat("    Enrollment period:", min(adsl_dates$TRTSDT), "to", 
-    max(adsl_dates$TRTSDT), "\n")
-cat("    Mean treatment duration:", 
-    round(mean(adsl_dates$TRTDURD)), "days\n\n")
+cat(
+  "    Enrollment period:", min(adsl_dates$TRTSDT), "to",
+  max(adsl_dates$TRTSDT), "\n"
+)
+cat(
+  "    Mean treatment duration:",
+  round(mean(adsl_dates$TRTDURD)), "days\n\n"
+)
 
-#===============================================================================
+# ===============================================================================
 # STEP 7: SAFETY POPULATION FLAGS
-#===============================================================================
+# ===============================================================================
 
 cat("Step 7: Assigning population flags...\n")
 
@@ -275,25 +285,25 @@ adsl_flags <- adsl_ids %>%
   mutate(
     # All subjects enrolled
     SAFFL = "Y",
-    
+
     # ITT population (all randomized - same as safety for this example)
     ITTFL = "Y",
-    
+
     # Modified ITT (received at least one dose)
     MITTFL = "Y",
-    
+
     # Per protocol (assume 95% compliance)
     PPROTFL = sample(c("Y", "N"), n(), replace = TRUE, prob = c(0.95, 0.05)),
-    
+
     # Efficacy evaluable (same as ITT for this example)
     EFFFL = "Y"
   )
 
 cat("  ✓ Population flags assigned\n\n")
 
-#===============================================================================
+# ===============================================================================
 # STEP 8: DISPOSITION (SIMPLIFIED)
-#===============================================================================
+# ===============================================================================
 
 cat("Step 8: Generating disposition...\n")
 
@@ -304,10 +314,11 @@ adsl_disposition <- adsl_ids %>%
     # End of study status
     EOSSTT = sample(
       c("COMPLETED", "ADVERSE EVENT", "PROGRESSIVE DISEASE", "WITHDRAWAL BY SUBJECT"),
-      n(), replace = TRUE,
+      n(),
+      replace = TRUE,
       prob = c(0.70, 0.10, 0.15, 0.05)
     ),
-    
+
     # Death flag (small proportion)
     DTHFL = sample(c("Y", "N"), n(), replace = TRUE, prob = c(0.05, 0.95))
   ) %>%
@@ -323,26 +334,32 @@ adsl_disposition <- adsl_disposition %>%
       as.Date(NA)
     ),
     DTHDTC = as.character(DTHDT),
-    
+
     # Death cause (for those who died)
     DTHCAUS = if_else(
       DTHFL == "Y",
-      sample(c("PROGRESSIVE DISEASE", "ADVERSE EVENT", "OTHER"), 
-             n(), replace = TRUE, prob = c(0.70, 0.20, 0.10)),
+      sample(c("PROGRESSIVE DISEASE", "ADVERSE EVENT", "OTHER"),
+        n(),
+        replace = TRUE, prob = c(0.70, 0.20, 0.10)
+      ),
       NA_character_
     )
   ) %>%
   select(-TRTEDT)
 
 cat("  ✓ Disposition generated\n")
-cat("    Completion rate:", 
-    paste0(round(100 * mean(adsl_disposition$EOSSTT == "COMPLETED")), "%"), "\n")
-cat("    Death rate:", 
-    paste0(round(100 * mean(adsl_disposition$DTHFL == "Y")), "%"), "\n\n")
+cat(
+  "    Completion rate:",
+  paste0(round(100 * mean(adsl_disposition$EOSSTT == "COMPLETED")), "%"), "\n"
+)
+cat(
+  "    Death rate:",
+  paste0(round(100 * mean(adsl_disposition$DTHFL == "Y")), "%"), "\n\n"
+)
 
-#===============================================================================
+# ===============================================================================
 # STEP 9: COMBINE ALL COMPONENTS
-#===============================================================================
+# ===============================================================================
 
 cat("Step 9: Combining all components...\n")
 
@@ -367,35 +384,35 @@ adsl_simulated <- adsl_ids %>%
     # Identifiers
     STUDYID, STUDYIDN, USUBJID, USUBJIDN, SUBJID, SUBJIDN,
     SITEID, SITEIDN,
-    
+
     # Demographics
     AGE, AGEU, AGEGR1, AGEGR1N,
     SEX, SEXN,
     RACE, RACEN,
     ETHNIC, ETHNICN,
     COUNTRY,
-    
+
     # Vitals
     HEIGHT, WEIGHT, BMI, BSA, WTGR1,
-    
+
     # Labs
     CREAT, ALT, AST, TBILI, ALB,
     EGFR, CRCL,
-    
+
     # Treatment
     ARM, ARMN, ARMCD,
     ACTARM, ACTARMN, ACTARMCD,
     TRT01P, TRT01PN,
     TRT01A, TRT01AN,
-    
+
     # Dates
     RFSTDTC, RFENDTC, RFXSTDTC, RFXENDTC,
     TRTSDT, TRTEDT, TRTDURD,
     SCRFDT, RANDDT,
-    
+
     # Population flags
     SAFFL, ITTFL, MITTFL, PPROTFL, EFFFL,
-    
+
     # Disposition
     EOSSTT,
     DTHFL, DTHDT, DTHDTC, DTHCAUS
@@ -405,9 +422,9 @@ cat("  ✓ ADSL combined\n")
 cat("    Total variables:", ncol(adsl_simulated), "\n")
 cat("    Total records:", nrow(adsl_simulated), "\n\n")
 
-#===============================================================================
+# ===============================================================================
 # STEP 10: SAVE OUTPUT
-#===============================================================================
+# ===============================================================================
 
 cat("Step 10: Saving ADSL...\n")
 
@@ -421,9 +438,9 @@ saveRDS(adsl_simulated, "data/adsl_simulated.rds")
 
 cat("  ✓ Saved: data/adsl_simulated.rds\n\n")
 
-#===============================================================================
+# ===============================================================================
 # SUMMARY
-#===============================================================================
+# ===============================================================================
 
 cat(strrep("-", 80), "\n")
 cat("ADSL GENERATION SUMMARY\n")
@@ -446,15 +463,23 @@ summary_stats <- tibble(
     nrow(adsl_simulated),
     length(unique(adsl_simulated$SITEID)),
     length(unique(adsl_simulated$ARM)),
-    paste0(round(mean(adsl_simulated$AGE), 1), " ± ", 
-           round(sd(adsl_simulated$AGE), 1)),
+    paste0(
+      round(mean(adsl_simulated$AGE), 1), " ± ",
+      round(sd(adsl_simulated$AGE), 1)
+    ),
     round(100 * mean(adsl_simulated$SEX == "M"), 1),
-    paste0(round(mean(adsl_simulated$WEIGHT), 1), " ± ", 
-           round(sd(adsl_simulated$WEIGHT), 1)),
-    paste0(round(mean(adsl_simulated$BMI), 1), " ± ", 
-           round(sd(adsl_simulated$BMI), 1)),
-    paste0(round(mean(adsl_simulated$EGFR), 1), " ± ", 
-           round(sd(adsl_simulated$EGFR), 1)),
+    paste0(
+      round(mean(adsl_simulated$WEIGHT), 1), " ± ",
+      round(sd(adsl_simulated$WEIGHT), 1)
+    ),
+    paste0(
+      round(mean(adsl_simulated$BMI), 1), " ± ",
+      round(sd(adsl_simulated$BMI), 1)
+    ),
+    paste0(
+      round(mean(adsl_simulated$EGFR), 1), " ± ",
+      round(sd(adsl_simulated$EGFR), 1)
+    ),
     round(100 * mean(adsl_simulated$EOSSTT == "COMPLETED"), 1),
     round(100 * mean(adsl_simulated$DTHFL == "Y"), 1)
   )
@@ -475,6 +500,6 @@ cat(strrep("-", 80), "\n")
 cat("ADSL generation complete!\n")
 cat(strrep("-", 80), "\n\n")
 
-#===============================================================================
+# ===============================================================================
 # END OF SCRIPT
-#===============================================================================
+# ===============================================================================

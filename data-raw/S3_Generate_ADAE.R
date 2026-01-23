@@ -1,4 +1,4 @@
-#===============================================================================
+# ===============================================================================
 # Script: S3_Generate_ADAE.R
 #
 # Purpose: Generate simulated ADAE (Adverse Events Analysis Dataset)
@@ -16,7 +16,7 @@
 # Note: This script is called by S0_Generate_Example_Data.R but can also
 #       be run standalone.
 #
-#===============================================================================
+# ===============================================================================
 
 library(dplyr)
 library(tidyr)
@@ -27,11 +27,11 @@ library(lubridate)
 source("R/simulation_functions.R")
 
 # Set seed for reproducibility
-set.seed(12347)  # Different seed from ADSL and ADTTE
+set.seed(12347) # Different seed from ADSL and ADTTE
 
-#===============================================================================
+# ===============================================================================
 # CONFIGURATION
-#===============================================================================
+# ===============================================================================
 
 # AE rate configuration
 BASE_AE_RATE <- list(
@@ -41,7 +41,7 @@ BASE_AE_RATE <- list(
 )
 
 # Exposure effect on AE rate (per unit standardized AUC)
-EXPOSURE_EFFECT <- 0.015  # 1.5% increase per SD
+EXPOSURE_EFFECT <- 0.015 # 1.5% increase per SD
 
 cat("\n")
 cat(strrep("-", 80), "\n")
@@ -54,9 +54,9 @@ cat("  Base AE rate (High Dose):", BASE_AE_RATE[["Drug High Dose"]], "\n")
 cat("  Exposure effect:", EXPOSURE_EFFECT, "per SD\n")
 cat(strrep("-", 80), "\n\n")
 
-#===============================================================================
+# ===============================================================================
 # STEP 1: LOAD ADSL
-#===============================================================================
+# ===============================================================================
 
 cat("Step 1: Loading ADSL...\n")
 
@@ -68,9 +68,9 @@ adsl <- readRDS("data/adsl_simulated.rds")
 
 cat("  ✓ ADSL loaded:", nrow(adsl), "subjects\n\n")
 
-#===============================================================================
+# ===============================================================================
 # STEP 2: SIMULATE EXPOSURE METRICS
-#===============================================================================
+# ===============================================================================
 
 cat("Step 2: Simulating exposure metrics...\n")
 
@@ -84,10 +84,10 @@ adsl_exposure <- adsl %>%
       ARM == "Drug High Dose" ~ 81,
       TRUE ~ NA_real_
     ),
-    
+
     # Simulate individual clearance
     CL_EST = 5 * (CRCL / 100)^0.75 * (WEIGHT / 70)^(-0.25),
-    
+
     # Steady-state AUC with inter-individual variability (30% CV)
     AUCSS = if_else(
       DOSE > 0,
@@ -98,8 +98,8 @@ adsl_exposure <- adsl %>%
   select(-CL_EST)
 
 # Standardize AUC for active treatment subjects only
-aucss_active <- adsl_exposure %>% 
-  filter(DOSE > 0) %>% 
+aucss_active <- adsl_exposure %>%
+  filter(DOSE > 0) %>%
   pull(AUCSS)
 
 aucss_mean <- mean(aucss_active)
@@ -113,9 +113,9 @@ adsl_exposure <- adsl_exposure %>%
 cat("  ✓ Exposure metrics simulated\n")
 cat("    Mean AUC (active):", round(aucss_mean, 2), "\n\n")
 
-#===============================================================================
+# ===============================================================================
 # STEP 3: SIMULATE NUMBER OF AEs PER SUBJECT
-#===============================================================================
+# ===============================================================================
 
 cat("Step 3: Simulating number of AEs per subject...\n")
 
@@ -128,17 +128,17 @@ adsl_with_ae_count <- adsl_exposure %>%
       ARM == "Drug High Dose" ~ BASE_AE_RATE[["Drug High Dose"]],
       TRUE ~ BASE_AE_RATE[["Placebo"]]
     ),
-    
+
     # Exposure effect (higher exposure = more AEs for active arms)
     exp_multiplier = if_else(
       DOSE > 0,
       1 + EXPOSURE_EFFECT * AUCSSSTD,
       1.0
     ),
-    
+
     # Lambda for Poisson
-    lambda = base_rate * exp_multiplier * (TRTDURD / 180),  # Adjust for treatment duration
-    
+    lambda = base_rate * exp_multiplier * (TRTDURD / 180), # Adjust for treatment duration
+
     # Number of AEs (Poisson)
     N_AES = rpois(n(), lambda)
   )
@@ -148,12 +148,14 @@ subjects_with_aes <- sum(adsl_with_ae_count$N_AES > 0)
 
 cat("  ✓ AE counts simulated\n")
 cat("    Total AEs:", total_aes, "\n")
-cat("    Subjects with AEs:", subjects_with_aes, "/", nrow(adsl), 
-    "(", round(100 * subjects_with_aes / nrow(adsl), 1), "%)\n\n")
+cat(
+  "    Subjects with AEs:", subjects_with_aes, "/", nrow(adsl),
+  "(", round(100 * subjects_with_aes / nrow(adsl), 1), "%)\n\n"
+)
 
-#===============================================================================
+# ===============================================================================
 # STEP 4: EXPAND TO INDIVIDUAL AE RECORDS
-#===============================================================================
+# ===============================================================================
 
 cat("Step 4: Creating individual AE records...\n")
 
@@ -168,9 +170,9 @@ adae_base <- adsl_with_ae_count %>%
 
 cat("  ✓ Expanded to", nrow(adae_base), "AE records\n\n")
 
-#===============================================================================
+# ===============================================================================
 # STEP 5: ASSIGN AE CHARACTERISTICS
-#===============================================================================
+# ===============================================================================
 
 cat("Step 5: Assigning AE characteristics...\n")
 
@@ -195,15 +197,18 @@ ae_relationship <- adae_base %>%
     AREL = case_when(
       relationship_prob == "low" ~ sample(
         c("NOT RELATED", "UNLIKELY RELATED", "POSSIBLE", "PROBABLE", "RELATED"),
-        1, prob = c(0.40, 0.30, 0.20, 0.07, 0.03)
+        1,
+        prob = c(0.40, 0.30, 0.20, 0.07, 0.03)
       ),
       relationship_prob == "medium" ~ sample(
         c("NOT RELATED", "UNLIKELY RELATED", "POSSIBLE", "PROBABLE", "RELATED"),
-        1, prob = c(0.20, 0.25, 0.30, 0.15, 0.10)
+        1,
+        prob = c(0.20, 0.25, 0.30, 0.15, 0.10)
       ),
       relationship_prob == "high" ~ sample(
         c("NOT RELATED", "UNLIKELY RELATED", "POSSIBLE", "PROBABLE", "RELATED"),
-        1, prob = c(0.15, 0.20, 0.35, 0.20, 0.10)
+        1,
+        prob = c(0.15, 0.20, 0.35, 0.20, 0.10)
       ),
       TRUE ~ "NOT RELATED"
     )
@@ -226,7 +231,7 @@ adae_with_ae_info <- adae_base %>%
       ASEV == "SEVERE" ~ 3,
       TRUE ~ NA_real_
     ),
-    
+
     # Relationship
     AREL = ae_relationship,
     AERELN = case_when(
@@ -237,35 +242,40 @@ adae_with_ae_info <- adae_base %>%
       AREL == "RELATED" ~ 4,
       TRUE ~ NA_real_
     ),
-    
+
     # Serious
     AESER = ae_serious,
-    
+
     # Action taken
     AEACN = case_when(
       AESER == "Y" ~ sample(
         c("DOSE NOT CHANGED", "DOSE REDUCED", "DRUG INTERRUPTED", "DRUG WITHDRAWN"),
-        n(), replace = TRUE, prob = c(0.30, 0.25, 0.30, 0.15)
+        n(),
+        replace = TRUE, prob = c(0.30, 0.25, 0.30, 0.15)
       ),
       ASEV == "SEVERE" ~ sample(
         c("DOSE NOT CHANGED", "DOSE REDUCED", "DRUG INTERRUPTED", "DRUG WITHDRAWN"),
-        n(), replace = TRUE, prob = c(0.40, 0.25, 0.25, 0.10)
+        n(),
+        replace = TRUE, prob = c(0.40, 0.25, 0.25, 0.10)
       ),
       TRUE ~ sample(
         c("DOSE NOT CHANGED", "DOSE REDUCED", "DRUG INTERRUPTED"),
-        n(), replace = TRUE, prob = c(0.80, 0.15, 0.05)
+        n(),
+        replace = TRUE, prob = c(0.80, 0.15, 0.05)
       )
     ),
-    
+
     # Outcome
     AEOUT = case_when(
       AESER == "Y" ~ sample(
         c("RECOVERED/RESOLVED", "RECOVERING/RESOLVING", "NOT RECOVERED/NOT RESOLVED", "FATAL"),
-        n(), replace = TRUE, prob = c(0.50, 0.30, 0.18, 0.02)
+        n(),
+        replace = TRUE, prob = c(0.50, 0.30, 0.18, 0.02)
       ),
       TRUE ~ sample(
         c("RECOVERED/RESOLVED", "RECOVERING/RESOLVING", "NOT RECOVERED/NOT RESOLVED"),
-        n(), replace = TRUE, prob = c(0.70, 0.20, 0.10)
+        n(),
+        replace = TRUE, prob = c(0.70, 0.20, 0.10)
       )
     )
   )
@@ -273,12 +283,14 @@ adae_with_ae_info <- adae_base %>%
 cat("  ✓ AE characteristics assigned\n")
 cat("    Severity distribution:\n")
 print(table(adae_with_ae_info$ASEV))
-cat("\n    Serious AEs:", sum(adae_with_ae_info$AESER == "Y"), 
-    "(", round(100 * mean(adae_with_ae_info$AESER == "Y"), 1), "%)\n\n")
+cat(
+  "\n    Serious AEs:", sum(adae_with_ae_info$AESER == "Y"),
+  "(", round(100 * mean(adae_with_ae_info$AESER == "Y"), 1), "%)\n\n"
+)
 
-#===============================================================================
+# ===============================================================================
 # STEP 6: ASSIGN AE DATES
-#===============================================================================
+# ===============================================================================
 
 cat("Step 6: Assigning AE dates...\n")
 
@@ -288,7 +300,7 @@ adae_with_dates <- adae_with_ae_info %>%
     # AE start day (during treatment period)
     # Sample from 1 to minimum of treatment duration or 365 days
     AE_START_DAY = sample(1:min(TRTDURD, 365), 1),
-    
+
     # AE duration (days) - longer for severe
     AE_DURATION = case_when(
       ASEV == "MILD" ~ rpois(1, 3) + 1,
@@ -302,27 +314,29 @@ adae_with_dates <- adae_with_ae_info %>%
     # AE start date
     ASTDT = TRTSDT + AE_START_DAY,
     ASTDY = AE_START_DAY,
-    
+
     # AE end date
     AENDT = ASTDT + AE_DURATION,
     AENDY = ASTDY + AE_DURATION,
-    
+
     # Character versions
     AESTDTC = as.character(ASTDT),
     AEENDTC = as.character(AENDT),
-    
+
     # Treatment-emergent flag (AE started during or after treatment)
     TRTEMFL = if_else(ASTDT >= TRTSDT & ASTDT <= TRTEDT + 30, "Y", "")
   ) %>%
   select(-AE_START_DAY, -AE_DURATION)
 
 cat("  ✓ AE dates assigned\n")
-cat("    Treatment-emergent AEs:", sum(adae_with_dates$TRTEMFL == "Y"),
-    "(", round(100 * mean(adae_with_dates$TRTEMFL == "Y"), 1), "%)\n\n")
+cat(
+  "    Treatment-emergent AEs:", sum(adae_with_dates$TRTEMFL == "Y"),
+  "(", round(100 * mean(adae_with_dates$TRTEMFL == "Y"), 1), "%)\n\n"
+)
 
-#===============================================================================
+# ===============================================================================
 # STEP 8: REORDER COLUMNS
-#===============================================================================
+# ===============================================================================
 
 cat("Step 8: Reordering columns...\n")
 
@@ -333,47 +347,47 @@ adae_simulated <- adae_simulated %>%
     USUBJID, USUBJIDN, SUBJID, SUBJIDN,
     SITEID, SITEIDN,
     AESEQ,
-    
+
     # AE term
     AEDECOD, AEBODSYS,
-    
+
     # Severity and relationship
     ASEV, ASEVN,
     AREL, AERELN,
     AESER,
-    
+
     # Actions and outcome
     AEACN, AEOUT,
-    
+
     # Dates
     ASTDT, AENDT,
     ASTDY, AENDY,
     AESTDTC, AEENDTC,
-    
+
     # Flags
     TRTEMFL, AOCCFL,
-    
+
     # Treatment
     ARM, ARMN, ARMCD,
     ACTARM, ACTARMN, ACTARMCD,
     TRT01P, TRT01PN,
     TRT01A, TRT01AN,
     TRTSDT, TRTEDT, TRTDURD,
-    
+
     # Demographics
     AGE, AGEGR1, AGEGR1N,
     SEX, SEXN,
     RACE, RACEN,
     ETHNIC, ETHNICN,
-    
+
     # Exposure
     DOSE, AUCSS, AUCSSSTD,
-    
+
     # Baseline covariates
     WEIGHT, WTGR1, HEIGHT, BMI, BSA,
     CREAT, CRCL, EGFR,
     ALT, AST, TBILI, ALB,
-    
+
     # Population flags
     SAFFL, ITTFL
   )
@@ -381,9 +395,9 @@ adae_simulated <- adae_simulated %>%
 cat("  ✓ Columns reordered\n")
 cat("    Total variables:", ncol(adae_simulated), "\n\n")
 
-#===============================================================================
+# ===============================================================================
 # STEP 9: SAVE OUTPUT
-#===============================================================================
+# ===============================================================================
 
 cat("Step 9: Saving ADAE...\n")
 
@@ -397,9 +411,9 @@ saveRDS(adae_simulated, "data/adae_simulated.rds")
 
 cat("  ✓ Saved: data/adae_simulated.rds\n\n")
 
-#===============================================================================
+# ===============================================================================
 # SUMMARY
-#===============================================================================
+# ===============================================================================
 
 cat(strrep("-", 80), "\n")
 cat("ADAE GENERATION SUMMARY\n")
@@ -409,13 +423,19 @@ cat(strrep("-", 80), "\n\n")
 cat("Overall Statistics:\n")
 cat("  Total AE records:", nrow(adae_simulated), "\n")
 cat("  Unique subjects:", length(unique(adae_simulated$USUBJID)), "\n")
-cat("  Subjects with AEs:", length(unique(adae_simulated$USUBJID)), "/", 
-    nrow(adsl), "(", 
-    round(100 * length(unique(adae_simulated$USUBJID)) / nrow(adsl), 1), "%)\n")
-cat("  Mean AEs per subject (overall):", 
-    round(nrow(adae_simulated) / nrow(adsl), 2), "\n")
-cat("  Mean AEs per subject (with AEs):", 
-    round(nrow(adae_simulated) / length(unique(adae_simulated$USUBJID)), 2), "\n\n")
+cat(
+  "  Subjects with AEs:", length(unique(adae_simulated$USUBJID)), "/",
+  nrow(adsl), "(",
+  round(100 * length(unique(adae_simulated$USUBJID)) / nrow(adsl), 1), "%)\n"
+)
+cat(
+  "  Mean AEs per subject (overall):",
+  round(nrow(adae_simulated) / nrow(adsl), 2), "\n"
+)
+cat(
+  "  Mean AEs per subject (with AEs):",
+  round(nrow(adae_simulated) / length(unique(adae_simulated$USUBJID)), 2), "\n\n"
+)
 
 # Severity distribution
 cat("Severity Distribution:\n")
@@ -436,10 +456,14 @@ cat("\n")
 
 # Serious AEs
 cat("Serious AEs:\n")
-cat("  Total serious:", sum(adae_simulated$AESER == "Y"), 
-    "(", round(100 * mean(adae_simulated$AESER == "Y"), 1), "%)\n")
-cat("  Subjects with SAE:", 
-    length(unique(adae_simulated$USUBJID[adae_simulated$AESER == "Y"])), "\n\n")
+cat(
+  "  Total serious:", sum(adae_simulated$AESER == "Y"),
+  "(", round(100 * mean(adae_simulated$AESER == "Y"), 1), "%)\n"
+)
+cat(
+  "  Subjects with SAE:",
+  length(unique(adae_simulated$USUBJID[adae_simulated$AESER == "Y"])), "\n\n"
+)
 
 # Top 10 AEs
 cat("Top 10 Most Common AEs:\n")
@@ -473,7 +497,7 @@ exposure_summary <- adae_simulated %>%
   mutate(
     EXP_TERT = cut(
       AUCSSSTD,
-      breaks = quantile(AUCSSSTD, probs = c(0, 1/3, 2/3, 1), na.rm = TRUE),
+      breaks = quantile(AUCSSSTD, probs = c(0, 1 / 3, 2 / 3, 1), na.rm = TRUE),
       labels = c("Low", "Medium", "High"),
       include.lowest = TRUE
     )
@@ -492,6 +516,6 @@ cat(strrep("-", 80), "\n")
 cat("ADAE generation complete!\n")
 cat(strrep("-", 80), "\n\n")
 
-#===============================================================================
+# ===============================================================================
 # END OF SCRIPT
-#===============================================================================
+# ===============================================================================

@@ -1,20 +1,20 @@
-#===============================================================================
+# ===============================================================================
 # Program: ADES.R
-# 
+#
 # Purpose: Create ADES (Exposure-Safety Analysis Dataset)
 #
-# Description: Derives exposure-safety analysis dataset following BDS 
+# Description: Derives exposure-safety analysis dataset following BDS
 #              structure with multiple records per subject per adverse event.
-#              Combines adverse event data with exposure metrics for 
+#              Combines adverse event data with exposure metrics for
 #              exposure-safety analysis.
 #
-# Input: 
+# Input:
 #   - ADSL: Subject-level analysis dataset
 #   - ADAE: Adverse events analysis dataset
 #   - ADVS: Vital signs (for baseline covariates)
 #   - ADLB: Laboratory data (for baseline covariates)
 #
-# Output: 
+# Output:
 #   - ADES: Exposure-safety analysis dataset
 #
 # Structure: BDS (Basic Data Structure)
@@ -30,7 +30,7 @@
 # Note: Variable names limited to 8 characters for SAS compatibility
 #       Updated for pharmaverseadam ADAE (uses ASEV/ASEVN not AETOXGR)
 #
-#===============================================================================
+# ===============================================================================
 
 # Load required packages
 library(admiral)
@@ -46,14 +46,15 @@ library(xportr)
 select <- dplyr::select
 filter <- dplyr::filter
 
-#===============================================================================
+# ===============================================================================
 # LOAD SPECIFICATIONS (if available)
-#===============================================================================
+# ===============================================================================
 
 # Load metacore specifications
 if (file.exists("specifications/ADES_spec.xlsx")) {
-  metacore <- spec_to_metacore("specifications/ADES_spec.xlsx", 
-                               where_sep_sheet = FALSE)
+  metacore <- spec_to_metacore("specifications/ADES_spec.xlsx",
+    where_sep_sheet = FALSE
+  )
   message("✓ Loaded metacore specifications from Excel")
 } else if (file.exists("specifications/ADES_metacore.rds")) {
   metacore <- readRDS("specifications/ADES_metacore.rds")
@@ -63,9 +64,9 @@ if (file.exists("specifications/ADES_spec.xlsx")) {
   metacore <- NULL
 }
 
-#===============================================================================
+# ===============================================================================
 # LOAD INPUT DATA
-#===============================================================================
+# ===============================================================================
 
 # Use haven::read_sas() or similar to read in production data
 # For illustration, using pharmaverseadam example data
@@ -76,9 +77,9 @@ adae <- pharmaverseadam::adae
 adlb <- pharmaverseadam::adlb
 advs <- pharmaverseadam::advs
 
-#===============================================================================
+# ===============================================================================
 # PREPARE ADSL - ADD DERIVED VARIABLES
-#===============================================================================
+# ===============================================================================
 
 # Ensure TRT01P/TRT01A exist
 if (!"TRT01P" %in% names(adsl)) {
@@ -105,9 +106,9 @@ adsl <- adsl %>%
     )
   )
 
-#===============================================================================
+# ===============================================================================
 # DERIVE BASELINE COVARIATES
-#===============================================================================
+# ===============================================================================
 
 ## Numeric identifiers and demographics ----
 
@@ -118,7 +119,7 @@ adsl_cov <- adsl %>%
     SITEIDN = as.numeric(word(USUBJID, 2, sep = fixed("-"))),
     USUBJIDN = as.numeric(word(USUBJID, 3, sep = fixed("-"))),
     SUBJIDN = as.numeric(SUBJID),
-    
+
     # Demographics (numeric)
     SEXN = case_when(SEX == "M" ~ 1, SEX == "F" ~ 2, TRUE ~ 3),
     RACEN = case_when(
@@ -134,7 +135,7 @@ adsl_cov <- adsl %>%
       ETHNIC == "NOT HISPANIC OR LATINO" ~ 2,
       TRUE ~ 3
     ),
-    
+
     # Age groups
     AGEGR1 = case_when(
       AGE < 65 ~ "<65",
@@ -148,7 +149,7 @@ adsl_cov <- adsl %>%
       AGE >= 75 ~ 3,
       TRUE ~ NA_real_
     ),
-    
+
     # Treatment (numeric)
     ARMN = case_when(
       ARM == "Placebo" ~ 0,
@@ -206,7 +207,7 @@ adsl_vslb <- adsl_vs %>%
   mutate(
     TBILBL = BILIBL,
     CRCLBL = compute_egfr(
-      creat = CREATBL, creatu = "SI", age = AGE, 
+      creat = CREATBL, creatu = "SI", age = AGE,
       weight = WTBL, sex = SEX, method = "CRCL"
     ),
     EGFRBL = compute_egfr(
@@ -216,9 +217,9 @@ adsl_vslb <- adsl_vs %>%
   ) %>%
   select(-BILIBL)
 
-#===============================================================================
+# ===============================================================================
 # DERIVE EXPOSURE METRICS
-#===============================================================================
+# ===============================================================================
 
 # Source the exposure metrics function
 source("R/derive_exposure_metrics.R")
@@ -227,15 +228,15 @@ source("R/derive_exposure_metrics.R")
 # For production: change source = "adpc" and provide adpc_data
 exposure_final <- derive_exposure_metrics(
   adsl_data = adsl_vslb,
-  source = "simulated",  # Change to "adpc" for production
+  source = "simulated", # Change to "adpc" for production
   # adpc_data = adpc,    # Uncomment for production
   seed = 12345,
   tertile_var = "AUCSS"
 )
 
-#===============================================================================
+# ===============================================================================
 # CREATE SUBJECT-LEVEL SAFETY PARAMETERS
-#===============================================================================
+# ===============================================================================
 
 # Derive subject-level summary parameters from ADAE
 # NOTE: pharmaverseadam uses ASEV/ASEVN (severity) not AETOXGR/AETOXGRN
@@ -258,7 +259,7 @@ teae_any <- adsl %>%
 teae_sev <- adsl %>%
   select(STUDYID, USUBJID) %>%
   mutate(
-    PARAMCD = "TEAESEV",  # Using ASEVN instead of AETOXGRN
+    PARAMCD = "TEAESEV", # Using ASEVN instead of AETOXGRN
     PARAM = "Any Severe Treatment-Emergent Adverse Event",
     PARAMN = 2,
     AVAL = if_else(
@@ -290,8 +291,8 @@ trae_any <- adsl %>%
     PARAM = "Any Treatment-Related Adverse Event",
     PARAMN = 4,
     AVAL = if_else(
-      USUBJID %in% (adae %>% 
-        filter(AREL %in% c("POSSIBLE", "PROBABLE", "RELATED")) %>% 
+      USUBJID %in% (adae %>%
+        filter(AREL %in% c("POSSIBLE", "PROBABLE", "RELATED")) %>%
         pull(USUBJID)),
       1, 0
     ),
@@ -321,9 +322,9 @@ subject_params <- bind_rows(
   aedcn
 )
 
-#===============================================================================
+# ===============================================================================
 # CREATE EVENT-LEVEL PARAMETERS
-#===============================================================================
+# ===============================================================================
 
 # Get variable names for clean dropping
 adsl_vars <- names(exposure_final)
@@ -334,23 +335,23 @@ vars_to_drop <- setdiff(common_vars, c("STUDYID", "USUBJID"))
 # Create event-level records from ADAE
 # NOTE: Using actual pharmaverseadam variables (ASEV/ASEVN, AREL)
 event_params <- adae %>%
-  filter(TRTEMFL == "Y") %>%  # Treatment-emergent only
+  filter(TRTEMFL == "Y") %>% # Treatment-emergent only
   mutate(
     PARAMCD = "AETERM",
     PARAM = "Adverse Event Term",
     PARAMN = 10,
-    AVAL = 1,  # Event occurred
+    AVAL = 1, # Event occurred
     AVALC = "Y",
-    
+
     # Keep AE-specific variables (8-char names)
     # Using actual pharmaverseadam ADAE variables
-    AEDECOD = AEDECOD,    # Preferred term
-    AEBODSYS = AEBODSYS,  # System organ class
-    AESEV = ASEV,         # Severity (char): MILD, MODERATE, SEVERE
-    AESEVN = ASEVN,       # Severity (num): 1, 2, 3
-    AESER = AESER,        # Serious flag: Y/N
-    AEREL = AREL,         # Relationship (char): NOT RELATED, POSSIBLE, etc.
-    
+    AEDECOD = AEDECOD, # Preferred term
+    AEBODSYS = AEBODSYS, # System organ class
+    AESEV = ASEV, # Severity (char): MILD, MODERATE, SEVERE
+    AESEVN = ASEVN, # Severity (num): 1, 2, 3
+    AESER = AESER, # Serious flag: Y/N
+    AEREL = AREL, # Relationship (char): NOT RELATED, POSSIBLE, etc.
+
     # Create numeric relationship for analysis
     AERELN = case_when(
       AREL == "NOT RELATED" ~ 0,
@@ -360,15 +361,14 @@ event_params <- adae %>%
       AREL == "RELATED" ~ 4,
       TRUE ~ NA_real_
     ),
-    
-    AESTDT = ASTDT,       # AE start date (8 chars)
-    AEENDT = AENDT        # AE end date (8 chars)
+    AESTDT = ASTDT, # AE start date (8 chars)
+    AEENDT = AENDT # AE end date (8 chars)
   ) %>%
   select(-any_of(vars_to_drop))
 
-#===============================================================================
+# ===============================================================================
 # COMBINE SUBJECT AND EVENT LEVELS
-#===============================================================================
+# ===============================================================================
 
 # Ensure all AE-specific variables exist in subject_params (as NA)
 # This prevents issues when binding with event_params
@@ -402,9 +402,9 @@ ades_base <- bind_rows(
   event_params_complete
 )
 
-#===============================================================================
+# ===============================================================================
 # ADD ANALYSIS VARIABLES
-#===============================================================================
+# ===============================================================================
 
 ades_prefinal <- ades_base %>%
   # Analysis flags
@@ -415,7 +415,6 @@ ades_prefinal <- ades_base %>%
     ANL04FL = if_else(PARAMCD == "TRAE", "Y", ""),
     ANL05FL = if_else(PARAMCD == "AETERM", "Y", "")
   ) %>%
-  
   # Parameter categories
   mutate(
     PARCAT1 = "SAFETY",
@@ -425,80 +424,77 @@ ades_prefinal <- ades_base %>%
       TRUE ~ NA_character_
     )
   ) %>%
-  
   # Analysis timepoint
   mutate(
     AVISIT = if_else(PARAMN <= 5, "OVERALL", "AT EVENT"),
     AVISITN = if_else(PARAMN <= 5, 99, 0)
   ) %>%
-  
   # Sort and create sequence number
   # Use coalesce to handle NA dates (puts them first in sort)
   arrange(USUBJID, PARAMN, coalesce(AESTDT, as.Date("1900-01-01"))) %>%
   group_by(STUDYID, USUBJID) %>%
   mutate(ASEQ = row_number()) %>%
   ungroup() %>%
-  
   # Select and order variables
   select(
     # Identifiers
     STUDYID, STUDYIDN, USUBJID, USUBJIDN, SUBJID, SUBJIDN,
     SITEID, SITEIDN,
-    
+
     # Treatment
     ARM, ARMN, ACTARM, ACTARMN,
     TRT01P, TRT01PN, TRT01A, TRT01AN,
     TRTSDT, TRTEDT, TRTDURD,
-    
+
     # Demographics
     AGE, AGEGR1, AGEGR1N,
     SEX, SEXN,
     RACE, RACEN,
     ETHNIC, ETHNICN,
-    
+
     # Parameter information
     PARAMCD, PARAM, PARAMN,
     PARCAT1, PARCAT2,
-    
+
     # Visit/timepoint
     AVISIT, AVISITN,
-    
+
     # Analysis values
     AVAL, AVALC,
-    
+
     # AE-specific variables (all present now, NA for subject-level)
     AEDECOD, AEBODSYS, AESEV, AESEVN,
     AESER, AEREL, AERELN, AESTDT, AEENDT,
-    
+
     # Analysis flags
     ANL01FL, ANL02FL, ANL03FL, ANL04FL, ANL05FL,
-    
+
     # Exposure - Primary
     DOSE, AUCSS, CMAXSS, CAVGSS, CMINSS, CLSS,
-    
+
     # Exposure - Transformations
     AUCSLOG, CMXSLOG, CAVGLOG,
     AUCSSSTD, CMXSSSTD,
     AUCSSN,
     AUCSSDOS, CMXSSDOS,
-    
+
     # Exposure - Categories
     AUCSSCAT, AUCSCATN,
     AUCSSQ, AUCSSQN,
     AUCSSMED,
-    
+
     # Baseline covariates
     WTBL, WTBLGR1, HTBL, BMIBL, BSABL,
     CREATBL, CRCLBL, EGFRBL,
     ALTBL, ASTBL, TBILBL, any_of("ALBBL"),
-    
+
     # Record identifiers
     ASEQ, any_of("DTYPE")
   )
 
-#===============================================================================
+# ===============================================================================
 # APPLY METADATA AND PREPARE FOR EXPORT
-#===============================================================================
+# ===============================================================================
 
 if (!is.null(metacore)) {
   # Apply metacore specifications
@@ -508,7 +504,7 @@ if (!is.null(metacore)) {
     check_ct_data(metacore, na_acceptable = TRUE) %>%
     order_cols(metacore) %>%
     sort_by_key(metacore)
-  
+
   message("✓ Metacore checks passed")
 } else {
   # Use prefinal dataset if no metacore
@@ -516,9 +512,9 @@ if (!is.null(metacore)) {
   message("⚠ Proceeding without metacore checks")
 }
 
-#===============================================================================
+# ===============================================================================
 # SAVE OUTPUT
-#===============================================================================
+# ===============================================================================
 
 # Create output directory
 dir <- "adam"
@@ -542,7 +538,7 @@ if (!is.null(metacore)) {
     xportr_format(metacore) %>%
     xportr_df_label(metacore) %>%
     xportr_write(file.path(dir, "ades.xpt"))
-  
+
   message("✓ Saved: adam/ades.xpt (with metacore attributes)")
 } else {
   # Without metacore specifications (basic XPT)
@@ -552,6 +548,6 @@ if (!is.null(metacore)) {
   }
 }
 
-#===============================================================================
+# ===============================================================================
 # END OF PROGRAM
-#===============================================================================
+# ===============================================================================
