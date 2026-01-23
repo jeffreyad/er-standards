@@ -1,41 +1,42 @@
-"Variable","Label","Data_Type","Length","Controlled_Terms","Core","Notes"
-"STUDYID","Study Identifier","text",20,"","Req",""
-"USUBJID","Unique Subject Identifier","text",40,"","Req",""
-"SUBJID","Subject Identifier for the Study","text",20,"","Req",""
-"AGE","Age","integer",8,"","","Years"
-"SEX","Sex","text",1,"(SEX)","",""
-"SEXN","Sex (N)","integer",8,"","",""
-"RACE","Race","text",40,"(RACE)","",""
-"WTBL","Baseline Weight (kg)","float",8,"","",""
-"BMIBL","Baseline BMI (kg/m^2)","float",8,"","",""
-"PARAMCD","Parameter Code","text",8,"","Req","SUBJSUM, AEVENT, or AEDECOD"
-"PARAM","Parameter","text",200,"","Req","Parameter description"
-"AVAL","Analysis Value","float",8,"","Cond","Count or indicator"
-"AVALU","Analysis Value Unit","text",20,"","","COUNT, EVENT, RATE"
-"ADT","Analysis Date","integer",8,"","","SAS date (event level)"
-"ADY","Analysis Relative Day","integer",8,"","","Relative to TRTSDT"
-"TRTDURD","Total Treatment Duration (Days)","integer",8,"","","Exposure time"
-"N_AES","Total Number of AEs","integer",8,"","","Subject-level summary"
-"N_SAE","Number of Serious AEs","integer",8,"","","Subject-level summary"
-"N_GRADE3","Number of Grade 3+ AEs","integer",8,"","","Subject-level summary"
-"N_GRADE4","Number of Grade 4 AEs","integer",8,"","","Subject-level summary"
-"RATE_AES","AE Rate (per 100 patient-days)","float",8,"","","N_AES/TRTDURD*100"
-"RATE_SAE","SAE Rate (per 100 patient-days)","float",8,"","","N_SAE/TRTDURD*100"
-"ANY_AE","Any AE Flag","text",1,"(NY)","","Y if N_AES > 0"
-"ANY_SAE","Any SAE Flag","text",1,"(NY)","","Y if N_SAE > 0"
-"AEDECOD","Adverse Event Dictionary-Derived Term","text",200,"(AEDECOD)","","MedDRA Preferred Term"
-"AEBODSYS","Body System or Organ Class","text",200,"(AEBODSYS)","","MedDRA System Organ Class"
-"AESTDY","Study Day of Start of Adverse Event","integer",8,"","","Relative to TRTSDT"
-"AEENDY","Study Day of End of Adverse Event","integer",8,"","","Relative to TRTSDT"
-"AETOXGR","Standard Toxicity Grade","text",2,"(AETOXGR)","","CTCAE grade (1-5)"
-"AESER","Serious Event","text",1,"(NY)","","Regulatory serious"
-"AEREL","Causality","text",40,"(AEREL)","","Investigator assessment"
-"N_EVENTS","Number of Event Occurrences","integer",8,"","","Parameter-level count"
-"MAX_GRADE","Maximum Toxicity Grade","integer",8,"","","Maximum across events"
-"RATE","Event Rate (per 100 patient-days)","float",8,"","","Parameter-level rate"
-"AUCSS","Steady-State AUC (ug·h/mL)","float",8,"","","Primary exposure metric"
-"AUCSSCAT","AUC Category (Tertiles)","text",20,"","","Low, Medium, High"
-"ANL01FL","Analysis Flag 01","text",1,"(NY)","","Y=all AEs"
-"ANL02FL","Analysis Flag 02","text",1,"(NY)","","Y=serious AEs only"
-"ANL03FL","Analysis Flag 03","text",1,"(NY)","","Y=grade 3+ only"
-"ASEQ","Analysis Sequence Number","integer",8,"","","Unique within USUBJID"
+Variable,Label,Data_Type,Length,Controlled_Terms,Core,Notes
+STUDYID,Study Identifier,text,20,NA,Req,NA
+USUBJID,Unique Subject Identifier,text,40,NA,Req,NA
+SUBJID,Subject Identifier for the Study,text,20,NA,Req,NA
+AGE,Age,integer,8,NA,NA,Years
+SEX,Sex,text,1,(SEX),NA,NA
+SEXN,Sex (N),integer,8,NA,NA,NA
+RACE,Race,text,40,(RACE),NA,NA
+WTBL,Baseline Weight (kg),float,8,NA,NA,NA
+BMIBL,Baseline BMI (kg/m^2),float,8,NA,NA,NA
+PARAMCD,Parameter Code,text,8,NA,Req,"SUBJSUM, AEVENT, or AEDECOD"
+PARAM,Parameter,text,200,NA,Req,Parameter description
+AVAL,Analysis Value,float,8,NA,Cond,Count or indicator
+AVALU,Analysis Value Unit,text,20,NA,NA,"COUNT, EVENT, RATE"
+ADT,Analysis Date,integer,8,NA,NA,SAS date (event level)
+ADY,Analysis Relative Day,integer,8,NA,NA,Relative to TRTSDT
+TRTDURD,Total Treatment Duration (Days),integer,8,NA,NA,Exposure time
+N_AES,Total Number of AEs,integer,8,NA,NA,Subject-level summary
+N_SAE,Number of Serious AEs,integer,8,NA,NA,Subject-level summary
+N_GRADE3,Number of Grade 3+ AEs,integer,8,NA,NA,Subject-level summary
+N_GRADE4,Number of Grade 4 AEs,integer,8,NA,NA,Subject-level summary
+RATE_AES,AE Rate (per 100 patient-days),float,8,NA,NA,N_AES/TRTDURD*100
+RATE_SAE,SAE Rate (per 100 patient-days),float,8,NA,NA,N_SAE/TRTDURD*100
+ANY_AE,Any AE Flag,text,1,(NY),NA,Y if N_AES > 0
+ANY_SAE,Any SAE Flag,text,1,(NY),NA,Y if N_SAE > 0
+AEDECOD,Adverse Event Dictionary-Derived Term,text,200,(AEDECOD),NA,MedDRA Preferred Term
+AEBODSYS,Body System or Organ Class,text,200,(AEBODSYS),NA,MedDRA System Organ Class
+AESTDY,Study Day of Start of Adverse Event,integer,8,NA,NA,Relative to TRTSDT
+AEENDY,Study Day of End of Adverse Event,integer,8,NA,NA,Relative to TRTSDT
+AESEV,Standard Toxicity Grade,text,2,(AETOXGR),NA,CTCAE grade (1-5)
+AESER,Serious Event,text,1,(NY),NA,Regulatory serious
+AEREL,Causality,text,40,(AEREL),NA,Investigator assessment
+N_EVENTS,Number of Event Occurrences,integer,8,NA,NA,Parameter-level count
+MAX_GRADE,Maximum Toxicity Grade,integer,8,NA,NA,Maximum across events
+RATE,Event Rate (per 100 patient-days),float,8,NA,NA,Parameter-level rate
+AUCSS,Steady-State AUC (ug·h/mL),float,8,NA,NA,Primary exposure metric
+AUCSSCAT,AUC Category (Tertiles),text,20,NA,NA,"Low, Medium, High"
+ANL01FL,Analysis Flag 01,text,1,(NY),NA,Y=all AEs
+ANL02FL,Analysis Flag 02,text,1,(NY),NA,Y=serious AEs only
+ANL03FL,Analysis Flag 03,text,1,(NY),NA,Y=grade 3+ only
+ASEQ,Analysis Sequence Number,integer,8,NA,NA,Unique within USUBJID
+AERELN,Relationship to Treatment (N),integer,8,NA,Perm,"Numeric version of AEREL: 0=NOT RELATED, 1=UNLIKELY, 2=POSSIBLE, 3=PROBABLE, 4=RELATED"

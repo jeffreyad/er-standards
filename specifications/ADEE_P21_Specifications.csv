@@ -1,72 +1,72 @@
-"Variable","Label","Data_Type","Length","Controlled_Terms","Core","Notes"
-"STUDYID","Study Identifier","text",20,"","Req",""
-"USUBJID","Unique Subject Identifier","text",40,"","Req",""
-"SUBJID","Subject Identifier for the Study","text",20,"","Req",""
-"SITEID","Study Site Identifier","text",10,"","",""
-"AGE","Age","integer",8,"","","Years"
-"AGEGR1","Pooled Age Group 1","text",20,"(AGEGR1)","","<65, 65-75, >75"
-"AGEGR1N","Pooled Age Group 1 (N)","integer",8,"","","1, 2, 3"
-"SEX","Sex","text",1,"(SEX)","","M, F, U"
-"SEXN","Sex (N)","integer",8,"","","1=M, 2=F, 3=U"
-"RACE","Race","text",40,"(RACE)","",""
-"RACEN","Race (N)","integer",8,"","","1-6 coded"
-"ETHNIC","Ethnicity","text",40,"(ETHNIC)","",""
-"ARM","Description of Planned Arm","text",40,"","",""
-"ARMN","Planned Arm (N)","integer",8,"","",""
-"ACTARM","Description of Actual Arm","text",40,"","",""
-"ACTARMN","Actual Arm (N)","integer",8,"","",""
-"TRTSDT","Date of First Exposure to Treatment","integer",8,"","","SAS date"
-"TRTEDT","Date of Last Exposure to Treatment","integer",8,"","","SAS date"
-"TRTDURD","Total Treatment Duration (Days)","integer",8,"","",""
-"PARAMCD","Parameter Code","text",8,"","Req","OS, PFS, TTP, TTNT"
-"PARAM","Parameter","text",200,"","Req","Full description"
-"PARAMN","Parameter (N)","integer",8,"","","For sorting"
-"PARCAT1","Parameter Category 1","text",40,"","","EFFICACY"
-"PARCAT2","Parameter Category 2","text",40,"","","TIME TO EVENT"
-"AVAL","Analysis Value","float",8,"","Cond","Time in days"
-"AVALU","Analysis Value Unit","text",20,"(UNIT)","","DAYS"
-"AVALC","Analysis Value (C)","text",40,"","","CENSORED, EVENT"
-"ADT","Analysis Date","integer",8,"","","SAS date"
-"ADTF","Analysis Date Imputation Flag","text",1,"(STENRF)","",""
-"ADY","Analysis Relative Day","integer",8,"","","Relative to TRTSDT"
-"STARTDT","Time to Event Origin Date for Subject","integer",8,"","","Usually TRTSDT"
-"CNSR","Censor","integer",8,"","Cond","1=censored, 0=event"
-"EVENT","Event Indicator","integer",8,"","Cond","1=event, 0=censored"
-"EVNTDESC","Event or Censoring Description","text",200,"","",""
-"SRCDOM","Source Data","text",8,"","","Source domain"
-"SRCVAR","Source Variable","text",40,"","","Source variable name"
-"SRCSEQ","Source Sequence Number","integer",8,"","","Source AESEQ, etc."
-"ATPT","Analysis Timepoint","text",40,"","","BASELINE, MONTH 6"
-"ATPTN","Analysis Timepoint (N)","integer",8,"","","0, 6"
-"AVISIT","Analysis Visit","text",40,"","","BASELINE, WEEK 24"
-"AVISITN","Analysis Visit (N)","integer",8,"","","0, 24"
-"AUCSS","Steady-State AUC (ug·h/mL)","float",8,"","","Primary exposure metric"
-"AUCSSLOG","Log-Transformed AUC","float",8,"","","ln(AUCSS)"
-"AUCSSSTD","Standardized AUC","float",8,"","","(AUCSS-mean)/SD"
-"AUCSSN","Normalized AUC","float",8,"","","AUCSS/median"
-"AUCSSDOSE","Dose-Normalized AUC (ug·h/mL per mg)","float",8,"","","AUCSS/DOSE"
-"AUCSSCAT","AUC Category (Tertiles)","text",20,"","","Low, Medium, High"
-"AUCSSCATN","AUC Category (N)","integer",8,"","","1, 2, 3"
-"AUCSSQ","AUC Quartile","text",20,"","","Q1, Q2, Q3, Q4"
-"AUCSSQN","AUC Quartile (N)","integer",8,"","","1, 2, 3, 4"
-"CMAXSS","Steady-State Cmax (ug/mL)","float",8,"","","Alternative exposure"
-"CAVGSS","Steady-State Cavg (ug/mL)","float",8,"","","Alternative exposure"
-"CMINSS","Steady-State Cmin (ug/mL)","float",8,"","","Trough concentration"
-"WTBL","Baseline Weight (kg)","float",8,"","",""
-"WTBLGR1","Baseline Weight Group 1","text",20,"","","<70 kg, ≥70 kg"
-"HTBL","Baseline Height (cm)","float",8,"","",""
-"BMIBL","Baseline BMI (kg/m^2)","float",8,"","",""
-"BSABL","Baseline BSA (m^2)","float",8,"","",""
-"CREATBL","Baseline Serum Creatinine (mg/dL)","float",8,"","",""
-"CRCLBL","Baseline Creatinine Clearance (mL/min)","float",8,"","",""
-"EGFRBL","Baseline eGFR (mL/min/1.73m^2)","float",8,"","",""
-"ALTBL","Baseline ALT (U/L)","float",8,"","",""
-"ASTBL","Baseline AST (U/L)","float",8,"","",""
-"TBILBL","Baseline Total Bilirubin (mg/dL)","float",8,"","",""
-"ALBBL","Baseline Albumin (g/dL)","float",8,"","",""
-"ANL01FL","Analysis Flag 01","text",1,"(NY)","","Y=primary endpoint (PFS)"
-"ANL02FL","Analysis Flag 02","text",1,"(NY)","","Y=secondary endpoint (OS)"
-"ANL03FL","Analysis Flag 03","text",1,"(NY)","","Y=sensitivity analysis"
-"ANL04FL","Analysis Flag 04","text",1,"(NY)","","Y=subgroup analysis"
-"ASEQ","Analysis Sequence Number","integer",8,"","","Unique within USUBJID"
-"DTYPE","Derivation Type","text",8,"","","AVERAGE, MINIMUM, etc."
+Variable,Label,Data_Type,Length,Controlled_Terms,Core,Notes
+STUDYID,Study Identifier,text,20,NA,Req,NA
+USUBJID,Unique Subject Identifier,text,40,NA,Req,NA
+SUBJID,Subject Identifier for the Study,text,20,NA,Req,NA
+SITEID,Study Site Identifier,text,10,NA,NA,NA
+AGE,Age,integer,8,NA,NA,Years
+AGEGR1,Pooled Age Group 1,text,20,(AGEGR1),NA,"<65, 65-75, >75"
+AGEGR1N,Pooled Age Group 1 (N),integer,8,NA,NA,"1, 2, 3"
+SEX,Sex,text,1,(SEX),NA,"M, F, U"
+SEXN,Sex (N),integer,8,NA,NA,"1=M, 2=F, 3=U"
+RACE,Race,text,40,(RACE),NA,NA
+RACEN,Race (N),integer,8,NA,NA,1-6 coded
+ETHNIC,Ethnicity,text,40,(ETHNIC),NA,NA
+ARM,Description of Planned Arm,text,40,NA,NA,NA
+ARMN,Planned Arm (N),integer,8,NA,NA,NA
+ACTARM,Description of Actual Arm,text,40,NA,NA,NA
+ACTARMN,Actual Arm (N),integer,8,NA,NA,NA
+TRTSDT,Date of First Exposure to Treatment,integer,8,NA,NA,SAS date
+TRTEDT,Date of Last Exposure to Treatment,integer,8,NA,NA,SAS date
+TRTDURD,Total Treatment Duration (Days),integer,8,NA,NA,NA
+PARAMCD,Parameter Code,text,8,NA,Req,"OS, PFS, TTP, TTNT"
+PARAM,Parameter,text,200,NA,Req,Full description
+PARAMN,Parameter (N),integer,8,NA,NA,For sorting
+PARCAT1,Parameter Category 1,text,40,NA,NA,EFFICACY
+PARCAT2,Parameter Category 2,text,40,NA,NA,TIME TO EVENT
+AVAL,Analysis Value,float,8,NA,Cond,Time in days
+AVALU,Analysis Value Unit,text,20,(UNIT),NA,DAYS
+AVALC,Analysis Value (C),text,40,NA,NA,"CENSORED, EVENT"
+ADT,Analysis Date,integer,8,NA,NA,SAS date
+ADTF,Analysis Date Imputation Flag,text,1,(STENRF),NA,NA
+ADY,Analysis Relative Day,integer,8,NA,NA,Relative to TRTSDT
+STARTDT,Time to Event Origin Date for Subject,integer,8,NA,NA,Usually TRTSDT
+CNSR,Censor,integer,8,NA,Cond,"1=censored, 0=event"
+EVENT,Event Indicator,integer,8,NA,Cond,"1=event, 0=censored"
+EVNTDESC,Event or Censoring Description,text,200,NA,NA,NA
+SRCDOM,Source Data,text,8,NA,NA,Source domain
+SRCVAR,Source Variable,text,40,NA,NA,Source variable name
+SRCSEQ,Source Sequence Number,integer,8,NA,NA,"Source AESEQ, etc."
+ATPT,Analysis Timepoint,text,40,NA,NA,"BASELINE, MONTH 6"
+ATPTN,Analysis Timepoint (N),integer,8,NA,NA,"0, 6"
+AVISIT,Analysis Visit,text,40,NA,NA,"BASELINE, WEEK 24"
+AVISITN,Analysis Visit (N),integer,8,NA,NA,"0, 24"
+AUCSS,Steady-State AUC (ug·h/mL),float,8,NA,NA,Primary exposure metric
+AUCSLOG,Log-Transformed AUC,float,8,NA,NA,ln(AUCSS)
+AUCSSSTD,Standardized AUC,float,8,NA,NA,(AUCSS-mean)/SD
+AUCSSN,Normalized AUC,float,8,NA,NA,AUCSS/median
+AUCSSDOS,Dose-Normalized AUC (ug·h/mL per mg),float,8,NA,NA,AUCSS/DOSE
+AUCSSCAT,AUC Category (Tertiles),text,20,NA,NA,"Low, Medium, High"
+AUCSCATN,AUC Category (N),integer,8,NA,NA,"1, 2, 3"
+AUCSSQ,AUC Quartile,text,20,NA,NA,"Q1, Q2, Q3, Q4"
+AUCSSQN,AUC Quartile (N),integer,8,NA,NA,"1, 2, 3, 4"
+CMAXSS,Steady-State Cmax (ug/mL),float,8,NA,NA,Alternative exposure
+CAVGSS,Steady-State Cavg (ug/mL),float,8,NA,NA,Alternative exposure
+CMINSS,Steady-State Cmin (ug/mL),float,8,NA,NA,Trough concentration
+WTBL,Baseline Weight (kg),float,8,NA,NA,NA
+WTBLGR1,Baseline Weight Group 1,text,20,NA,NA,"<70 kg, ≥70 kg"
+HTBL,Baseline Height (cm),float,8,NA,NA,NA
+BMIBL,Baseline BMI (kg/m^2),float,8,NA,NA,NA
+BSABL,Baseline BSA (m^2),float,8,NA,NA,NA
+CREATBL,Baseline Serum Creatinine (mg/dL),float,8,NA,NA,NA
+CRCLBL,Baseline Creatinine Clearance (mL/min),float,8,NA,NA,NA
+EGFRBL,Baseline eGFR (mL/min/1.73m^2),float,8,NA,NA,NA
+ALTBL,Baseline ALT (U/L),float,8,NA,NA,NA
+ASTBL,Baseline AST (U/L),float,8,NA,NA,NA
+TBILBL,Baseline Total Bilirubin (mg/dL),float,8,NA,NA,NA
+ALBBL,Baseline Albumin (g/dL),float,8,NA,NA,NA
+ANL01FL,Analysis Flag 01,text,1,(NY),NA,Y=primary endpoint (PFS)
+ANL02FL,Analysis Flag 02,text,1,(NY),NA,Y=secondary endpoint (OS)
+ANL03FL,Analysis Flag 03,text,1,(NY),NA,Y=sensitivity analysis
+ANL04FL,Analysis Flag 04,text,1,(NY),NA,Y=subgroup analysis
+ASEQ,Analysis Sequence Number,integer,8,NA,NA,Unique within USUBJID
+DTYPE,Derivation Type,text,8,NA,NA,"AVERAGE, MINIMUM, etc."
