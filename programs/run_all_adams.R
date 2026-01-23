@@ -28,7 +28,7 @@ library(pharmaverseadam)
 source("config/exposure_config.R")
 
 # Datasets to create (in dependency order)
-datasets <- c("adee", "ades", "adtrr")
+datasets <- c("ader", "adee", "ades", "adtrr")
 
 # Track timing and status
 results <- data.frame(
