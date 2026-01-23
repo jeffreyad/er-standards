@@ -1,0 +1,4 @@
+"Analysis","Effect_Metric","Estimate","CI_Lower","CI_Upper","Interpretation"
+"Overall AE Count","Rate Ratio",1.07261205828482,0.954951021448433,1.21231535484686,"Per 10-unit AUC increase"
+"Grade 3+ Events","Odds Ratio",1.1939530448611,0.978290652150588,1.47856653163385,"Per 10-unit AUC increase"
+"Time to First AE","Hazard Ratio",1.13797997330067,1.02916274741964,1.2583028514006,"Per 10-unit AUC increase"

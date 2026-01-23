@@ -1,0 +1,5 @@
+"Endpoint","Analysis_Method","Effect_Estimate","CI_95","Interpretation"
+"Objective Response Rate","Logistic Regression","OR = 3.67","(2.50 - 5.74)","Higher exposure → higher response rate"
+"Maximum Tumor Reduction","Linear Regression","β = -9.89%","(-10.99 - -8.79)","Higher exposure → greater tumor reduction"
+"Tumor Growth Rate","Mixed Effects Model","β = -0.062% per week","See model output","Higher exposure → faster tumor shrinkage"
+"Time to Response","Descriptive","Median: 126 days","(42 - 168)","Similar time to response across exposures"
