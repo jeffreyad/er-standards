@@ -220,24 +220,17 @@ adsl_vslb <- adsl_vs %>%
 # DERIVE EXPOSURE METRICS
 #===============================================================================
 
-# Load configuration
 source("config/exposure_config.R")
-
-# Source the exposure metrics function
 source("R/derive_exposure_metrics.R")
 
-# Load ADPC if using production source
 if (EXPOSURE_SOURCE == "adpc") {
-  # adpc <- haven::read_sas("path/to/adpc.sas7bdat")
-  # Or from pharmaverse if available:
-  # adpc <- pharmaverseadam::adpc
-  stop("ADPC dataset not configured. Update path in ADTRR.R or set EXPOSURE_SOURCE to 'simulated'")
+  stop("ADPC dataset not configured. Set EXPOSURE_SOURCE to 'simulated' in config/exposure_config.R")
 } else {
   adpc <- NULL
 }
 
-# Derive exposure metrics
-exposure_final <- derive_exposure_metrics(
+# Derive all exposure metrics
+exposure_all <- derive_exposure_metrics(
   adsl_data = adsl_vslb,
   source = EXPOSURE_SOURCE,
   adpc_data = adpc,
@@ -245,21 +238,61 @@ exposure_final <- derive_exposure_metrics(
   tertile_var = TERTILE_VARIABLE
 )
 
+# Select ONLY subject-level variables (no tumor-related variables)
+# This prevents conflicts with BASE, CHG, PCHG, AVAL, etc.
+exposure_final <- exposure_all %>%
+  select(
+    # Keys
+    STUDYID, STUDYIDN, USUBJID, USUBJIDN, SUBJID, SUBJIDN,
+    SITEID, SITEIDN,
+    
+    # Treatment
+    ARM, ARMN, ACTARM, ACTARMN,
+    TRT01P, TRT01PN, TRT01A, TRT01AN,
+    TRTSDT, TRTEDT, TRTDURD,
+    
+    # Demographics  
+    AGE, AGEGR1, AGEGR1N,
+    SEX, SEXN,
+    RACE, RACEN,
+    ETHNIC, ETHNICN,
+    
+    # Exposure metrics (all 20 variables)
+    DOSE, AUCSS, CMAXSS, CAVGSS, CMINSS, CLSS,
+    AUCSLOG, CMXSLOG, CAVGLOG,
+    AUCSSSTD, CMXSSSTD, AUCSSN,
+    AUCSSDOS, CMXSSDOS,
+    AUCSSCAT, AUCSCATN,
+    AUCSSQ, AUCSSQN,
+    AUCSSMED,
+    
+    # Baseline covariates
+    WTBL, WTBLGR1, HTBL, BMIBL, BSABL,
+    CREATBL, CRCLBL, EGFRBL,
+    ALTBL, ASTBL, TBILBL, any_of("ALBBL")
+  )
+
+message("✓ Exposure dataset prepared: ", ncol(exposure_final), " variables")
+
 #===============================================================================
 # CREATE TUMOR SIZE PARAMETER FROM ADTR
 #===============================================================================
 
-# Use SDIAM (Sum of Diameters) from adtr_onco
+# pharmaverseadam::adtr_onco already has BASE, CHG, PCHG calculated
+# We'll use these directly rather than recalculating
+
 # Get variable names for clean dropping
 adsl_vars <- names(exposure_final)
 adtr_vars <- names(adtr)
 common_vars <- intersect(adsl_vars, adtr_vars)
 vars_to_drop <- setdiff(common_vars, c("STUDYID", "USUBJID"))
 
-tsize_base <- adtr %>%
+message("Variables to drop from ADTR: ", paste(vars_to_drop, collapse = ", "))
+
+tsize_final <- adtr %>%
   filter(PARAMCD == "SDIAM") %>%
   mutate(
-    PARAMCD = "TSIZE",  # 8 chars max
+    PARAMCD = "TSIZE",
     PARAM = "Target Lesions Sum of Diameters",
     PARAMN = 1
   ) %>%
@@ -269,35 +302,35 @@ tsize_base <- adtr %>%
     by_vars = exprs(STUDYID, USUBJID)
   )
 
-#===============================================================================
-# DERIVE BASELINE AND CHANGE
-#===============================================================================
-
-tsize_chg <- tsize_base %>%
-  derive_var_base(
-    by_vars = exprs(STUDYID, USUBJID, PARAMCD),
-    source_var = AVAL,
-    new_var = BASE,
-    filter = ABLFL == "Y"
-  ) %>%
-  derive_var_chg() %>%
-  derive_var_pchg()
+message("✓ TSIZE records created: ", nrow(tsize_final))
 
 #===============================================================================
 # ADD BOR FROM ADRS
 #===============================================================================
 
-# Get BOR from ADRS (already derived)
-# Get variable names for clean dropping
 adrs_vars <- names(adrs)
 common_vars_adrs <- intersect(adsl_vars, adrs_vars)
 vars_to_drop_adrs <- setdiff(common_vars_adrs, c("STUDYID", "USUBJID"))
+
+message("Variables to drop from ADRS: ", paste(vars_to_drop_adrs, collapse = ", "))
 
 bor <- adrs %>%
   filter(PARAMCD == "BOR") %>%
   mutate(
     PARAMN = 2,
-    BORN = AVALN  # Add numeric version
+    # Create BORN from AVALC if AVALN doesn't exist
+    BORN = if ("AVALN" %in% names(.)) {
+      AVALN
+    } else {
+      case_when(
+        AVALC == "CR" ~ 4,
+        AVALC == "PR" ~ 3,
+        AVALC == "SD" ~ 2,
+        AVALC == "PD" ~ 1,
+        AVALC == "NE" ~ 0,
+        TRUE ~ NA_real_
+      )
+    }
   ) %>%
   select(-any_of(vars_to_drop_adrs)) %>%
   derive_vars_merged(
@@ -305,11 +338,15 @@ bor <- adrs %>%
     by_vars = exprs(STUDYID, USUBJID)
   )
 
+message("✓ BOR records created: ", nrow(bor))
+
 #===============================================================================
 # DERIVE NADIR (8-CHAR VARIABLES)
 #===============================================================================
 
-nadir <- tsize_chg %>%
+# Calculate nadir from TSIZE records
+# Keep BASE, CHG, PCHG from the nadir timepoint
+nadir <- tsize_final %>%
   filter(AVISITN > 0 & !is.na(AVAL)) %>%
   group_by(STUDYID, USUBJID) %>%
   filter(AVAL == min(AVAL, na.rm = TRUE)) %>%
@@ -320,37 +357,50 @@ nadir <- tsize_chg %>%
     PARAM = "Nadir Tumor Size",
     PARAMN = 3,
     NADIR = AVAL,
-    NADPCHG = PCHG,      # NADIR_PCHG shortened to 8 chars
-    NADVST = AVISIT      # NADIR_VISIT shortened to 8 chars
+    NADPCHG = PCHG,      # Keep PCHG at nadir
+    NADVST = AVISIT      # Keep visit of nadir
   )
+
+message("✓ NADIR records created: ", nrow(nadir))
 
 #===============================================================================
 # COMBINE ALL PARAMETERS
 #===============================================================================
 
 adtrr_base <- bind_rows(
-  tsize_chg,
+  tsize_final,
   bor,
   nadir
 ) %>%
   arrange(USUBJID, PARAMN, AVISITN)
 
+message("✓ Combined dataset: ", nrow(adtrr_base), " records")
+
 #===============================================================================
 # ADD ANALYSIS VARIABLES
 #===============================================================================
 
+# Ensure AVALU exists before mutating
+if (!"AVALU" %in% names(adtrr_base)) {
+  adtrr_base <- adtrr_base %>%
+    mutate(AVALU = NA_character_)
+}
+
 adtrr_prefinal <- adtrr_base %>%
   # Analysis flags
   mutate(
-    # Baseline flag (should exist from source, but ensure it's there)
-    ABLFL = if_else(is.na(ABLFL) & AVISITN == 0, "Y", 
-                    if_else(is.na(ABLFL), "", ABLFL)),
+    # Baseline flag
+    ABLFL = case_when(
+      !is.na(ABLFL) ~ ABLFL,
+      !is.na(AVISITN) & AVISITN == 0 ~ "Y",
+      TRUE ~ ""
+    ),
     
     # Post-baseline flag
-    ANL01FL = if_else(AVISITN > 0, "Y", ""),
+    ANL01FL = if_else(!is.na(AVISITN) & AVISITN > 0, "Y", ""),
     
     # Responders (CR or PR)
-    ANL02FL = if_else(AVALC %in% c("CR", "PR"), "Y", ""),
+    ANL02FL = if_else(!is.na(AVALC) & AVALC %in% c("CR", "PR"), "Y", ""),
     
     # Has change from baseline
     ANL03FL = if_else(!is.na(PCHG), "Y", "")
@@ -367,9 +417,14 @@ adtrr_prefinal <- adtrr_base %>%
     )
   ) %>%
   
-  # Ensure AVALU exists
+  # Set AVALU (now guaranteed to exist)
   mutate(
-    AVALU = if_else(PARAMCD == "TSIZE" & is.na(AVALU), "mm", AVALU)
+    AVALU = case_when(
+      !is.na(AVALU) & AVALU != "" ~ AVALU,  # Keep existing non-empty
+      PARAMCD == "TSIZE" ~ "mm",
+      PARAMCD == "NADIR" ~ "mm",
+      TRUE ~ NA_character_
+    )
   ) %>%
   
   # Sequence number
@@ -379,7 +434,7 @@ adtrr_prefinal <- adtrr_base %>%
     new_var = ASEQ,
     check_type = "error"
   ) %>%
-  
+
   # Select variables (8-char names)
   select(
     # Identifiers
@@ -504,9 +559,9 @@ if (!is.null(metacore)) {
 #===============================================================================
 
 cat("\n")
-cat("="*80, "\n", sep = "")
+cat(strrep("=", 80), "\n", sep = "")
 cat("ADTRR DERIVATION SUMMARY\n")
-cat("="*80, "\n", sep = "")
+cat(strrep("=", 80), "\n", sep = "")
 cat("\n")
 
 cat("Dataset Structure:\n")
@@ -560,9 +615,9 @@ flag_summary <- adtrr %>%
 print(flag_summary)
 cat("\n")
 
-cat("="*80, "\n", sep = "")
+cat(strrep("=", 80), "\n", sep = "")
 cat("ADTRR derivation complete!\n")
-cat("="*80, "\n", sep = "")
+cat(strrep("=", 80), "\n", sep = "")
 
 #===============================================================================
 # END OF PROGRAM
