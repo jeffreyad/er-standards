@@ -6,7 +6,7 @@
 # Purpose: Demonstrate complete workflow from ADES dataset to exposure-safety
 #          modeling using adverse event data with multi-level structure
 #
-# Author: [Your Name]
+# Author: Jeff Dickinson
 # Date: 2026-01-17
 # ===============================================================================
 

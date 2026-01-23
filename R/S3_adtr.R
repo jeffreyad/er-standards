@@ -6,7 +6,7 @@
 # Purpose: Demonstrate complete workflow from ADTR dataset to exposure-response
 #          modeling using longitudinal tumor measurements and RECIST 1.1
 #
-# Author: [Your Name]
+# Author: Jeff Dickinson
 # Date: 2026-01-17
 # ===============================================================================
 

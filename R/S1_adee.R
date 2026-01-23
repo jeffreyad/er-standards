@@ -6,7 +6,7 @@
 # Purpose: Demonstrate complete workflow from ADEE dataset to exposure-efficacy
 #          modeling using time-to-event endpoints (PFS, OS)
 #
-# Author: [Your Name]
+# Author: Jeff Dickinson
 # Date: 2026-01-20
 # ===============================================================================
 
