@@ -5,7 +5,7 @@
 # Purpose: Create realistic synthetic data for ADEE, ADES, and ADTR examples
 #          These datasets follow the proposed standardized structure
 #
-# Author: [Your Name]
+# Author: Jeff Dickinson
 # Date: 2026-01-17
 # ===============================================================================
 

@@ -5,22 +5,22 @@
      ODMVersion="1.3.2"
      FileOID="ADER_Define"
      FileType="Snapshot"
-     CreationDateTime="2026-01-20T17:53:28">
-  
+     CreationDateTime="2026-01-24T11:31:59">
+
   <Study OID="STUDY001">
     <GlobalVariables>
       <StudyName>ER Standards Framework</StudyName>
       <StudyDescription>Exposure-Response Data Standards</StudyDescription>
       <ProtocolName>ER Standards</ProtocolName>
     </GlobalVariables>
-    
+
     <MetaDataVersion OID="MDV.001" Name="ER Standards Metadata">
-      
+
       <!-- ItemGroupDef for ADER -->
-      <ItemGroupDef OID="IG.ADER" 
-                    Name="ADER" 
-                    Repeating="Yes" 
-                    IsReferenceData="No" 
+      <ItemGroupDef OID="IG.ADER"
+                    Name="ADER"
+                    Repeating="Yes"
+                    IsReferenceData="No"
                     SASDatasetName="ADER"
                     Domain="ADER"
                     def:Class="Custom (Wide Format)"
@@ -71,7 +71,7 @@
         <ItemRef ItemOID="IT.ADER.ASTBL" OrderNumber="40" Mandatory="No" />
         <ItemRef ItemOID="IT.ADER.TBILBL" OrderNumber="41" Mandatory="No" />
       </ItemGroupDef>
-      
+
       <!-- ItemDefs for ADER -->
       <ItemDef OID="IT.ADER.STUDYID" Name="STUDYID" DataType="text" Length="20">
         <Description>
