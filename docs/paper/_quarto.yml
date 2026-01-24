@@ -1,0 +1,23 @@
+
+project:
+  output-dir: _output
+  render:
+    - paper_draft.qmd
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+  pdf:
+    documentclass: article
+    toc: true
+    number-sections: true
+    geometry: margin=1in
+    keep-tex: true
+
+bibliography: references.bib
+
+execute:
+  echo: false
+  warning: false
+  message: false

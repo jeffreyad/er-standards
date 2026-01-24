@@ -1,0 +1,55 @@
+---
+title: "Exposure-Response Data Standards"
+subtitle: "Traditional vs. New Framework"
+author: "Jeff Dickinson"
+format:
+  revealjs:
+    theme: moon
+    slide-number: true
+    chalkboard: true
+    preview-links: auto
+---
+
+## Traditional Approach {.smaller}
+
+::::: columns
+::: {.column width="50%"}
+### Structure
+
+-   Single wide file
+-   One row per subject
+-   All parameters as columns
+:::
+
+::: {.column width="50%"}
+### Issues
+
+-   ❌ Non-standard
+-   ❌ Hard to extend
+-   ❌ Limited metrics
+-   ❌ No traceability
+:::
+:::::
+
+## New Framework {.smaller}
+
+::::: columns
+::: {.column width="50%"}
+### Structure
+
+-   Four specialized datasets
+-   CDISC-compliant
+-   Long format
+:::
+
+::: {.column width="50%"}
+### Benefits
+
+-   ✅ Standardized
+-   ✅ Flexible
+-   ✅ Comprehensive
+-   ✅ Traceable
+:::
+:::::
+
+## \[Continue with other slides...\]

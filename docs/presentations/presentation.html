@@ -10,7 +10,7 @@
   <meta name="generator" content="quarto-1.8.26">
 
   <meta name="author" content="Jeff Dickinson">
-  <meta name="dcterms.date" content="2026-01-19">
+  <meta name="dcterms.date" content="2026-01-23">
   <title>Standardizing Exposure-Response Data for Modeling and Simulation</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -210,7 +210,7 @@ Jeff Dickinson
     </div>
 </div>
 
-  <p class="date">2026-01-19</p>
+  <p class="date">2026-01-23</p>
 </section>
 <section id="overview" class="slide level2 smaller">
 <h2>Overview</h2>
@@ -482,10 +482,11 @@ Jeff Dickinson
 <span id="cb2-15"><a href=""></a><span class="co"># Create exposure categories</span></span>
 <span id="cb2-16"><a href=""></a>exposure_cats <span class="ot">&lt;-</span> adsl <span class="sc">%&gt;%</span></span>
 <span id="cb2-17"><a href=""></a>  <span class="fu">mutate</span>(</span>
-<span id="cb2-18"><a href=""></a>    <span class="at">AUC_TERTILE =</span> <span class="fu">cut</span>(AUC0_24, </span>
-<span id="cb2-19"><a href=""></a>                      <span class="at">breaks =</span> <span class="fu">quantile</span>(AUC0_24, <span class="at">probs =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span><span class="sc">/</span><span class="dv">3</span>, <span class="dv">2</span><span class="sc">/</span><span class="dv">3</span>, <span class="dv">1</span>)),</span>
-<span id="cb2-20"><a href=""></a>                      <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"Low"</span>, <span class="st">"Medium"</span>, <span class="st">"High"</span>))</span>
-<span id="cb2-21"><a href=""></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-18"><a href=""></a>    <span class="at">AUC_TERTILE =</span> <span class="fu">cut</span>(AUC0_24,</span>
+<span id="cb2-19"><a href=""></a>      <span class="at">breaks =</span> <span class="fu">quantile</span>(AUC0_24, <span class="at">probs =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span> <span class="sc">/</span> <span class="dv">3</span>, <span class="dv">2</span> <span class="sc">/</span> <span class="dv">3</span>, <span class="dv">1</span>)),</span>
+<span id="cb2-20"><a href=""></a>      <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"Low"</span>, <span class="st">"Medium"</span>, <span class="st">"High"</span>)</span>
+<span id="cb2-21"><a href=""></a>    )</span>
+<span id="cb2-22"><a href=""></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <aside class="notes">
 <ul>
@@ -583,11 +584,11 @@ Jeff Dickinson
 <span id="cb5-6"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">N_AES =</span> <span class="fu">n</span>(),</span>
 <span id="cb5-7"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">N_SAE =</span> <span class="fu">sum</span>(AESER <span class="sc">==</span> <span class="st">"Y"</span>),</span>
 <span id="cb5-8"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">N_GRADE3 =</span> <span class="fu">sum</span>(AETOXGR <span class="sc">&gt;=</span> <span class="st">"3"</span>),</span>
-<span id="cb5-9"><a href="" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb5-9"><a href="" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-10"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Rates per 100 patient-days</span></span>
 <span id="cb5-11"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">RATE_AES =</span> (N_AES <span class="sc">/</span> TRTDURD) <span class="sc">*</span> <span class="dv">100</span>,</span>
 <span id="cb5-12"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">RATE_SAE =</span> (N_SAE <span class="sc">/</span> TRTDURD) <span class="sc">*</span> <span class="dv">100</span>,</span>
-<span id="cb5-13"><a href="" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb5-13"><a href="" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-14"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Binary indicators</span></span>
 <span id="cb5-15"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">ANY_SAE =</span> <span class="fu">if_else</span>(N_SAE <span class="sc">&gt;</span> <span class="dv">0</span>, <span class="st">"Y"</span>, <span class="st">"N"</span>),</span>
 <span id="cb5-16"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">ANY_GRADE3 =</span> <span class="fu">if_else</span>(N_GRADE3 <span class="sc">&gt;</span> <span class="dv">0</span>, <span class="st">"Y"</span>, <span class="st">"N"</span>)</span>
@@ -685,7 +686,7 @@ Jeff Dickinson
 <span id="cb7-2"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
 <span id="cb7-3"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">PARAM =</span> <span class="st">"Sum of Target Lesion Diameters"</span>,</span>
 <span id="cb7-4"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">PARAMCD =</span> <span class="st">"STDIAM"</span>,</span>
-<span id="cb7-5"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">AVAL =</span> TRORRES,  <span class="co"># Raw measurement</span></span>
+<span id="cb7-5"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">AVAL =</span> TRORRES, <span class="co"># Raw measurement</span></span>
 <span id="cb7-6"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">ADY =</span> <span class="fu">as.numeric</span>(ADT <span class="sc">-</span> TRTSDT) <span class="sc">+</span> <span class="dv">1</span></span>
 <span id="cb7-7"><a href="" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
 <span id="cb7-8"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Identify baseline</span></span>
@@ -725,10 +726,10 @@ Jeff Dickinson
 <span id="cb8-2"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
 <span id="cb8-3"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">AVALC =</span> <span class="fu">case_when</span>(</span>
 <span id="cb8-4"><a href="" aria-hidden="true" tabindex="-1"></a>      ABLFL <span class="sc">==</span> <span class="st">"Y"</span> <span class="sc">~</span> <span class="st">"BASELINE"</span>,</span>
-<span id="cb8-5"><a href="" aria-hidden="true" tabindex="-1"></a>      AVAL <span class="sc">==</span> <span class="dv">0</span> <span class="sc">~</span> <span class="st">"CR"</span>,        <span class="co"># Complete Response</span></span>
-<span id="cb8-6"><a href="" aria-hidden="true" tabindex="-1"></a>      PCHG <span class="sc">&lt;=</span> <span class="sc">-</span><span class="dv">30</span> <span class="sc">~</span> <span class="st">"PR"</span>,      <span class="co"># Partial Response (≥30% decrease)</span></span>
-<span id="cb8-7"><a href="" aria-hidden="true" tabindex="-1"></a>      PCHG <span class="sc">&gt;=</span> <span class="dv">20</span> <span class="sc">~</span> <span class="st">"PD"</span>,       <span class="co"># Progressive Disease (≥20% increase)</span></span>
-<span id="cb8-8"><a href="" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"SD"</span>              <span class="co"># Stable Disease</span></span>
+<span id="cb8-5"><a href="" aria-hidden="true" tabindex="-1"></a>      AVAL <span class="sc">==</span> <span class="dv">0</span> <span class="sc">~</span> <span class="st">"CR"</span>, <span class="co"># Complete Response</span></span>
+<span id="cb8-6"><a href="" aria-hidden="true" tabindex="-1"></a>      PCHG <span class="sc">&lt;=</span> <span class="sc">-</span><span class="dv">30</span> <span class="sc">~</span> <span class="st">"PR"</span>, <span class="co"># Partial Response (≥30% decrease)</span></span>
+<span id="cb8-7"><a href="" aria-hidden="true" tabindex="-1"></a>      PCHG <span class="sc">&gt;=</span> <span class="dv">20</span> <span class="sc">~</span> <span class="st">"PD"</span>, <span class="co"># Progressive Disease (≥20% increase)</span></span>
+<span id="cb8-8"><a href="" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"SD"</span> <span class="co"># Stable Disease</span></span>
 <span id="cb8-9"><a href="" aria-hidden="true" tabindex="-1"></a>    )</span>
 <span id="cb8-10"><a href="" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb8-11"><a href="" aria-hidden="true" tabindex="-1"></a></span>
@@ -1257,6 +1258,10 @@ Jeff Dickinson
           overflow: hidden!important;
           display:block!important;
       }</style></aside>
+</section>
+<section id="acknowledgments" class="slide level2">
+<h2>Acknowledgments</h2>
+<p>Synthetic data and code examples were developed with assistance from Claude (Anthropic, 2024), an AI assistant. All code was reviewed, tested, and validated by the author. Any errors or omissions are the responsibility of the author.</p>
 
 </section>
     </div>

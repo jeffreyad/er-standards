@@ -1,0 +1,741 @@
+---
+title: "Exposure-Response Data Standards: Traditional vs. New Framework"
+subtitle: "A Comprehensive Comparison"
+author: "Jeff Dickinson"
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: true
+    theme: cosmo
+    embed-resources: true
+  pdf:
+    toc: true
+    number-sections: true
+    geometry:
+      - margin=0.75in
+    fontsize: 10pt
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+## Overview
+
+This document compares the traditional approach to constructing exposure-response (E-R) datasets with the new CDISC-based framework consisting of four specialized ADaM datasets: ADER, ADEE, ADES, and ADTRR.
+
+## Traditional Approach - Single Wide File
+
+### Structure
+
+The traditional approach uses a single wide-format file with one row per subject and all parameters as columns.
+
+::: callout-note
+**File**: `er_data.csv` (Traditional format)
+:::
+
+### Sample Data
+
+```{r}
+#| label: tbl-traditional
+#| tbl-cap: "Traditional E-R Data Structure (First 3 Subjects)"
+
+library(dplyr)
+library(knitr)
+library(kableExtra)
+
+traditional <- tibble(
+  C = c(1, 1, 1),
+  PTNM = c("001", "002", "003"),
+  TRT = c(3, 1, 2),
+  DOSE = c(81, 0, 54),
+  TIME = c(523, 365, 450),
+  NTIM = c(1, 0, 0),
+  OS = c(1, 0, 0),
+  OSOS = c(0, 1, 1),
+  PFS = c(245, 180, 240),
+  PFSS = c(1, 0, 0),
+  AGE = c(65, 58, 72),
+  SEX = c(1, 2, 1),
+  RACE = c(5, 5, 5),
+  WT = c(78.5, 65.2, 82.1),
+  HT = c(175, 168, 180),
+  BSA = c(1.95, 1.75, 2.03),
+  CRCLBL = c(85.2, 92.1, 78.5),
+  AUC = c(145.2, 0.0, 98.5),
+  CMAX = c(89.3, 0.0, 62.1),
+  CAVG = c(72.1, 0.0, 49.3),
+  NADIR = c(65.0, 105.2, 76.6),
+  BOR = c(3, 2, 3),
+  TEAE = c(5, 2, 4),
+  TEAEGR3 = c(2, 0, 1)
+)
+
+kable(traditional, 
+      format = "html",
+      digits = 1) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = FALSE,
+    font_size = 10
+  ) %>%
+  scroll_box(width = "100%")
+```
+
+### Variable Key
+
+```{r}
+#| label: tbl-trad-varkey
+#| tbl-cap: "Traditional Variable Definitions"
+
+var_key <- tibble(
+  Variable = c("C", "PTNM", "TRT", "DOSE", "TIME", "NTIM", "OS", "OSOS", 
+               "PFS", "PFSS", "TEAE", "TEAEGR3", "BOR", "NADIR"),
+  Definition = c(
+    "Censor indicator",
+    "Patient number",
+    "Treatment (1=Placebo, 2=Low, 3=High)",
+    "Dose (mg)",
+    "Time to event (days)",
+    "Number of time points",
+    "Overall survival event (0=no, 1=yes)",
+    "Overall survival status",
+    "Progression-free survival time",
+    "Progression-free survival status",
+    "Total adverse events",
+    "Grade 3+ adverse events",
+    "Best overall response (1=PD, 2=SD, 3=PR, 4=CR)",
+    "Nadir tumor size (mm)"
+  )
+)
+
+kable(var_key) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+### Characteristics
+
+::: callout-warning
+## Limitations of Traditional Approach
+
+-   ❌ **Non-standard**: Custom variable names and structure
+-   ❌ **Wide format**: One row per subject, hard to extend
+-   ❌ **Mixed parameters**: Different types in same row
+-   ❌ **Limited exposure**: Only 3-5 exposure metrics
+-   ❌ **No traceability**: Unclear derivation from source
+-   ❌ **Not regulatory-ready**: Requires extensive documentation
+-   ❌ **Inflexible**: Adding parameters requires new columns
+-   ❌ **Numeric codes**: Requires separate lookup tables
+:::
+
+------------------------------------------------------------------------
+
+## New Framework - CDISC-Based Structure
+
+### Overview
+
+The new framework consists of four specialized ADaM datasets, each optimized for specific E-R analyses:
+
+1.  **ADER**: Exposure-Response Analysis Dataset (foundational)
+2.  **ADEE**: Exposure-Efficacy Analysis Dataset (time-to-event)
+3.  **ADES**: Exposure-Safety Analysis Dataset (adverse events)
+4.  **ADTRR**: Tumor Response for E-R Analysis (oncology)
+
+### ADEE: Exposure-Efficacy
+
+```{r}
+#| label: tbl-adee
+#| tbl-cap: "ADEE: Exposure-Efficacy Analysis Dataset (Sample Records)"
+
+adee <- tibble(
+  STUDYID = rep("STUDY001", 5),
+  USUBJID = c(rep("STUDY001-001-0001", 3), rep("STUDY001-001-0002", 2)),
+  PARAMCD = c("OS", "PFS", "TTP", "OS", "PFS"),
+  PARAM = c("Overall Survival", "Progression-Free Survival", "Time to Progression",
+            "Overall Survival", "Progression-Free Survival"),
+  AVAL = c(523, 245, 245, 365, 180),
+  CNSR = c(0, 0, 0, 1, 1),
+  EVENT = c(1, 1, 1, 0, 0),
+  AUCSS = c(145.2, 145.2, 145.2, 0.0, 0.0),
+  CMAXSS = c(89.3, 89.3, 89.3, 0.0, 0.0),
+  AUCSLOG = c(4.98, 4.98, 4.98, NA, NA),
+  AUCSSCAT = c("High", "High", "High", NA, NA),
+  AGE = c(65, 65, 65, 58, 58),
+  SEX = c("M", "M", "M", "F", "F"),
+  RACE = c("WHITE", "WHITE", "WHITE", "WHITE", "WHITE"),
+  WTBL = c(78.5, 78.5, 78.5, 65.2, 65.2),
+  CRCLBL = c(85.2, 85.2, 85.2, 92.1, 92.1),
+  TRT01A = c(rep("Drug High Dose", 3), rep("Placebo", 2))
+)
+
+kable(adee, digits = 1) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    font_size = 9
+  ) %>%
+  scroll_box(width = "100%")
+```
+
+::: callout-tip
+## ADEE Key Features
+
+-   ✅ One row per subject per parameter
+-   ✅ Standard PARAMCD for filtering
+-   ✅ Both numeric (AVAL) and character (AVALC) values
+-   ✅ Comprehensive exposure metrics (20 variables)
+-   ✅ Clear event/censor indicators
+:::
+
+### ADES: Exposure-Safety
+
+```{r}
+#| label: tbl-ades
+#| tbl-cap: "ADES: Exposure-Safety Analysis Dataset (Sample Records)"
+
+ades <- tibble(
+  STUDYID = rep("STUDY001", 5),
+  USUBJID = c(rep("STUDY001-001-0001", 4), "STUDY001-001-0002"),
+  PARAMCD = c("TEAE", "TEAESEV", "TESAE", "OVR", "TEAE"),
+  PARAM = c("Treatment-Emergent AEs", "Treatment-Emergent Severe AEs",
+            "Treatment-Emergent Serious AEs", "Overall Response", 
+            "Treatment-Emergent AEs"),
+  AVAL = c(5, 2, 1, NA, 2),
+  AVALC = c("5", "2", "1", NA, "2"),
+  AUCSS = c(145.2, 145.2, 145.2, 145.2, 0.0),
+  AUCSSCAT = c("High", "High", "High", "High", NA),
+  AEDECOD = c(NA, NA, NA, "NAUSEA", NA),
+  AEBODSYS = c(NA, NA, NA, "GASTROINTESTINAL DISORDERS", NA),
+  AESEV = c(NA, NA, NA, "MILD", NA),
+  AEREL = c(NA, NA, NA, "POSSIBLE", NA),
+  AESER = c(NA, NA, NA, "N", NA),
+  AGE = c(65, 65, 65, 65, 58),
+  SEX = c("M", "M", "M", "M", "F"),
+  TRT01A = c(rep("Drug High Dose", 4), "Placebo")
+)
+
+kable(ades, digits = 1) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    font_size = 9
+  ) %>%
+  scroll_box(width = "100%")
+```
+
+::: callout-tip
+## ADES Key Features
+
+-   ✅ Subject-level summary parameters
+-   ✅ Event-level detail records
+-   ✅ AE characteristics preserved
+-   ✅ Exposure-safety relationships
+:::
+
+### ADTRR: Tumor Response for E-R
+
+```{r}
+#| label: tbl-adtrr
+#| tbl-cap: "ADTRR: Tumor Response for E-R Analysis (Sample Records)"
+
+adtrr <- tibble(
+  STUDYID = rep("STUDY001", 5),
+  USUBJID = rep("STUDY001-001-0001", 5),
+  PARAMCD = c("TSIZE", "TSIZE", "TSIZE", "BOR", "NADIR"),
+  PARAM = c("Target Lesion Size", "Target Lesion Size", "Target Lesion Size",
+            "Best Overall Response", "Nadir Tumor Size"),
+  AVISITN = c(1, 3, 5, 99, 99),
+  AVISIT = c("BASELINE", "WEEK 12", "WEEK 24", "OVERALL", "OVERALL"),
+  AVAL = c(105.2, 85.1, 65.0, NA, 65.0),
+  AVALC = c("105.2", "85.1", "65.0", "PR", "65.0"),
+  BASE = c(105.2, 105.2, 105.2, NA, 105.2),
+  CHG = c(0.0, -20.1, -40.2, NA, -40.2),
+  PCHG = c(0.0, -19.1, -38.2, NA, -38.2),
+  AUCSS = rep(145.2, 5),
+  AUCSSCAT = rep("High", 5),
+  NADIR = c(105.2, 85.1, 65.0, 65.0, 65.0),
+  BORN = c(NA, NA, NA, 3, NA),
+  AGE = rep(65, 5),
+  SEX = rep("M", 5),
+  TRT01A = rep("Drug High Dose", 5)
+)
+
+kable(adtrr, digits = 1) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    font_size = 9
+  ) %>%
+  scroll_box(width = "100%")
+```
+
+::: callout-tip
+## ADTRR Key Features
+
+-   ✅ Longitudinal tumor measurements
+-   ✅ Derived response parameters (BOR, NADIR)
+-   ✅ Baseline and change from baseline
+-   ✅ RECIST 1.1 compliant
+:::
+
+------------------------------------------------------------------------
+
+## Side-by-Side Comparison
+
+```{r}
+#| label: tbl-comparison
+#| tbl-cap: "Feature Comparison: Traditional vs. New Framework"
+
+comparison <- tibble(
+  Feature = c(
+    "File Structure",
+    "Format",
+    "Variable Names",
+    "Standards Compliance",
+    "Traceability",
+    "Parameter Handling",
+    "Exposure Metrics",
+    "Baseline Covariates",
+    "Safety Data",
+    "Tumor Data",
+    "Metadata",
+    "Extensibility",
+    "Analysis Patterns",
+    "Regulatory Ready",
+    "Reproducibility",
+    "Documentation"
+  ),
+  `Traditional Approach` = c(
+    "Single wide file",
+    "One row per subject",
+    "Abbreviated (C, PTNM, NTIM)",
+    "Custom/ad-hoc",
+    "None",
+    "Fixed columns",
+    "3-5 variables",
+    "5-10 variables",
+    "Summary counts only",
+    "Nadir/BOR only",
+    "External documentation",
+    "Requires column addition",
+    "Custom code per file",
+    "No",
+    "Low (manual)",
+    "Separate Word doc"
+  ),
+  `New Framework` = c(
+    "Four specialized datasets",
+    "One row per subject-parameter(-visit)",
+    "Descriptive (CNSR, USUBJID, PARAMCD)",
+    "CDISC ADaM compliant",
+    "Full derivation lineage",
+    "Flexible rows",
+    "20+ standardized variables",
+    "13+ baseline covariates",
+    "Event-level detail available",
+    "Full longitudinal trajectory",
+    "Variable-level specifications",
+    "Add parameter rows",
+    "Standard ADaM patterns",
+    "Yes",
+    "High (automated)",
+    "Integrated specifications"
+  )
+)
+
+kable(comparison) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  column_spec(1, bold = TRUE, width = "20%") %>%
+  column_spec(2, width = "40%", background = "#fff3cd") %>%
+  column_spec(3, width = "40%", background = "#d4edda")
+```
+
+------------------------------------------------------------------------
+
+## Variable Mapping
+
+```{r}
+#| label: tbl-mapping
+#| tbl-cap: "Variable Mapping: Traditional to New Framework"
+
+mapping <- tibble(
+  `Traditional` = c(
+    "C", "PTNM", "TRT", "DOSE", "TIME", "NTIM", 
+    "OS", "OSOS", "PFS", "PFSS",
+    "AGE", "SEX", "RACE", "WT", "HT", "BSA", "CRCLBL",
+    "AUC", "CMAX", "CAVG",
+    "NADIR", "BOR", "TEAE", "TEAEGR3"
+  ),
+  `New Framework` = c(
+    "CNSR", "USUBJID", "TRT01A, TRT01AN", "DOSE", "AVAL", "(derived)",
+    "AVAL (PARAMCD=OS)", "EVENT (PARAMCD=OS)", 
+    "AVAL (PARAMCD=PFS)", "EVENT (PARAMCD=PFS)",
+    "AGE", "SEX, SEXN", "RACE, RACEN", 
+    "WTBL", "HTBL", "BSA", "CRCLBL",
+    "AUCSS", "CMAXSS", "CAVGSS",
+    "AVAL (PARAMCD=NADIR)", "AVALC (PARAMCD=BOR)", 
+    "AVAL (PARAMCD=TEAE)", "AVAL (PARAMCD=TEAESEV)"
+  ),
+  Dataset = c(
+    "ADEE", "All", "All", "All", "ADEE", "ADEE",
+    "ADEE", "ADEE", "ADEE", "ADEE",
+    "All", "All", "All", "All", "All", "All", "All",
+    "All", "All", "All",
+    "ADTRR", "ADTRR", "ADES", "ADES"
+  ),
+  Notes = c(
+    "Censor indicator (0/1)",
+    "Unique subject identifier",
+    "Character + numeric versions",
+    "Actual dose (mg)",
+    "Analysis value (time)",
+    "Count of timepoints",
+    "One row per parameter",
+    "Event indicator",
+    "One row per parameter",
+    "Event indicator",
+    "Age in years",
+    "Character + numeric",
+    "Character + numeric",
+    "Baseline weight",
+    "Baseline height",
+    "Body surface area",
+    "Baseline creatinine clearance",
+    "Steady-state AUC",
+    "Steady-state Cmax",
+    "Steady-state Cavg",
+    "One row for nadir parameter",
+    "Character response",
+    "Count of AEs",
+    "Count of severe AEs"
+  )
+)
+
+kable(mapping) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    font_size = 10
+  ) %>%
+  column_spec(1, bold = TRUE) %>%
+  column_spec(3, bold = TRUE, color = "white", background = "#0066cc")
+```
+
+------------------------------------------------------------------------
+
+## Data Structure Visualization
+
+### Traditional (Wide Format)
+
+```{r}
+#| label: fig-traditional-structure
+#| fig-cap: "Traditional Wide Format Structure"
+
+library(DiagrammeR)
+
+grViz("
+digraph traditional {
+  graph [rankdir=LR, bgcolor=transparent]
+  node [shape=box, style=filled, fillcolor=lightblue, fontname=Arial]
+  
+  Subject [label='Subject\\n001']
+  OS [label='OS_Time\\nOS_Event']
+  PFS [label='PFS_Time\\nPFS_Event']
+  Exposure [label='AUC\\nCmax\\nCavg']
+  Covariates [label='Age\\nSex\\nRace']
+  
+  Subject -> OS
+  Subject -> PFS
+  Subject -> Exposure
+  Subject -> Covariates
+  
+  {rank=same; OS; PFS; Exposure; Covariates}
+}
+")
+```
+
+::: callout-note
+**Structure**: One row = One subject; Multiple endpoints = Multiple columns
+:::
+
+### New Framework (Long Format)
+
+```{r}
+#| label: fig-new-structure
+#| fig-cap: "New Framework Long Format Structure"
+
+grViz("
+digraph newframework {
+  graph [rankdir=TB, bgcolor=transparent]
+  node [shape=box, style=filled, fontname=Arial]
+  
+  Subject [label='Subject\\n001', fillcolor=lightgreen]
+  
+  OS [label='OS\\nAVAL=523\\nEVENT=1', fillcolor=lightblue]
+  PFS [label='PFS\\nAVAL=245\\nEVENT=1', fillcolor=lightblue]
+  TTP [label='TTP\\nAVAL=245\\nEVENT=1', fillcolor=lightblue]
+  
+  Exposure [label='Exposure\\nAUCSS=145.2\\nCMAXSS=89.3', fillcolor=lightyellow]
+  Covariates [label='Covariates\\nAGE=65\\nSEX=M', fillcolor=lightyellow]
+  
+  Subject -> OS
+  Subject -> PFS
+  Subject -> TTP
+  
+  OS -> Exposure
+  OS -> Covariates
+  PFS -> Exposure
+  PFS -> Covariates
+  TTP -> Exposure
+  TTP -> Covariates
+}
+")
+```
+
+::: callout-note
+**Structure**: One row = One subject-parameter combination; New endpoints = New rows
+:::
+
+------------------------------------------------------------------------
+
+## Analysis Code Comparison
+
+### Cox Regression for Overall Survival
+
+::: panel-tabset
+## Traditional Approach
+
+```{r}
+#| echo: true
+#| eval: false
+
+library(survival)
+
+# Manually create tertiles
+er_data$AUC_TERT <- cut(
+  er_data$AUC, 
+  breaks = quantile(er_data$AUC, c(0, 1/3, 2/3, 1)),
+  labels = c("Low", "Medium", "High")
+)
+
+# Data is already in correct format (one row per subject)
+os_data <- er_data
+
+# Fit Cox model
+cox_model <- coxph(
+  Surv(TIME, OS) ~ AUC_TERT + AGE + SEX, 
+  data = os_data
+)
+
+summary(cox_model)
+```
+
+**Issues:** - ❌ Custom tertile calculation - ❌ Variable names not standardized - ❌ No traceability - ❌ Hard to reproduce
+
+## New Framework
+
+```{r}
+#| echo: true
+#| eval: false
+
+library(survival)
+library(admiral)
+
+# Filter to OS parameter
+adee_os <- adee %>%
+  filter(PARAMCD == "OS")
+
+# Tertiles already derived as AUCSSCAT
+# Or derive on the fly if needed
+adee_os <- adee_os %>%
+  derive_var_extreme_flag(
+    by_vars = exprs(PARAMCD),
+    order = exprs(AUCSSSTD),
+    new_var = AUCSSCAT,
+    mode = "first"
+  )
+
+# Fit Cox model (standard pattern)
+cox_model <- coxph(
+  Surv(AVAL, EVENT) ~ AUCSSCAT + AGE + SEX, 
+  data = adee_os
+)
+
+summary(cox_model)
+```
+
+**Benefits:** - ✅ Standard admiral functions - ✅ Clear parameter filtering - ✅ Consistent variable names - ✅ Reproducible derivations - ✅ Regulatory-ready code
+:::
+
+------------------------------------------------------------------------
+
+## Exposure Metrics Comparison
+
+```{r}
+#| label: tbl-exposure-comparison
+#| tbl-cap: "Exposure Metrics: Traditional vs. New Framework"
+
+exposure_comp <- tibble(
+  Category = c(
+    rep("Raw Metrics", 3),
+    rep("Transformed", 3),
+    rep("Standardized", 2),
+    rep("Normalized", 2),
+    rep("Dose-Normalized", 2),
+    rep("Categorical", 3),
+    rep("Covariate Effects", 3)
+  ),
+  Metric = c(
+    "AUC", "Cmax", "Cavg",
+    "log(AUC)", "log(Cmax)", "log(Cavg)",
+    "Standardized AUC", "Standardized Cmax",
+    "Normalized AUC", "Normalized Cmax",
+    "AUC/Dose", "Cmax/Dose",
+    "Tertiles", "Quartiles", "Median Split",
+    "CrCL effect", "Weight effect", "Age effect"
+  ),
+  Traditional = c(
+    "✓", "✓", "✓",
+    "✗", "✗", "✗",
+    "✗", "✗",
+    "✗", "✗",
+    "✗", "✗",
+    "Manual", "✗", "✗",
+    "✗", "✗", "✗"
+  ),
+  `New Framework` = c(
+    "✓", "✓", "✓",
+    "✓", "✓", "✓",
+    "✓", "✓",
+    "✓", "✓",
+    "✓", "✓",
+    "✓", "✓", "✓",
+    "✓", "✓", "✓"
+  )
+)
+
+kable(exposure_comp) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  column_spec(1, bold = TRUE) %>%
+  column_spec(3, background = "#fff3cd") %>%
+  column_spec(4, background = "#d4edda") %>%
+  pack_rows("Raw Metrics", 1, 3) %>%
+  pack_rows("Transformed", 4, 6) %>%
+  pack_rows("Standardized", 7, 8) %>%
+  pack_rows("Normalized", 9, 10) %>%
+  pack_rows("Dose-Normalized", 11, 12) %>%
+  pack_rows("Categorical", 13, 15) %>%
+  pack_rows("Covariate Effects", 16, 18)
+```
+
+------------------------------------------------------------------------
+
+## Baseline Covariates Comparison
+
+```{r}
+#| label: tbl-covariates-comparison
+#| tbl-cap: "Baseline Covariates: Traditional vs. New Framework"
+
+covariates_comp <- tibble(
+  Category = c(
+    rep("Demographics", 4),
+    rep("Vitals", 4),
+    rep("Renal Function", 3),
+    rep("Hepatic Function", 2)
+  ),
+  Covariate = c(
+    "Age", "Sex", "Race", "Ethnicity",
+    "Weight", "Height", "BMI", "BSA",
+    "Creatinine", "CrCL", "eGFR",
+    "ALT/AST", "Bilirubin"
+  ),
+  Traditional = c(
+    "✓", "✓", "✓", "✗",
+    "✓", "✓", "✗", "✓",
+    "✗", "✓", "✗",
+    "✗", "✗"
+  ),
+  `New Framework` = c(
+    "✓", "✓", "✓", "✓",
+    "✓", "✓", "✓", "✓",
+    "✓", "✓", "✓",
+    "✓", "✓"
+  )
+)
+
+kable(covariates_comp) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  column_spec(1, bold = TRUE) %>%
+  column_spec(3, background = "#fff3cd") %>%
+  column_spec(4, background = "#d4edda") %>%
+  pack_rows("Demographics", 1, 4) %>%
+  pack_rows("Vitals", 5, 8) %>%
+  pack_rows("Renal Function", 9, 11) %>%
+  pack_rows("Hepatic Function", 12, 13)
+```
+
+------------------------------------------------------------------------
+
+## Summary
+
+::: callout-important
+## Key Advantages of New Framework
+
+1.  **Standardization**: CDISC-compliant structure ensures consistency
+2.  **Traceability**: Clear derivation lineage from SDTM sources
+3.  **Flexibility**: Easy to add new parameters without restructuring
+4.  **Completeness**: Comprehensive exposure metrics (20 vs. 3-5)
+5.  **Detail**: Event-level data preserved for deeper analysis
+6.  **Reproducibility**: Automated derivation with documented scripts
+7.  **Documentation**: Integrated variable-level specifications
+8.  **Regulatory**: Submission-ready with full compliance
+:::
+
+::: callout-tip
+## Recommended Approach
+
+The new framework provides a robust, standards-based foundation for exposure-response analysis that:
+
+-   Meets regulatory requirements
+-   Supports comprehensive E-R analyses
+-   Facilitates cross-study comparisons
+-   Enables reproducible research
+-   Provides clear audit trails
+:::
+
+------------------------------------------------------------------------
+
+## References
+
+1.  FDA (2003). *Guidance for Industry: Exposure-Response Relationships*
+2.  CDISC (2021). *Analysis Data Model (ADaM) Implementation Guide*
+3.  ICH E4 (1994). *Dose-Response Information to Support Drug Registration*
+
+------------------------------------------------------------------------
+
+## Appendix: Dataset Specifications
+
+### ADEE Specification Summary
+
+-   **Purpose**: Time-to-event endpoints with exposure
+-   **Structure**: BDS (Basic Data Structure)
+-   **Key Variables**: 74 total
+    -   20 exposure metrics
+    -   13 baseline covariates
+    -   Time-to-event endpoints (OS, PFS, TTP, TTNT)
+
+### ADES Specification Summary
+
+-   **Purpose**: Safety endpoints with exposure
+-   **Structure**: BDS + OCCDS hybrid
+-   **Key Variables**: 78 total
+    -   Subject-level AE summaries
+    -   Event-level AE details
+    -   Exposure-safety relationships
+
+### ADTRR Specification Summary
+
+-   **Purpose**: Tumor response with exposure
+-   **Structure**: BDS with multiple parameters
+-   **Key Variables**: 80 total
+    -   Longitudinal tumor measurements
+    -   RECIST 1.1 response
+    -   Derived response parameters
