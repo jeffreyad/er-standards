@@ -83,6 +83,93 @@ This paper aims to:
 4.  Provide practical examples that can be adapted for real-world applications
 5.  Initiate community discussion toward potential formalization of ER standards
 
+## Background
+
+## Traditional Approach - Sample Data
+
+The traditional approach stores all E-R data in a single wide-format file with one row per subject and all parameters as columns.
+
+### Subject Identifiers and Treatment
+
+| C | PTNM | TRT | DOSE | TIME | NTIM |
+|:-:|:----:|:---:|:----:|:----:|:----:|
+| 1 | 001 | 3 | 81 | 523 | 1 |
+| 1 | 002 | 1 | 0 | 365 | 0 |
+| 1 | 003 | 2 | 54 | 450 | 0 |
+
+: Subject identifiers and treatment assignment {#tbl-trad-ids}
+
+- **C**: Censor indicator (1=study included)
+- **PTNM**: Patient number
+- **TRT**: Treatment (1=Placebo, 2=Low Dose, 3=High Dose)
+- **DOSE**: Actual dose received (mg)
+- **TIME**: Time to primary event (days)
+- **NTIM**: Number of assessment timepoints
+
+### Time-to-Event Outcomes
+
+| PTNM | OS | OSOS | PFS | PFSS |
+|:----:|:--:|:----:|:---:|:----:|
+| 001 | 1 | 0 | 245 | 1 |
+| 002 | 0 | 1 | 180 | 0 |
+| 003 | 0 | 1 | 240 | 0 |
+
+: Time-to-event outcomes {#tbl-trad-tte}
+
+- **OS**: Overall survival event (1=death, 0=censored)
+- **OSOS**: Overall survival status
+- **PFS**: Progression-free survival time (days)
+- **PFSS**: PFS status (1=event, 0=censored)
+
+### Demographics and Baseline Characteristics
+
+| PTNM | AGE | SEX | RACE | WT | HT | BSA | CRCLBL |
+|:----:|:---:|:---:|:----:|:---:|:--:|:---:|:------:|
+| 001 | 65 | 1 | 5 | 78.5 | 175 | 1.95 | 85.2 |
+| 002 | 58 | 2 | 5 | 65.2 | 168 | 1.75 | 92.1 |
+| 003 | 72 | 1 | 5 | 82.1 | 180 | 2.03 | 78.5 |
+
+: Demographics and baseline characteristics {#tbl-trad-demo}
+
+- **AGE**: Age in years
+- **SEX**: Sex (1=Male, 2=Female)
+- **RACE**: Race (5=White)
+- **WT**: Weight (kg)
+- **HT**: Height (cm)
+- **BSA**: Body surface area (m²)
+- **CRCLBL**: Baseline creatinine clearance (mL/min)
+
+### Exposure Metrics
+
+| PTNM | AUC | CMAX | CAVG |
+|:----:|:---:|:----:|:----:|
+| 001 | 145.2 | 89.3 | 72.1 |
+| 002 | 0.0 | 0.0 | 0.0 |
+| 003 | 98.5 | 62.1 | 49.3 |
+
+: Exposure metrics {#tbl-trad-exposure}
+
+- **AUC**: Area under the concentration-time curve (ng·h/mL)
+- **CMAX**: Maximum observed concentration (ng/mL)
+- **CAVG**: Average steady-state concentration (ng/mL)
+
+### Tumor Response and Safety
+
+| PTNM | NADIR | BOR | TEAE | TEAEGR3 |
+|:----:|:-----:|:---:|:----:|:-------:|
+| 001 | 65.0 | 3 | 5 | 2 |
+| 002 | 105.2 | 2 | 2 | 0 |
+| 003 | 76.6 | 3 | 4 | 1 |
+
+: Tumor response and safety outcomes {#tbl-trad-response}
+
+- **NADIR**: Nadir tumor size (mm)
+- **BOR**: Best overall response (1=PD, 2=SD, 3=PR, 4=CR)
+- **TEAE**: Total treatment-emergent adverse events
+- **TEAEGR3**: Number of Grade 3 or higher adverse events
+
+
+
 # Methods
 
 ## Proposed Framework
