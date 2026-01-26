@@ -15,6 +15,7 @@ library(metacore)
 library(metatools)
 library(xportr)
 library(readxl)
+library(readr)
 
 # Load Specs for Metacore ----
 metacore <- spec_to_metacore("specifications/adams-specs.xlsx", where_sep_sheet = FALSE) %>%
@@ -199,7 +200,7 @@ ader <- ader_prefinal %>%
   order_cols(metacore) %>% # Orders the columns according to the spec
   sort_by_key(metacore) # Sorts the rows by the sort keys
 
-dir <- "data/adam" # Change to whichever directory you want to save the dataset in
+dir <- "adam" # Change to whichever directory you want to save the dataset in
 
 ader_xpt <- ader %>%
   xportr_type(metacore, domain = "ADER") %>% # Coerce variable type to match spec
@@ -212,3 +213,5 @@ ader_xpt <- ader %>%
 # Save output ----
 
 save(ader, file = file.path(dir, "ader.rda"), compress = "bzip2")
+
+write_csv(ader_xpt, file = file.path(dir, "ader.csv"))
