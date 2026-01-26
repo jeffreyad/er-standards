@@ -26,3 +26,17 @@ _output/
 # OS
 .DS_Store
 Thumbs.db
+
+# renv
+renv/library/          # Don't commit installed packages
+renv/local/
+renv/cellar/
+renv/lock/
+renv/python/
+renv/staging/
+
+# Keep these
+!renv.lock             # DO commit this
+!renv/activate.R       # DO commit this
+!renv/settings.json    # DO commit this
+!.Rprofile             # DO commit this
