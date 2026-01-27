@@ -8,8 +8,8 @@ format:
   revealjs:
     theme: [default]
     slide-number: true
-    chalkboard: true
-    code-line-numbers: false
+    chalkboard: false
+    code-line-numbers: true
     code-overflow: wrap
     highlight-style: github
 ---
@@ -674,13 +674,13 @@ run_tumor_response_example()
 **Contact Information**
 
 -   Email: jeff.dickinson@navitaslifesciences.com
--   GitHub: \[jeffreyad\]
--   LinkedIn: \[https://www.linkedin.com/in/jeffreyad/\]
+-   GitHub: jeffreyad
+-   LinkedIn: https://www.linkedin.com/in/jeffreyad/
 
 **Resources**
 
--   Repository: \[https://github.com/jeffreyad/er-standards\]
--   Documentation: \[https://github.com/jeffreyad/er-standards/specifications\]
+-   Repository: https://github.com/jeffreyad/er-standard
+-   Documentation: https://github.com/jeffreyad/er-standards/specifications
 -   Pharmaverse: https://pharmaverse.org
 -   Examples: https://pharmaverse.github.io/examples/
 
