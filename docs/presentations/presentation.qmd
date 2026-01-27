@@ -615,7 +615,7 @@ adee <- derive_er_tte_data(
 
 **Resources Available**
 
--   GitHub repository: \[your-repo-url\]
+-   GitHub repository: \[https://github.com/jeffreyad/er-standards\]
 -   Example datasets and scripts
 -   ADaM specifications templates
 -   Presentation materials
@@ -673,15 +673,16 @@ run_tumor_response_example()
 
 **Contact Information**
 
--   Email: \[your-email\]
--   GitHub: \[your-github\]
--   LinkedIn: \[your-linkedin\]
+-   Email: jeff.dickinson@navitaslifesciences.com
+-   GitHub: \[jeffreyad\]
+-   LinkedIn: \[https://www.linkedin.com/in/jeffreyad/\]
 
 **Resources**
 
--   Repository: \[repo-url\]
--   Documentation: \[docs-url\]
+-   Repository: \[https://github.com/jeffreyad/er-standards\]
+-   Documentation: \[https://github.com/jeffreyad/er-standards/specifications\]
 -   Pharmaverse: https://pharmaverse.org
+-   Examples: https://pharmaverse.github.io/examples/
 
 ::: fragment
 Thank you!
