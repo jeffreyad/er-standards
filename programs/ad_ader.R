@@ -2,7 +2,7 @@
 #
 # Label: Exposure Response Data
 #
-# Input: adsl, adrs, tte_source objects
+# Input: adsl, adrs, adtte, adlb, advs, adex
 library(admiral)
 library(admiralonco)
 # pharmaverseadam contains example datasets generated from the CDISC pilot
@@ -18,7 +18,7 @@ library(readxl)
 library(readr)
 
 # Load Specs for Metacore ----
-metacore <- spec_to_metacore("specifications/adams-specs.xlsx", where_sep_sheet = FALSE) %>%
+metacore <- spec_to_metacore("specifications/pk_spec.xlsx") %>%
   select_dataset("ADER")
 
 # Load source datasets ----
@@ -77,7 +77,7 @@ ader_aseq <- ader_bor %>%
     check_type = "error"
   )
 
-#---- Derive Covariates ----
+# ---- Derive Covariates ----
 # Include numeric values for STUDYIDN, USUBJIDN, SEXN, RACEN etc.
 
 covar <- adsl %>%
@@ -141,7 +141,7 @@ covar <- adsl %>%
     ARMN, ACTARMN
   )
 
-#---- Derive additional baselines from VS and LB ----
+# ---- Derive additional baselines from ADVS and ADLB ----
 
 labsbl <- adlb %>%
   filter(ABLFL == "Y" & PARAMCD %in% c("CREAT", "ALT", "AST", "BILI")) %>%
@@ -171,7 +171,7 @@ covar_vslb <- covar %>%
     BMIBL = compute_bmi(height = HTBL, weight = WTBL),
     BSABL = compute_bsa(
       height = HTBL,
-      weight = HTBL,
+      weight = WTBL,
       method = "Mosteller"
     ),
     CRCLBL = compute_egfr(
@@ -192,6 +192,8 @@ ader_prefinal <- ader_aseq %>%
     dataset_add = covar_vslb,
     by_vars = exprs(STUDYID, USUBJID)
   )
+
+## Check Data With metacore and metatools
 
 ader <- ader_prefinal %>%
   drop_unspec_vars(metacore) %>% # Drop unspecified variables from specs
