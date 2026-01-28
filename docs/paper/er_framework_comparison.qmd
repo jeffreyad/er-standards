@@ -73,9 +73,10 @@ traditional <- tibble(
   TEAEGR3 = c(2, 0, 1)
 )
 
-kable(traditional, 
-      format = "html",
-      digits = 1) %>%
+kable(traditional,
+  format = "html",
+  digits = 1
+) %>%
   kable_styling(
     bootstrap_options = c("striped", "hover", "condensed"),
     full_width = FALSE,
@@ -91,8 +92,10 @@ kable(traditional,
 #| tbl-cap: "Traditional Variable Definitions"
 
 var_key <- tibble(
-  Variable = c("C", "PTNM", "TRT", "DOSE", "TIME", "NTIM", "OS", "OSOS", 
-               "PFS", "PFSS", "TEAE", "TEAEGR3", "BOR", "NADIR"),
+  Variable = c(
+    "C", "PTNM", "TRT", "DOSE", "TIME", "NTIM", "OS", "OSOS",
+    "PFS", "PFSS", "TEAE", "TEAEGR3", "BOR", "NADIR"
+  ),
   Definition = c(
     "Censor indicator",
     "Patient number",
@@ -153,8 +156,10 @@ adee <- tibble(
   STUDYID = rep("STUDY001", 5),
   USUBJID = c(rep("STUDY001-001-0001", 3), rep("STUDY001-001-0002", 2)),
   PARAMCD = c("OS", "PFS", "TTP", "OS", "PFS"),
-  PARAM = c("Overall Survival", "Progression-Free Survival", "Time to Progression",
-            "Overall Survival", "Progression-Free Survival"),
+  PARAM = c(
+    "Overall Survival", "Progression-Free Survival", "Time to Progression",
+    "Overall Survival", "Progression-Free Survival"
+  ),
   AVAL = c(523, 245, 245, 365, 180),
   CNSR = c(0, 0, 0, 1, 1),
   EVENT = c(1, 1, 1, 0, 0),
@@ -198,9 +203,11 @@ ades <- tibble(
   STUDYID = rep("STUDY001", 5),
   USUBJID = c(rep("STUDY001-001-0001", 4), "STUDY001-001-0002"),
   PARAMCD = c("TEAE", "TEAESEV", "TESAE", "OVR", "TEAE"),
-  PARAM = c("Treatment-Emergent AEs", "Treatment-Emergent Severe AEs",
-            "Treatment-Emergent Serious AEs", "Overall Response", 
-            "Treatment-Emergent AEs"),
+  PARAM = c(
+    "Treatment-Emergent AEs", "Treatment-Emergent Severe AEs",
+    "Treatment-Emergent Serious AEs", "Overall Response",
+    "Treatment-Emergent AEs"
+  ),
   AVAL = c(5, 2, 1, NA, 2),
   AVALC = c("5", "2", "1", NA, "2"),
   AUCSS = c(145.2, 145.2, 145.2, 145.2, 0.0),
@@ -242,8 +249,10 @@ adtrr <- tibble(
   STUDYID = rep("STUDY001", 5),
   USUBJID = rep("STUDY001-001-0001", 5),
   PARAMCD = c("TSIZE", "TSIZE", "TSIZE", "BOR", "NADIR"),
-  PARAM = c("Target Lesion Size", "Target Lesion Size", "Target Lesion Size",
-            "Best Overall Response", "Nadir Tumor Size"),
+  PARAM = c(
+    "Target Lesion Size", "Target Lesion Size", "Target Lesion Size",
+    "Best Overall Response", "Nadir Tumor Size"
+  ),
   AVISITN = c(1, 3, 5, 99, 99),
   AVISIT = c("BASELINE", "WEEK 12", "WEEK 24", "OVERALL", "OVERALL"),
   AVAL = c(105.2, 85.1, 65.0, NA, 65.0),
@@ -359,7 +368,7 @@ kable(comparison) %>%
 
 mapping <- tibble(
   `Traditional` = c(
-    "C", "PTNM", "TRT", "DOSE", "TIME", "NTIM", 
+    "C", "PTNM", "TRT", "DOSE", "TIME", "NTIM",
     "OS", "OSOS", "PFS", "PFSS",
     "AGE", "SEX", "RACE", "WT", "HT", "BSA", "CRCLBL",
     "AUC", "CMAX", "CAVG",
@@ -367,12 +376,12 @@ mapping <- tibble(
   ),
   `New Framework` = c(
     "CNSR", "USUBJID", "TRT01A, TRT01AN", "DOSE", "AVAL", "(derived)",
-    "AVAL (PARAMCD=OS)", "EVENT (PARAMCD=OS)", 
+    "AVAL (PARAMCD=OS)", "EVENT (PARAMCD=OS)",
     "AVAL (PARAMCD=PFS)", "EVENT (PARAMCD=PFS)",
-    "AGE", "SEX, SEXN", "RACE, RACEN", 
+    "AGE", "SEX, SEXN", "RACE, RACEN",
     "WTBL", "HTBL", "BSA", "CRCLBL",
     "AUCSS", "CMAXSS", "CAVGSS",
-    "AVAL (PARAMCD=NADIR)", "AVALC (PARAMCD=BOR)", 
+    "AVAL (PARAMCD=NADIR)", "AVALC (PARAMCD=BOR)",
     "AVAL (PARAMCD=TEAE)", "AVAL (PARAMCD=TEAESEV)"
   ),
   Dataset = c(
@@ -435,18 +444,18 @@ grViz("
 digraph traditional {
   graph [rankdir=LR, bgcolor=transparent]
   node [shape=box, style=filled, fillcolor=lightblue, fontname=Arial]
-  
+
   Subject [label='Subject\\n001']
   OS [label='OS_Time\\nOS_Event']
   PFS [label='PFS_Time\\nPFS_Event']
   Exposure [label='AUC\\nCmax\\nCavg']
   Covariates [label='Age\\nSex\\nRace']
-  
+
   Subject -> OS
   Subject -> PFS
   Subject -> Exposure
   Subject -> Covariates
-  
+
   {rank=same; OS; PFS; Exposure; Covariates}
 }
 ")
@@ -466,20 +475,20 @@ grViz("
 digraph newframework {
   graph [rankdir=TB, bgcolor=transparent]
   node [shape=box, style=filled, fontname=Arial]
-  
+
   Subject [label='Subject\\n001', fillcolor=lightgreen]
-  
+
   OS [label='OS\\nAVAL=523\\nEVENT=1', fillcolor=lightblue]
   PFS [label='PFS\\nAVAL=245\\nEVENT=1', fillcolor=lightblue]
   TTP [label='TTP\\nAVAL=245\\nEVENT=1', fillcolor=lightblue]
-  
+
   Exposure [label='Exposure\\nAUCSS=145.2\\nCMAXSS=89.3', fillcolor=lightyellow]
   Covariates [label='Covariates\\nAGE=65\\nSEX=M', fillcolor=lightyellow]
-  
+
   Subject -> OS
   Subject -> PFS
   Subject -> TTP
-  
+
   OS -> Exposure
   OS -> Covariates
   PFS -> Exposure
@@ -511,8 +520,8 @@ library(survival)
 
 # Manually create tertiles
 er_data$AUC_TERT <- cut(
-  er_data$AUC, 
-  breaks = quantile(er_data$AUC, c(0, 1/3, 2/3, 1)),
+  er_data$AUC,
+  breaks = quantile(er_data$AUC, c(0, 1 / 3, 2 / 3, 1)),
   labels = c("Low", "Medium", "High")
 )
 
@@ -521,7 +530,7 @@ os_data <- er_data
 
 # Fit Cox model
 cox_model <- coxph(
-  Surv(TIME, OS) ~ AUC_TERT + AGE + SEX, 
+  Surv(TIME, OS) ~ AUC_TERT + AGE + SEX,
   data = os_data
 )
 
@@ -555,7 +564,7 @@ adee_os <- adee_os %>%
 
 # Fit Cox model (standard pattern)
 cox_model <- coxph(
-  Surv(AVAL, EVENT) ~ AUCSSCAT + AGE + SEX, 
+  Surv(AVAL, EVENT) ~ AUCSSCAT + AGE + SEX,
   data = adee_os
 )
 
