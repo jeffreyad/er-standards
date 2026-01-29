@@ -50,19 +50,28 @@ filter <- dplyr::filter
 # LOAD SPECIFICATIONS (if available)
 # ===============================================================================
 
-# Load metacore specifications
-if (file.exists("specifications/ADES_spec.xlsx")) {
-  metacore <- spec_to_metacore("specifications/ADES_spec.xlsx",
-    where_sep_sheet = FALSE
-  )
-  message("✓ Loaded metacore specifications from Excel")
-} else if (file.exists("specifications/ADES_metacore.rds")) {
-  metacore <- readRDS("specifications/ADES_metacore.rds")
-  message("✓ Loaded metacore specifications from RDS")
-} else {
-  message("⚠ No metacore specifications found - proceeding without")
-  metacore <- NULL
-}
+# # Load metacore specifications
+# if (file.exists("specifications/ADES_specification.xlsx")) {
+#   metacore <- spec_to_metacore("specifications/ADES_specification.xlsx",
+#     where_sep_sheet = FALSE
+#   )
+#   message("✓ Loaded metacore specifications from Excel")
+# } else if (file.exists("specifications/ADES_metacore.rds")) {
+#   metacore <- readRDS("specifications/ADES_metacore.rds")
+#   message("✓ Loaded metacore specifications from RDS")
+# } else {
+#   message("⚠ No metacore specifications found - proceeding without")
+#   metacore <- NULL
+# }
+
+
+
+# Load Specs for Metacore ----
+
+metacore <- spec_to_metacore("specifications/er_spec.xlsx",
+    where_sep_sheet = FALSE  )%>%
+  select_dataset("ADES")
+
 
 # ===============================================================================
 # LOAD INPUT DATA
@@ -76,6 +85,8 @@ adsl <- pharmaverseadam::adsl
 adae <- pharmaverseadam::adae
 adlb <- pharmaverseadam::adlb
 advs <- pharmaverseadam::advs
+
+adpp <- pharmaverseadam::adpp
 
 # ===============================================================================
 # PREPARE ADSL - ADD DERIVED VARIABLES
@@ -221,18 +232,18 @@ adsl_vslb <- adsl_vs %>%
 # DERIVE EXPOSURE METRICS
 # ===============================================================================
 
-# Source the exposure metrics function
-source("R/derive_exposure_metrics.R")
+# ---- Derive Exposure Metrics
 
-# Derive exposure metrics
-# For production: change source = "adpc" and provide adpc_data
-exposure_final <- derive_exposure_metrics(
-  adsl_data = adsl_vslb,
-  source = "simulated", # Change to "adpc" for production
-  # adpc_data = adpc,    # Uncomment for production
-  seed = 12345,
-  tertile_var = "AUCSS"
-)
+exposure_final <- adsl_vslb %>%
+  derive_vars_transposed(
+    dataset_merge = adpp,
+    filter = PARAMCD %in% c("AUCLST", "CMAX"),
+    by_vars = get_admiral_option("subject_keys"),
+    key_var = PARAMCD,
+    value_var = AVAL
+  ) %>%
+  rename(AUCSS = AUCLST, CMAXSS = CMAX)
+
 
 # ===============================================================================
 # CREATE SUBJECT-LEVEL SAFETY PARAMETERS
@@ -434,120 +445,90 @@ ades_prefinal <- ades_base %>%
   arrange(USUBJID, PARAMN, coalesce(AESTDT, as.Date("1900-01-01"))) %>%
   group_by(STUDYID, USUBJID) %>%
   mutate(ASEQ = row_number()) %>%
-  ungroup() %>%
-  # Select and order variables
-  select(
-    # Identifiers
-    STUDYID, STUDYIDN, USUBJID, USUBJIDN, SUBJID, SUBJIDN,
-    SITEID, SITEIDN,
+  ungroup() 
 
-    # Treatment
-    ARM, ARMN, ACTARM, ACTARMN,
-    TRT01P, TRT01PN, TRT01A, TRT01AN,
-    TRTSDT, TRTEDT, TRTDURD,
-
-    # Demographics
-    AGE, AGEGR1, AGEGR1N,
-    SEX, SEXN,
-    RACE, RACEN,
-    ETHNIC, ETHNICN,
-
-    # Parameter information
-    PARAMCD, PARAM, PARAMN,
-    PARCAT1, PARCAT2,
-
-    # Visit/timepoint
-    AVISIT, AVISITN,
-
-    # Analysis values
-    AVAL, AVALC,
-
-    # AE-specific variables (all present now, NA for subject-level)
-    AEDECOD, AEBODSYS, AESEV, AESEVN,
-    AESER, AEREL, AERELN, AESTDT, AEENDT,
-
-    # Analysis flags
-    ANL01FL, ANL02FL, ANL03FL, ANL04FL, ANL05FL,
-
-    # Exposure - Primary
-    DOSE, AUCSS, CMAXSS, CAVGSS, CMINSS, CLSS,
-
-    # Exposure - Transformations
-    AUCSLOG, CMXSLOG, CAVGLOG,
-    AUCSSSTD, CMXSSSTD,
-    AUCSSN,
-    AUCSSDOS, CMXSSDOS,
-
-    # Exposure - Categories
-    AUCSSCAT, AUCSCATN,
-    AUCSSQ, AUCSSQN,
-    AUCSSMED,
-
-    # Baseline covariates
-    WTBL, WTBLGR1, HTBL, BMIBL, BSABL,
-    CREATBL, CRCLBL, EGFRBL,
-    ALTBL, ASTBL, TBILBL, any_of("ALBBL"),
-
-    # Record identifiers
-    ASEQ, any_of("DTYPE")
-  )
 
 # ===============================================================================
 # APPLY METADATA AND PREPARE FOR EXPORT
 # ===============================================================================
 
-if (!is.null(metacore)) {
-  # Apply metacore specifications
-  ades <- ades_prefinal %>%
-    drop_unspec_vars(metacore) %>%
-    check_variables(metacore, strict = FALSE) %>%
-    check_ct_data(metacore, na_acceptable = TRUE) %>%
-    order_cols(metacore) %>%
-    sort_by_key(metacore)
 
-  message("✓ Metacore checks passed")
-} else {
-  # Use prefinal dataset if no metacore
-  ades <- ades_prefinal
-  message("⚠ Proceeding without metacore checks")
-}
+## Check Data With metacore and metatools
 
-# ===============================================================================
-# SAVE OUTPUT
-# ===============================================================================
+ades <- ades_prefinal %>%
+  drop_unspec_vars(metacore) %>% # Drop unspecified variables from specs
+  check_variables(metacore, strict = FALSE) %>% # Check all variables specified are present and no more
+  check_ct_data(metacore) %>% # Checks all variables with CT only contain values within the CT
+  order_cols(metacore) %>% # Orders the columns according to the spec
+  sort_by_key(metacore) # Sorts the rows by the sort keys
 
-# Create output directory
-dir <- "adam"
-if (!dir.exists(dir)) dir.create(dir, recursive = TRUE)
+dir <- "adam" # Change to whichever directory you want to save the dataset in
 
-# Save as RDS (R native format)
-saveRDS(ades, file.path(dir, "ades.rds"))
-message("✓ Saved: adam/ades.rds")
+ades_xpt <- ades %>%
+  xportr_type(metacore, domain = "ADES") %>% # Coerce variable type to match spec
+  xportr_length(metacore) %>% # Assigns SAS length from a variable level metadata
+  xportr_label(metacore) %>% # Assigns variable label from metacore specifications
+  xportr_format(metacore) %>% # Assigns variable format from metacore specifications
+  xportr_df_label(metacore, domain = "ADES") %>% # Assigns dataset label from metacore specifications
+  xportr_write(file.path(dir, "ades.xpt")) # Write xpt v5 transport file
 
-# Save as CSV (for review)
-write.csv(ades, file.path(dir, "ades.csv"), row.names = FALSE, na = "")
-message("✓ Saved: adam/ades.csv")
+# Save output ----
 
-# Apply xportr and save as XPT
-if (!is.null(metacore)) {
-  # With metacore specifications
-  ades_xpt <- ades %>%
-    xportr_type(metacore, domain = "ADES") %>%
-    xportr_length(metacore) %>%
-    xportr_label(metacore) %>%
-    xportr_format(metacore) %>%
-    xportr_df_label(metacore) %>%
-    xportr_write(file.path(dir, "ades.xpt"))
+save(ades, file = file.path(dir, "ades.rda"), compress = "bzip2")
 
-  message("✓ Saved: adam/ades.xpt (with metacore attributes)")
-} else {
-  # Without metacore specifications (basic XPT)
-  if (requireNamespace("haven", quietly = TRUE)) {
-    haven::write_xpt(ades, file.path(dir, "ades.xpt"), version = 5)
-    message("✓ Saved: adam/ades.xpt (basic format)")
-  }
-}
 
-# ===============================================================================
-# END OF PROGRAM
-# ===============================================================================
+# if (!is.null(metacore)) {
+#   # Apply metacore specifications
+#   ades <- ades_prefinal %>%
+#     drop_unspec_vars(metacore) %>%
+#     check_variables(metacore, strict = FALSE) %>%
+#     check_ct_data(metacore, na_acceptable = TRUE) %>%
+#     order_cols(metacore) %>%
+#     sort_by_key(metacore)
+
+#   message("✓ Metacore checks passed")
+# } else {
+#   # Use prefinal dataset if no metacore
+#   ades <- ades_prefinal
+#   message("⚠ Proceeding without metacore checks")
+# }
+
+# # ===============================================================================
+# # SAVE OUTPUT
+# # ===============================================================================
+
+# # Create output directory
+# dir <- "adam"
+# if (!dir.exists(dir)) dir.create(dir, recursive = TRUE)
+
+# # Save as RDS (R native format)
+# saveRDS(ades, file.path(dir, "ades.rds"))
+# message("✓ Saved: adam/ades.rds")
+
+# # Save as CSV (for review)
+# write.csv(ades, file.path(dir, "ades.csv"), row.names = FALSE, na = "")
+# message("✓ Saved: adam/ades.csv")
+
+# # Apply xportr and save as XPT
+# if (!is.null(metacore)) {
+#   # With metacore specifications
+#   ades_xpt <- ades %>%
+#     xportr_type(metacore, domain = "ADES") %>%
+#     xportr_length(metacore) %>%
+#     xportr_label(metacore) %>%
+#     xportr_format(metacore) %>%
+#     xportr_df_label(metacore) %>%
+#     xportr_write(file.path(dir, "ades.xpt"))
+
+#   message("✓ Saved: adam/ades.xpt (with metacore attributes)")
+# } else {
+#   # Without metacore specifications (basic XPT)
+#   if (requireNamespace("haven", quietly = TRUE)) {
+#     haven::write_xpt(ades, file.path(dir, "ades.xpt"), version = 5)
+#     message("✓ Saved: adam/ades.xpt (basic format)")
+#   }
+# }
+
+# # ===============================================================================
+# # END OF PROGRAM
+# # ===============================================================================
