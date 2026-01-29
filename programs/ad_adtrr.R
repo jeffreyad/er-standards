@@ -1,71 +1,29 @@
-# ===============================================================================
-# Program: ADTRR.R
+# Name: ADTRR
 #
-# Purpose: Create ADTRR (Tumor Response for Exposure-Response Analysis)
+# Label: Exposure Safety Data
 #
-# Description: Derives tumor response analysis dataset combining longitudinal
-#              tumor measurements, RECIST 1.1 evaluations, and exposure metrics
-#              for exposure-response analysis.
-#
-# Input:
-#   - ADSL: Subject-level analysis dataset
-#   - ADTR: Tumor measurements (from admiralonco)
-#   - ADRS: Response evaluations (from admiralonco)
-#   - ADVS: Vital signs
-#   - ADLB: Laboratory data
-#
-# Output:
-#   - ADTRR: Tumor response for E-R analysis
-#
-# Structure: BDS (Basic Data Structure)
-#   - Multiple records per subject (one per parameter per visit)
-#   - PARAMCD identifies measurement type (TSIZE, BOR, NADIR)
-#   - Longitudinal tumor measurements with exposure metrics
-#
-# Author: Jeff Dickinson
-# Date: 2026-01-22
-# Version: 1.1
-#
-# Note: Variable names limited to 8 characters for SAS compatibility
-#
-# ===============================================================================
-
+# Input: adsl, adtr, adlb, advs, adex, adpp
 # Load required packages
 library(admiral)
 library(admiralonco)
+# pharmaverseadam contains example datasets generated from the CDISC pilot
+# project SDTM ran through admiral templates
+library(pharmaverseadam)
 library(dplyr)
 library(lubridate)
 library(stringr)
-library(tidyr)
 library(metacore)
 library(metatools)
 library(xportr)
 
-# Prevent namespace conflicts
-select <- dplyr::select
-filter <- dplyr::filter
+# Load Specs for Metacore ----
+# Load Specs for Metacore ----
 
-# ===============================================================================
-# LOAD SPECIFICATIONS (if available)
-# ===============================================================================
+metacore <- spec_to_metacore("specifications/er_spec.xlsx",
+    where_sep_sheet = FALSE  )%>%
+  select_dataset("ADTRR")
 
-# Load metacore specifications
-if (file.exists("specifications/ADTRR_spec.xlsx")) {
-  metacore <- spec_to_metacore("specifications/ADTRR_spec.xlsx",
-    where_sep_sheet = FALSE
-  )
-  message("✓ Loaded metacore specifications from Excel")
-} else if (file.exists("specifications/ADTRR_metacore.rds")) {
-  metacore <- readRDS("specifications/ADTRR_metacore.rds")
-  message("✓ Loaded metacore specifications from RDS")
-} else {
-  message("⚠ No metacore specifications found - proceeding without")
-  metacore <- NULL
-}
-
-# ===============================================================================
-# LOAD INPUT DATA
-# ===============================================================================
+# Load source datasets ----
 
 # Use haven::read_sas() or similar to read in production data
 # For illustration, using pharmaverseadam example data
@@ -77,9 +35,7 @@ adrs <- pharmaverseadam::adrs_onco # Has response evaluations
 adlb <- pharmaverseadam::adlb
 advs <- pharmaverseadam::advs
 
-# ===============================================================================
-# PREPARE ADSL - ADD DERIVED VARIABLES
-# ===============================================================================
+# ---- Prepare adsl - add derived variables
 
 # Ensure TRT01P/TRT01A exist
 if (!"TRT01P" %in% names(adsl)) {
@@ -106,9 +62,7 @@ adsl <- adsl %>%
     )
   )
 
-# ===============================================================================
-# DERIVE BASELINE COVARIATES
-# ===============================================================================
+# ---- Derive Baseline Covariates
 
 ## Numeric identifiers and demographics ----
 
@@ -216,79 +170,25 @@ adsl_vslb <- adsl_vs %>%
     )
   ) %>%
   select(-BILIBL)
+# ---- Derive Exposure Metrics
 
-# ===============================================================================
-# DERIVE EXPOSURE METRICS
-# ===============================================================================
+exposure_final <- adsl_vslb %>%
+  derive_vars_transposed(
+    dataset_merge = adpp,
+    filter = PARAMCD %in% c("AUCLST", "CMAX"),
+    by_vars = get_admiral_option("subject_keys"),
+    key_var = PARAMCD,
+    value_var = AVAL
+  ) %>%
+  rename(AUCSS = AUCLST, CMAXSS = CMAX)
 
-source("config/exposure_config.R")
-source("R/derive_exposure_metrics.R")
-
-if (EXPOSURE_SOURCE == "adpc") {
-  stop("ADPC dataset not configured. Set EXPOSURE_SOURCE to 'simulated' in config/exposure_config.R")
-} else {
-  adpc <- NULL
-}
-
-# Derive all exposure metrics
-exposure_all <- derive_exposure_metrics(
-  adsl_data = adsl_vslb,
-  source = EXPOSURE_SOURCE,
-  adpc_data = adpc,
-  seed = EXPOSURE_SEED,
-  tertile_var = TERTILE_VARIABLE
-)
-
-# Select ONLY subject-level variables (no tumor-related variables)
-# This prevents conflicts with BASE, CHG, PCHG, AVAL, etc.
-exposure_final <- exposure_all %>%
-  select(
-    # Keys
-    STUDYID, STUDYIDN, USUBJID, USUBJIDN, SUBJID, SUBJIDN,
-    SITEID, SITEIDN,
-
-    # Treatment
-    ARM, ARMN, ACTARM, ACTARMN,
-    TRT01P, TRT01PN, TRT01A, TRT01AN,
-    TRTSDT, TRTEDT, TRTDURD,
-
-    # Demographics
-    AGE, AGEGR1, AGEGR1N,
-    SEX, SEXN,
-    RACE, RACEN,
-    ETHNIC, ETHNICN,
-
-    # Exposure metrics (all 20 variables)
-    DOSE, AUCSS, CMAXSS, CAVGSS, CMINSS, CLSS,
-    AUCSLOG, CMXSLOG, CAVGLOG,
-    AUCSSSTD, CMXSSSTD, AUCSSN,
-    AUCSSDOS, CMXSSDOS,
-    AUCSSCAT, AUCSCATN,
-    AUCSSQ, AUCSSQN,
-    AUCSSMED,
-
-    # Baseline covariates
-    WTBL, WTBLGR1, HTBL, BMIBL, BSABL,
-    CREATBL, CRCLBL, EGFRBL,
-    ALTBL, ASTBL, TBILBL, any_of("ALBBL")
-  )
-
-message("✓ Exposure dataset prepared: ", ncol(exposure_final), " variables")
-
-# ===============================================================================
-# CREATE TUMOR SIZE PARAMETER FROM ADTR
-# ===============================================================================
-
-# pharmaverseadam::adtr_onco already has BASE, CHG, PCHG calculated
-# We'll use these directly rather than recalculating
+# ---- Create tumor size parameter dataset
 
 # Get variable names for clean dropping
 adsl_vars <- names(exposure_final)
 adtr_vars <- names(adtr)
 common_vars <- intersect(adsl_vars, adtr_vars)
 vars_to_drop <- setdiff(common_vars, c("STUDYID", "USUBJID"))
-
-message("Variables to drop from ADTR: ", paste(vars_to_drop, collapse = ", "))
 
 tsize_final <- adtr %>%
   filter(PARAMCD == "SDIAM") %>%
@@ -303,25 +203,19 @@ tsize_final <- adtr %>%
     by_vars = exprs(STUDYID, USUBJID)
   )
 
-message("✓ TSIZE records created: ", nrow(tsize_final))
-
-# ===============================================================================
-# ADD BOR FROM ADRS
-# ===============================================================================
+# ---- Add BOR from ADRS
 
 adrs_vars <- names(adrs)
 common_vars_adrs <- intersect(adsl_vars, adrs_vars)
 vars_to_drop_adrs <- setdiff(common_vars_adrs, c("STUDYID", "USUBJID"))
 
-message("Variables to drop from ADRS: ", paste(vars_to_drop_adrs, collapse = ", "))
-
 bor <- adrs %>%
   filter(PARAMCD == "BOR") %>%
   mutate(
     PARAMN = 2,
-    # Create BORN from AVALC if AVALN doesn't exist
-    BORN = if ("AVALN" %in% names(.)) {
-      AVALN
+    # Create BORN from AVALC if AVAL doesn't exist
+    BORN = if ("AVAL" %in% names(.)) {
+      AVAL
     } else {
       case_when(
         AVALC == "CR" ~ 4,
@@ -339,11 +233,7 @@ bor <- adrs %>%
     by_vars = exprs(STUDYID, USUBJID)
   )
 
-message("✓ BOR records created: ", nrow(bor))
-
-# ===============================================================================
-# DERIVE NADIR (8-CHAR VARIABLES)
-# ===============================================================================
+# ---- Derive Nadir
 
 # Calculate nadir from TSIZE records
 # Keep BASE, CHG, PCHG from the nadir timepoint
@@ -362,11 +252,7 @@ nadir <- tsize_final %>%
     NADVST = AVISIT # Keep visit of nadir
   )
 
-message("✓ NADIR records created: ", nrow(nadir))
-
-# ===============================================================================
-# COMBINE ALL PARAMETERS
-# ===============================================================================
+# ---- Combine parameters
 
 adtrr_base <- bind_rows(
   tsize_final,
@@ -375,11 +261,7 @@ adtrr_base <- bind_rows(
 ) %>%
   arrange(USUBJID, PARAMN, AVISITN)
 
-message("✓ Combined dataset: ", nrow(adtrr_base), " records")
-
-# ===============================================================================
-# ADD ANALYSIS VARIABLES
-# ===============================================================================
+# ---- Add analysis variables
 
 # Ensure AVALU exists before mutating
 if (!"AVALU" %in% names(adtrr_base)) {
@@ -432,189 +314,28 @@ adtrr_prefinal <- adtrr_base %>%
     new_var = ASEQ,
     check_type = "error"
   ) %>%
-  # Select variables (8-char names)
-  select(
-    # Identifiers
-    STUDYID, STUDYIDN, USUBJID, USUBJIDN, SUBJID, SUBJIDN,
-    SITEID, SITEIDN,
-
-    # Treatment
-    ARM, ARMN, ACTARM, ACTARMN,
-    TRT01P, TRT01PN, TRT01A, TRT01AN,
-    TRTSDT, TRTEDT, TRTDURD,
-
-    # Demographics
-    AGE, AGEGR1, AGEGR1N,
-    SEX, SEXN,
-    RACE, RACEN,
-    ETHNIC, ETHNICN,
-
-    # Parameter information
-    PARAMCD, PARAM, PARAMN,
-    PARCAT1, PARCAT2,
-
-    # Visit
-    AVISITN, AVISIT,
-    ADT, any_of("ADY"),
-
-    # Analysis values
-    AVAL, AVALU, AVALC, any_of("AVALN"),
-
-    # Baseline and change
-    BASE, CHG, PCHG,
-
-    # Response (8-char names)
-    any_of(c("BOR", "BORN", "NADIR", "NADPCHG", "NADVST")),
-
-    # Flags
-    ABLFL, ANL01FL, ANL02FL, ANL03FL,
-
-    # Exposure - Primary
-    DOSE, AUCSS, CMAXSS, CAVGSS, CMINSS, CLSS,
-
-    # Exposure - Transformations (8-char names)
-    AUCSLOG, CMXSLOG, CAVGLOG,
-    AUCSSSTD, CMXSSSTD,
-    AUCSSN,
-    AUCSSDOS, CMXSSDOS,
-
-    # Exposure - Categories (8-char names)
-    AUCSSCAT, AUCSCATN,
-    AUCSSQ, AUCSSQN,
-    AUCSSMED,
-
-    # Baseline covariates
-    WTBL, WTBLGR1, HTBL, BMIBL, BSABL,
-    CREATBL, CRCLBL, EGFRBL,
-    ALTBL, ASTBL, TBILBL, any_of("ALBBL"),
-
-    # Record identifiers
-    ASEQ, any_of("DTYPE")
-  ) %>%
-  # Sort
   arrange(USUBJID, PARAMN, AVISITN)
 
-# ===============================================================================
-# APPLY METADATA AND PREPARE FOR EXPORT
-# ===============================================================================
+## Check Data With metacore and metatools
 
-if (!is.null(metacore)) {
-  # Apply metacore specifications
-  adtrr <- adtrr_prefinal %>%
-    drop_unspec_vars(metacore) %>%
-    check_variables(metacore, strict = FALSE) %>%
-    check_ct_data(metacore, na_acceptable = TRUE) %>%
-    order_cols(metacore) %>%
-    sort_by_key(metacore)
+adtrr <- adtrr_prefinal %>%
+  drop_unspec_vars(metacore) %>% # Drop unspecified variables from specs
+  check_variables(metacore, strict = FALSE) %>% # Check all variables specified are present and no more
+  check_ct_data(metacore) %>% # Checks all variables with CT only contain values within the CT
+  order_cols(metacore) %>% # Orders the columns according to the spec
+  sort_by_key(metacore) # Sorts the rows by the sort keys
 
-  message("✓ Metacore checks passed")
-} else {
-  # Use prefinal dataset if no metacore
-  adtrr <- adtrr_prefinal
-  message("⚠ Proceeding without metacore checks")
-}
+dir <- "adam" # Change to whichever directory you want to save the dataset in
 
-# ===============================================================================
-# SAVE OUTPUT
-# ===============================================================================
+adtrr_xpt <- adtrr %>%
+  xportr_type(metacore, domain = "ADTRR") %>% # Coerce variable type to match spec
+  xportr_length(metacore) %>% # Assigns SAS length from a variable level metadata
+  xportr_label(metacore) %>% # Assigns variable label from metacore specifications
+  xportr_format(metacore) %>% # Assigns variable format from metacore specifications
+  xportr_df_label(metacore, domain = "ADTRR") %>% # Assigns dataset label from metacore specifications
+  xportr_write(file.path(dir, "adtrr.xpt")) # Write xpt v5 transport file
 
-# Create output directory
-dir <- "adam"
-if (!dir.exists(dir)) dir.create(dir, recursive = TRUE)
+# Save output ----
 
-# Save as RDS (R native format)
-saveRDS(adtrr, file.path(dir, "adtrr.rds"))
-message("✓ Saved: adam/adtrr.rds")
+save(adtrr, file = file.path(dir, "adtrr.rda"), compress = "bzip2")
 
-# Save as CSV (for review)
-write.csv(adtrr, file.path(dir, "adtrr.csv"), row.names = FALSE, na = "")
-message("✓ Saved: adam/adtrr.csv")
-
-# Apply xportr and save as XPT
-if (!is.null(metacore)) {
-  # With metacore specifications
-  adtrr_xpt <- adtrr %>%
-    xportr_type(metacore, domain = "ADTRR") %>%
-    xportr_length(metacore) %>%
-    xportr_label(metacore) %>%
-    xportr_format(metacore) %>%
-    xportr_df_label(metacore) %>%
-    xportr_write(file.path(dir, "adtrr.xpt"))
-
-  message("✓ Saved: adam/adtrr.xpt (with metacore attributes)")
-} else {
-  # Without metacore specifications (basic XPT)
-  if (requireNamespace("haven", quietly = TRUE)) {
-    haven::write_xpt(adtrr, file.path(dir, "adtrr.xpt"), version = 5)
-    message("✓ Saved: adam/adtrr.xpt (basic format)")
-  }
-}
-
-# ===============================================================================
-# SUMMARY OUTPUT
-# ===============================================================================
-
-cat("\n")
-cat(strrep("=", 80), "\n", sep = "")
-cat("ADTRR DERIVATION SUMMARY\n")
-cat(strrep("=", 80), "\n", sep = "")
-cat("\n")
-
-cat("Dataset Structure:\n")
-cat("  Total records:", nrow(adtrr), "\n")
-cat("  Unique subjects:", length(unique(adtrr$USUBJID)), "\n")
-cat("\n")
-
-cat("Records by Parameter:\n")
-param_summary <- adtrr %>%
-  count(PARAMCD, PARAM) %>%
-  arrange(PARAMCD)
-print(param_summary)
-cat("\n")
-
-cat("Records by Visit (TSIZE only):\n")
-visit_summary <- adtrr %>%
-  filter(PARAMCD == "TSIZE") %>%
-  count(AVISITN, AVISIT) %>%
-  arrange(AVISITN)
-print(visit_summary)
-cat("\n")
-
-cat("Response Distribution (BOR):\n")
-if ("BOR" %in% adtrr$PARAMCD) {
-  bor_summary <- adtrr %>%
-    filter(PARAMCD == "BOR") %>%
-    count(AVALC, name = "N") %>%
-    mutate(Percent = round(100 * N / sum(N), 1))
-  print(bor_summary)
-} else {
-  cat("  No BOR records found\n")
-}
-cat("\n")
-
-cat("Exposure Categories:\n")
-exp_summary <- adtrr %>%
-  filter(!is.na(AUCSSCAT)) %>%
-  distinct(USUBJID, .keep_all = TRUE) %>%
-  count(AUCSSCAT, name = "N_Subjects")
-print(exp_summary)
-cat("\n")
-
-cat("Analysis Flags:\n")
-flag_summary <- adtrr %>%
-  summarise(
-    Baseline = sum(ABLFL == "Y", na.rm = TRUE),
-    Post_Baseline = sum(ANL01FL == "Y", na.rm = TRUE),
-    Responders = sum(ANL02FL == "Y", na.rm = TRUE),
-    Has_Change = sum(ANL03FL == "Y", na.rm = TRUE)
-  )
-print(flag_summary)
-cat("\n")
-
-cat(strrep("=", 80), "\n", sep = "")
-cat("ADTRR derivation complete!\n")
-cat(strrep("=", 80), "\n", sep = "")
-
-# ===============================================================================
-# END OF PROGRAM
-# ===============================================================================
