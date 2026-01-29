@@ -20,7 +20,8 @@ library(xportr)
 # Load Specs for Metacore ----
 
 metacore <- spec_to_metacore("specifications/er_spec.xlsx",
-    where_sep_sheet = FALSE  )%>%
+  where_sep_sheet = FALSE
+) %>%
   select_dataset("ADTRR")
 
 # Load source datasets ----
@@ -338,4 +339,3 @@ adtrr_xpt <- adtrr %>%
 # Save output ----
 
 save(adtrr, file = file.path(dir, "adtrr.rda"), compress = "bzip2")
-

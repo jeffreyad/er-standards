@@ -20,7 +20,8 @@ library(xportr)
 # Load Specs for Metacore ----
 
 metacore <- spec_to_metacore("specifications/er_spec.xlsx",
-    where_sep_sheet = FALSE  )%>%
+  where_sep_sheet = FALSE
+) %>%
   select_dataset("ADES")
 
 # Load source datasets ----
@@ -380,7 +381,7 @@ ades_prefinal <- ades_base %>%
   arrange(USUBJID, PARAMN, coalesce(AESTDT, as.Date("1900-01-01"))) %>%
   group_by(STUDYID, USUBJID) %>%
   mutate(ASEQ = row_number()) %>%
-  ungroup() 
+  ungroup()
 
 ## Check Data With metacore and metatools
 
