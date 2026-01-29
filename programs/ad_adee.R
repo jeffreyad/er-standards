@@ -15,8 +15,6 @@ library(stringr)
 library(metacore)
 library(metatools)
 library(xportr)
-library(readxl)
-library(readr)
 
 # Load Specs for Metacore ----
 
@@ -198,21 +196,6 @@ exposure_final <- adsl_vslb %>%
     value_var = AVAL
   ) %>%
   rename(AUCSS = AUCLST, CMAXSS = CMAX)
-
-# # Load configuration
-# source("config/exposure_config.R")
-
-# # Source the exposure metrics function
-# source("R/derive_exposure_metrics.R")
-
-# # Derive exposure metrics
-# exposure_final <- derive_exposure_metrics(
-#   adsl_data = adsl_vslb,
-#   source = EXPOSURE_SOURCE,
-#   adpc_data = adpc,
-#   seed = EXPOSURE_SEED,
-#   tertile_var = TERTILE_VARIABLE
-# )
 
 # ---- Create adee base dataset
 

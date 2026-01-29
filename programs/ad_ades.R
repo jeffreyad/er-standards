@@ -1,81 +1,33 @@
-# ===============================================================================
-# Program: ADES.R
+# Name: ADEE
 #
-# Purpose: Create ADES (Exposure-Safety Analysis Dataset)
+# Label: Exposure Response Data
 #
-# Description: Derives exposure-safety analysis dataset following BDS
-#              structure with multiple records per subject per adverse event.
-#              Combines adverse event data with exposure metrics for
-#              exposure-safety analysis.
-#
-# Input:
-#   - ADSL: Subject-level analysis dataset
-#   - ADAE: Adverse events analysis dataset
-#   - ADVS: Vital signs (for baseline covariates)
-#   - ADLB: Laboratory data (for baseline covariates)
-#
-# Output:
-#   - ADES: Exposure-safety analysis dataset
-#
-# Structure: BDS (Basic Data Structure)
-#   - Multiple records per subject (one per parameter per event)
-#   - PARAMCD identifies safety endpoint (TEAE, TRAE, SAE, etc.)
-#   - Multi-level: subject-level + event-level parameters
-#   - Exposure metrics at subject and event level
-#
-# Author: Jeff Dickinson
-# Date: 2026-01-22
-# Version: 1.1
-#
-# Note: Variable names limited to 8 characters for SAS compatibility
-#       Updated for pharmaverseadam ADAE (uses ASEV/ASEVN not AETOXGR)
-#
-# ===============================================================================
-
+# Input: adsl, adae, adlb, advs, adex, adpp
 # Load required packages
 library(admiral)
+library(admiralonco)
+# pharmaverseadam contains example datasets generated from the CDISC pilot
+# project SDTM ran through admiral templates
+library(pharmaverseadam)
 library(dplyr)
 library(lubridate)
 library(stringr)
-library(tidyr)
 library(metacore)
 library(metatools)
 library(xportr)
 
-# Prevent namespace conflicts
-select <- dplyr::select
-filter <- dplyr::filter
-
-# ===============================================================================
-# LOAD SPECIFICATIONS (if available)
-# ===============================================================================
-
-# # Load metacore specifications
-# if (file.exists("specifications/ADES_specification.xlsx")) {
-#   metacore <- spec_to_metacore("specifications/ADES_specification.xlsx",
-#     where_sep_sheet = FALSE
-#   )
-#   message("✓ Loaded metacore specifications from Excel")
-# } else if (file.exists("specifications/ADES_metacore.rds")) {
-#   metacore <- readRDS("specifications/ADES_metacore.rds")
-#   message("✓ Loaded metacore specifications from RDS")
-# } else {
-#   message("⚠ No metacore specifications found - proceeding without")
-#   metacore <- NULL
-# }
-
-
-
+# Load Specs for Metacore ----
 # Load Specs for Metacore ----
 
 metacore <- spec_to_metacore("specifications/er_spec.xlsx",
     where_sep_sheet = FALSE  )%>%
   select_dataset("ADES")
 
+# Load source datasets ----
 
-# ===============================================================================
-# LOAD INPUT DATA
-# ===============================================================================
+# Use e.g. haven::read_sas to read in .sas7bdat, or other suitable functions
+# as needed and assign to the variables below.
+# For illustration purposes read in admiral test data
 
 # Use haven::read_sas() or similar to read in production data
 # For illustration, using pharmaverseadam example data
@@ -88,9 +40,7 @@ advs <- pharmaverseadam::advs
 
 adpp <- pharmaverseadam::adpp
 
-# ===============================================================================
-# PREPARE ADSL - ADD DERIVED VARIABLES
-# ===============================================================================
+# ---- Prepare adsl - add derived variables
 
 # Ensure TRT01P/TRT01A exist
 if (!"TRT01P" %in% names(adsl)) {
@@ -117,9 +67,7 @@ adsl <- adsl %>%
     )
   )
 
-# ===============================================================================
-# DERIVE BASELINE COVARIATES
-# ===============================================================================
+# ---- Derive Baseline Covariates
 
 ## Numeric identifiers and demographics ----
 
@@ -228,10 +176,6 @@ adsl_vslb <- adsl_vs %>%
   ) %>%
   select(-BILIBL)
 
-# ===============================================================================
-# DERIVE EXPOSURE METRICS
-# ===============================================================================
-
 # ---- Derive Exposure Metrics
 
 exposure_final <- adsl_vslb %>%
@@ -244,10 +188,7 @@ exposure_final <- adsl_vslb %>%
   ) %>%
   rename(AUCSS = AUCLST, CMAXSS = CMAX)
 
-
-# ===============================================================================
-# CREATE SUBJECT-LEVEL SAFETY PARAMETERS
-# ===============================================================================
+# ---- Create ades base dataset
 
 # Derive subject-level summary parameters from ADAE
 # NOTE: pharmaverseadam uses ASEV/ASEVN (severity) not AETOXGR/AETOXGRN
@@ -333,9 +274,7 @@ subject_params <- bind_rows(
   aedcn
 )
 
-# ===============================================================================
-# CREATE EVENT-LEVEL PARAMETERS
-# ===============================================================================
+# ---- Create event level parameters
 
 # Get variable names for clean dropping
 adsl_vars <- names(exposure_final)
@@ -377,9 +316,7 @@ event_params <- adae %>%
   ) %>%
   select(-any_of(vars_to_drop))
 
-# ===============================================================================
-# COMBINE SUBJECT AND EVENT LEVELS
-# ===============================================================================
+# ---- Combine subject and event levels
 
 # Ensure all AE-specific variables exist in subject_params (as NA)
 # This prevents issues when binding with event_params
@@ -413,9 +350,7 @@ ades_base <- bind_rows(
   event_params_complete
 )
 
-# ===============================================================================
-# ADD ANALYSIS VARIABLES
-# ===============================================================================
+# ---- Add analysis variables
 
 ades_prefinal <- ades_base %>%
   # Analysis flags
@@ -447,12 +382,6 @@ ades_prefinal <- ades_base %>%
   mutate(ASEQ = row_number()) %>%
   ungroup() 
 
-
-# ===============================================================================
-# APPLY METADATA AND PREPARE FOR EXPORT
-# ===============================================================================
-
-
 ## Check Data With metacore and metatools
 
 ades <- ades_prefinal %>%
@@ -475,60 +404,3 @@ ades_xpt <- ades %>%
 # Save output ----
 
 save(ades, file = file.path(dir, "ades.rda"), compress = "bzip2")
-
-
-# if (!is.null(metacore)) {
-#   # Apply metacore specifications
-#   ades <- ades_prefinal %>%
-#     drop_unspec_vars(metacore) %>%
-#     check_variables(metacore, strict = FALSE) %>%
-#     check_ct_data(metacore, na_acceptable = TRUE) %>%
-#     order_cols(metacore) %>%
-#     sort_by_key(metacore)
-
-#   message("✓ Metacore checks passed")
-# } else {
-#   # Use prefinal dataset if no metacore
-#   ades <- ades_prefinal
-#   message("⚠ Proceeding without metacore checks")
-# }
-
-# # ===============================================================================
-# # SAVE OUTPUT
-# # ===============================================================================
-
-# # Create output directory
-# dir <- "adam"
-# if (!dir.exists(dir)) dir.create(dir, recursive = TRUE)
-
-# # Save as RDS (R native format)
-# saveRDS(ades, file.path(dir, "ades.rds"))
-# message("✓ Saved: adam/ades.rds")
-
-# # Save as CSV (for review)
-# write.csv(ades, file.path(dir, "ades.csv"), row.names = FALSE, na = "")
-# message("✓ Saved: adam/ades.csv")
-
-# # Apply xportr and save as XPT
-# if (!is.null(metacore)) {
-#   # With metacore specifications
-#   ades_xpt <- ades %>%
-#     xportr_type(metacore, domain = "ADES") %>%
-#     xportr_length(metacore) %>%
-#     xportr_label(metacore) %>%
-#     xportr_format(metacore) %>%
-#     xportr_df_label(metacore) %>%
-#     xportr_write(file.path(dir, "ades.xpt"))
-
-#   message("✓ Saved: adam/ades.xpt (with metacore attributes)")
-# } else {
-#   # Without metacore specifications (basic XPT)
-#   if (requireNamespace("haven", quietly = TRUE)) {
-#     haven::write_xpt(ades, file.path(dir, "ades.xpt"), version = 5)
-#     message("✓ Saved: adam/ades.xpt (basic format)")
-#   }
-# }
-
-# # ===============================================================================
-# # END OF PROGRAM
-# # ===============================================================================
