@@ -6,7 +6,7 @@ institute: "Navitas Data Sciences"
 date: today
 format:
   revealjs:
-    theme: [default]
+    theme: simple
     slide-number: true
     chalkboard: false
     code-line-numbers: true
@@ -265,7 +265,7 @@ adtte <- adtte_source %>%
 exposure_cats <- adsl %>%
   mutate(
     AUCSSCAT = cut(AUCSS,
-      breaks = quantile(AUCSS, probs = c(0, 1/3, 2/3, 1)),
+      breaks = quantile(AUCSS, probs = c(0, 1 / 3, 2 / 3, 1)),
       labels = c("Low", "Medium", "High")
     )
   )
@@ -343,7 +343,7 @@ ades_subj <- adsl %>%
   mutate(
     PARAMCD = "TEAE",
     PARAM = "Treatment-Emergent Adverse Events",
-    AVAL = n_aes,  # Count of AEs
+    AVAL = n_aes, # Count of AEs
     AVALC = as.character(n_aes)
   ) %>%
   bind_rows(
@@ -452,7 +452,7 @@ adtr <- tr_raw %>%
     PARAMCD = "TSIZE",
     PARAM = "Target Lesion Size",
     PARAMN = 1,
-    AVAL = TRORRES,  # Raw measurement (mm)
+    AVAL = TRORRES, # Raw measurement (mm)
     AVALU = "mm",
     ADY = as.numeric(ADT - TRTSDT) + 1
   ) %>%
@@ -508,7 +508,7 @@ adtrr_nadir <- adtrr %>%
     PARAM = "Nadir Tumor Size",
     PARAMN = 3,
     AVAL = min(AVAL, na.rm = TRUE),
-    NADPCHG = 100 * (AVAL - BASE) / BASE  # 8-char compliant
+    NADPCHG = 100 * (AVAL - BASE) / BASE # 8-char compliant
   )
 ```
 
@@ -531,10 +531,10 @@ adtrr <- adtrr %>%
     # RECIST 1.1 response at each visit
     AVALC = case_when(
       ABLFL == "Y" ~ "BASELINE",
-      AVAL == 0 ~ "CR",           # Complete Response
-      PCHG <= -30 ~ "PR",         # Partial Response (≥30% decrease)
+      AVAL == 0 ~ "CR", # Complete Response
+      PCHG <= -30 ~ "PR", # Partial Response (≥30% decrease)
       PCHG >= 20 & CHG >= 5 ~ "PD", # Progressive Disease (≥20% increase AND ≥5mm)
-      TRUE ~ "SD"                 # Stable Disease
+      TRUE ~ "SD" # Stable Disease
     )
   )
 
