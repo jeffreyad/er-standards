@@ -1,8 +1,8 @@
-# Name: ADER
+# Name: ADEE
 #
 # Label: Exposure Response Data
 #
-# Input: adsl, adrs, adtte, adlb, advs, adex
+# Input: adsl, adrs, adtte, adlb, advs, adex, adpp
 # Load required packages
 library(admiral)
 library(admiralonco)
@@ -21,8 +21,8 @@ library(readr)
 # Load Specs for Metacore ----
 
 metacore <- spec_to_metacore("specifications/pk_spec.xlsx",
-    where_sep_sheet = FALSE
-  ) |> 
+  where_sep_sheet = FALSE
+) %>%
   select_dataset("ADEE")
 
 # Load source datasets ----
@@ -35,6 +35,7 @@ adsl <- pharmaverseadam::adsl
 adtte <- pharmaverseadam::adtte_onco
 adlb <- pharmaverseadam::adlb
 advs <- pharmaverseadam::advs
+adpp <- pharmaverseadam::adpp
 
 # ---- Prepare adsl - add derived variables
 
@@ -188,20 +189,30 @@ adsl_vslb <- adsl_vs %>%
 
 # ---- Derive Exposure Metrics
 
-# Load configuration
-source("config/exposure_config.R")
+exposure_final <- adsl_vslb %>%
+  derive_vars_transposed(
+    dataset_merge = adpp,
+    filter = PARAMCD %in% c("AUCLST", "CMAX"),
+    by_vars = get_admiral_option("subject_keys"),
+    key_var = PARAMCD,
+    value_var = AVAL
+  ) %>%
+  rename(AUCSS = AUCLST, CMAXSS = CMAX)
 
-# Source the exposure metrics function
-source("R/derive_exposure_metrics.R")
+# # Load configuration
+# source("config/exposure_config.R")
 
-# Derive exposure metrics
-exposure_final <- derive_exposure_metrics(
-  adsl_data = adsl_vslb,
-  source = EXPOSURE_SOURCE,
-  adpc_data = adpc,
-  seed = EXPOSURE_SEED,
-  tertile_var = TERTILE_VARIABLE
-)
+# # Source the exposure metrics function
+# source("R/derive_exposure_metrics.R")
+
+# # Derive exposure metrics
+# exposure_final <- derive_exposure_metrics(
+#   adsl_data = adsl_vslb,
+#   source = EXPOSURE_SOURCE,
+#   adpc_data = adpc,
+#   seed = EXPOSURE_SEED,
+#   tertile_var = TERTILE_VARIABLE
+# )
 
 # ---- Create adee base dataset
 
@@ -252,7 +263,7 @@ adee_prefinal <- adee_base %>%
     order = exprs(PARAMN),
     new_var = ASEQ,
     check_type = "error"
-  ) 
+  )
 
 ## Check Data With metacore and metatools
 
