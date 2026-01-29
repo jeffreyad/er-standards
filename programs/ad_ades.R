@@ -1,6 +1,6 @@
-# Name: ADEE
+# Name: ADES
 #
-# Label: Exposure Response Data
+# Label: Exposure Safety Data
 #
 # Input: adsl, adae, adlb, advs, adex, adpp
 # Load required packages
