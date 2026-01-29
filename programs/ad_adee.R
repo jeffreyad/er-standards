@@ -20,7 +20,7 @@ library(readr)
 
 # Load Specs for Metacore ----
 
-metacore <- spec_to_metacore("specifications/pk_spec.xlsx",
+metacore <- spec_to_metacore("specifications/er_spec.xlsx",
   where_sep_sheet = FALSE
 ) %>%
   select_dataset("ADEE")
