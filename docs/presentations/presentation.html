@@ -10,7 +10,7 @@
   <meta name="generator" content="quarto-1.8.26">
 
   <meta name="author" content="Jeff Dickinson">
-  <meta name="dcterms.date" content="2026-01-23">
+  <meta name="dcterms.date" content="2026-01-27">
   <title>Standardizing Exposure-Response Data for Modeling and Simulation</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -96,12 +96,10 @@
     code span.vs { color: #032f62; } /* VerbatimString */
     code span.wa { color: #ff5555; } /* Warning */
   </style>
-  <link rel="stylesheet" href="presentation_files/libs/revealjs/dist/theme/quarto-5f66212b01f094180b8d10b5b9960144.css">
+  <link rel="stylesheet" href="presentation_files/libs/revealjs/dist/theme/quarto-7262fb28817f0fdf3c802d565bf43787.css">
   <link href="presentation_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
   <link href="presentation_files/libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
   <link href="presentation_files/libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
-  <link href="presentation_files/libs/revealjs/plugin/reveal-chalkboard/font-awesome/css/all.css" rel="stylesheet">
-  <link href="presentation_files/libs/revealjs/plugin/reveal-chalkboard/style.css" rel="stylesheet">
   <link href="presentation_files/libs/revealjs/plugin/quarto-support/footer.css" rel="stylesheet">
   <style type="text/css">
     .reveal div.sourceCode {
@@ -210,7 +208,7 @@ Jeff Dickinson
     </div>
 </div>
 
-  <p class="date">2026-01-23</p>
+  <p class="date">2026-01-27</p>
 </section>
 <section id="overview" class="slide level2 smaller">
 <h2>Overview</h2>
@@ -227,11 +225,12 @@ Jeff Dickinson
 <p><strong>Our Approach</strong></p>
 <ul>
 <li>Extend CDISC principles to ER data</li>
-<li>Three key domains:
+<li>Four key datasets:
 <ul>
-<li>Exposure-Efficacy (EE)</li>
-<li>Exposure-Safety (ES)</li>
-<li>Tumor Response</li>
+<li>ADER: Exposure-Response (foundational)</li>
+<li>ADEE: Exposure-Efficacy</li>
+<li>ADES: Exposure-Safety</li>
+<li>ADTRR: Tumor Response for E-R</li>
 </ul></li>
 <li>Demonstrate with {admiral}</li>
 </ul>
@@ -240,7 +239,7 @@ Jeff Dickinson
 <ul>
 <li>Start with the practical pain point</li>
 <li>Emphasize that we’re building on existing standards, not reinventing</li>
-<li>These three domains cover majority of ER applications</li>
+<li>Four datasets cover majority of ER applications</li>
 </ul>
 <style type="text/css">
         span.MJX_Assistive_MathML {
@@ -269,7 +268,8 @@ Jeff Dickinson
 <p><strong>Current State</strong></p>
 <ul>
 <li>Each analysis starts from scratch</li>
-<li>Variable naming inconsistent</li>
+<li>Variable naming inconsistent (AUC, AUC_SS, AUCSS, AUC0_24)</li>
+<li>Limited exposure metrics (typically 3-5 variables)</li>
 <li>Difficult to share methodologies</li>
 <li>QC challenges</li>
 </ul>
@@ -299,6 +299,7 @@ Jeff Dickinson
 <li class="fragment"><strong>Reproducibility</strong>: Others can verify and extend your work</li>
 <li class="fragment"><strong>Efficiency</strong>: Reusable code and workflows</li>
 <li class="fragment"><strong>Regulatory clarity</strong>: Easier to document and defend analyses</li>
+<li class="fragment"><strong>Comprehensive</strong>: 20+ exposure metrics vs.&nbsp;3-5 traditional</li>
 </ul>
 <div class="fragment fade-in">
 <blockquote>
@@ -329,7 +330,7 @@ Jeff Dickinson
 <div class="column" style="width:50%;">
 <p><strong>Key Principles from SDTM-PK</strong></p>
 <ul>
-<li>Relative time variables (<em>TPT,</em> ELTM)</li>
+<li>Relative time variables (TPT, ELTM)</li>
 <li>Numeric analysis values (PCSTRESN)</li>
 <li>Analysis flags (*FL variables)</li>
 <li>Traceability (*DTC, –SEQ)</li>
@@ -363,61 +364,68 @@ Jeff Dickinson
           display:block!important;
       }</style></aside>
 </section>
-<section id="three-er-domains-a-comparison" class="slide level2 smaller">
-<h2>Three ER Domains: A Comparison</h2>
+<section id="four-er-datasets-a-comparison" class="slide level2 smaller">
+<h2>Four ER Datasets: A Comparison</h2>
 <table class="caption-top">
 <colgroup>
 <col style="width: 24%">
-<col style="width: 26%">
-<col style="width: 24%">
-<col style="width: 24%">
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 21%">
 </colgroup>
 <thead>
 <tr class="header">
 <th>Aspect</th>
-<th>Exposure-Efficacy</th>
-<th>Exposure-Safety</th>
-<th>Tumor Response</th>
+<th>ADER</th>
+<th>ADEE</th>
+<th>ADES</th>
+<th>ADTRR</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td><strong>Primary Outcome</strong></td>
-<td>Time-to-event (OS, PFS)</td>
-<td>Event frequency/rates</td>
-<td>Tumor size over time</td>
+<td><strong>Purpose</strong></td>
+<td>Exposure foundation</td>
+<td>Time-to-event</td>
+<td>Safety events</td>
+<td>Tumor response</td>
 </tr>
 <tr class="even">
-<td><strong>Data Structure</strong></td>
-<td>One record per subject-event</td>
-<td>Multiple levels (subject/event)</td>
-<td>Longitudinal repeated measures</td>
+<td><strong>Structure</strong></td>
+<td>Subject-level</td>
+<td>BDS (one/subject/param)</td>
+<td>BDS + OCCDS hybrid</td>
+<td>BDS with visits</td>
 </tr>
 <tr class="odd">
-<td><strong>Key Metrics</strong></td>
-<td>Survival time, censoring</td>
-<td>AE counts, rates, grades</td>
-<td>Percent change, RECIST</td>
+<td><strong>Key Variables</strong></td>
+<td>20 exposure metrics</td>
+<td>AVAL, CNSR, EVENT</td>
+<td>TEAE, TEAESEV, event details</td>
+<td>AVAL, BASE, CHG, PCHG</td>
 </tr>
 <tr class="even">
-<td><strong>Analysis Type</strong></td>
-<td>Cox regression, K-M curves</td>
-<td>Poisson/negative binomial</td>
-<td>Mixed models, waterfall plots</td>
-</tr>
-<tr class="odd">
-<td><strong>Common Challenges</strong></td>
+<td><strong>Unique Features</strong></td>
+<td>Comprehensive exposure</td>
 <td>Censoring handling</td>
-<td>Time-varying exposure</td>
-<td>Baseline normalization</td>
+<td>Multiple analysis levels</td>
+<td>RECIST 1.1, BOR</td>
+</tr>
+<tr class="odd">
+<td><strong>Variables</strong></td>
+<td>65</td>
+<td>74</td>
+<td>78</td>
+<td>80</td>
 </tr>
 </tbody>
 </table>
 <aside class="notes">
 <ul>
-<li>This comparison helps frame the rest of the talk</li>
-<li>Each domain has unique needs but shared principles</li>
-<li>Will circle back to this throughout examples</li>
+<li>ADER is the foundation - all others build on it</li>
+<li>Each dataset has unique needs but shared principles</li>
+<li>Variable counts show comprehensive coverage</li>
 </ul>
 <style type="text/css">
         span.MJX_Assistive_MathML {
@@ -431,24 +439,126 @@ Jeff Dickinson
           display:block!important;
       }</style></aside>
 </section>
-<section id="domain-1-exposure-efficacy" class="slide level2 smaller">
-<h2>Domain 1: Exposure-Efficacy</h2>
-<p><strong>Use Case</strong>: Progression-Free Survival by AUC Quartiles</p>
+<section id="ader-exposure-foundation" class="slide level2 smaller">
+<h2>ADER: Exposure Foundation</h2>
+<p><strong>Core Exposure Metrics (20 variables)</strong></p>
+<div class="columns">
+<div class="column" style="width:50%;">
+<p><strong>Raw Metrics</strong> - AUCSS: Steady-state AUC - CMAXSS: Steady-state Cmax<br>
+- CAVGSS: Steady-state Cavg</p>
+<p><strong>Transformed</strong> - AUCSLOG: log(AUCSS) - CMXSLOG: log(CMAXSS) - CAVGLOG: log(CAVGSS)</p>
+<p><strong>Standardized</strong> - AUCSSSTD: Z-score - CMXSSSTD: Z-score</p>
+</div><div class="column" style="width:50%;">
+<p><strong>Normalized</strong> - AUCSSN: AUC/mean(AUC) - CMAXSSN: Cmax/mean(Cmax)</p>
+<p><strong>Dose-Normalized</strong> - AUCSSDOS: AUC/Dose - CMXSSDOS: Cmax/Dose</p>
+<p><strong>Categorical</strong> - AUCSSCAT: Tertiles/quartiles - AUCSCATN: Numeric category</p>
+</div></div>
+<aside class="notes">
+<ul>
+<li>20 exposure metrics cover most E-R needs</li>
+<li>Traditional datasets have only 3-5</li>
+<li>All follow 8-character limit (CDISC compliance)</li>
+</ul>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="variable-naming-8-character-compliance" class="slide level2 smaller">
+<h2>Variable Naming: 8-Character Compliance</h2>
+<p><strong>CDISC ADaM Requirement</strong>: Variable names ≤ 8 characters</p>
+<p><strong>Our Naming Strategy</strong></p>
+<table class="caption-top">
+<thead>
+<tr class="header">
+<th>Traditional</th>
+<th>Updated (≤8 char)</th>
+<th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>AUCSSLOG</td>
+<td><strong>AUCSLOG</strong></td>
+<td>Removed one “S”</td>
+</tr>
+<tr class="even">
+<td>CMAXSSLOG</td>
+<td><strong>CMXSLOG</strong></td>
+<td>Abbreviated CMAX</td>
+</tr>
+<tr class="odd">
+<td>CAVGSSLOG</td>
+<td><strong>CAVGLOG</strong></td>
+<td>Removed SS</td>
+</tr>
+<tr class="even">
+<td>CMAXSSSTD</td>
+<td><strong>CMXSSSTD</strong></td>
+<td>Abbreviated CMAX</td>
+</tr>
+<tr class="odd">
+<td>AUCSSDOSE</td>
+<td><strong>AUCSSDOS</strong></td>
+<td>Removed E</td>
+</tr>
+<tr class="even">
+<td>CMAXSSDOSE</td>
+<td><strong>CMXSSDOS</strong></td>
+<td>Abbreviated + removed E</td>
+</tr>
+<tr class="odd">
+<td>AUCSSCATN</td>
+<td><strong>AUCSCATN</strong></td>
+<td>Removed one S</td>
+</tr>
+</tbody>
+</table>
+<aside class="notes">
+<ul>
+<li>Compliance with CDISC is critical</li>
+<li>Abbreviations are systematic and documented</li>
+<li>Labels provide full descriptions</li>
+</ul>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="domain-1-exposure-efficacy-adee" class="slide level2 smaller">
+<h2>Domain 1: Exposure-Efficacy (ADEE)</h2>
+<p><strong>Use Case</strong>: Progression-Free Survival by AUC Tertiles</p>
 <p><strong>Key Dataset Features</strong></p>
 <ul>
 <li>One record per subject-parameter</li>
 <li>AVAL = time from treatment start (days)</li>
 <li>CNSR = censoring indicator (1=censored, 0=event)</li>
+<li>EVENT = event indicator (1=event, 0=censored)</li>
 <li>Exposure available as continuous and categorical</li>
 </ul>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="" aria-hidden="true" tabindex="-1"></a>adee <span class="sc">%&gt;%</span> </span>
-<span id="cb1-2"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(USUBJID, AVAL, CNSR, AUC0_24, AUC_TERTILE) <span class="sc">%&gt;%</span></span>
-<span id="cb1-3"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href=""></a>adee <span class="sc">%&gt;%</span> </span>
+<span id="cb1-2"><a href=""></a>  <span class="fu">select</span>(USUBJID, PARAMCD, AVAL, CNSR, EVENT, AUCSS, AUCSSCAT) <span class="sc">%&gt;%</span></span>
+<span id="cb1-3"><a href=""></a>  <span class="fu">head</span>(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <aside class="notes">
 <ul>
 <li>This is the most common ER analysis type</li>
 <li>Similar to ADTTE structure</li>
 <li>Exposure categorization is key decision point</li>
+<li>74 variables total</li>
 </ul>
 <style type="text/css">
         span.MJX_Assistive_MathML {
@@ -462,10 +572,10 @@ Jeff Dickinson
           display:block!important;
       }</style></aside>
 </section>
-<section id="ee-code-example" class="slide level2 smaller">
-<h2>EE: Code Example</h2>
+<section id="adee-code-example" class="slide level2 smaller">
+<h2>ADEE: Code Example</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2" data-code-line-numbers="|3-5|7-13|15-18"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href=""></a><span class="co"># Derive time to event</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2" data-code-line-numbers="|3-5|7-13|15-20"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href=""></a><span class="co"># Derive time to event</span></span>
 <span id="cb2-2"><a href=""></a>adtte <span class="ot">&lt;-</span> adtte_source <span class="sc">%&gt;%</span></span>
 <span id="cb2-3"><a href=""></a>  <span class="fu">derive_vars_merged</span>(</span>
 <span id="cb2-4"><a href=""></a>    <span class="at">dataset_add =</span> adsl,</span>
@@ -479,11 +589,11 @@ Jeff Dickinson
 <span id="cb2-12"><a href=""></a>    <span class="at">EVENT =</span> <span class="fu">if_else</span>(CNSR <span class="sc">==</span> <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>)</span>
 <span id="cb2-13"><a href=""></a>  )</span>
 <span id="cb2-14"><a href=""></a></span>
-<span id="cb2-15"><a href=""></a><span class="co"># Create exposure categories</span></span>
+<span id="cb2-15"><a href=""></a><span class="co"># Create exposure categories (in ADER/exposure derivation)</span></span>
 <span id="cb2-16"><a href=""></a>exposure_cats <span class="ot">&lt;-</span> adsl <span class="sc">%&gt;%</span></span>
 <span id="cb2-17"><a href=""></a>  <span class="fu">mutate</span>(</span>
-<span id="cb2-18"><a href=""></a>    <span class="at">AUC_TERTILE =</span> <span class="fu">cut</span>(AUC0_24,</span>
-<span id="cb2-19"><a href=""></a>      <span class="at">breaks =</span> <span class="fu">quantile</span>(AUC0_24, <span class="at">probs =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span> <span class="sc">/</span> <span class="dv">3</span>, <span class="dv">2</span> <span class="sc">/</span> <span class="dv">3</span>, <span class="dv">1</span>)),</span>
+<span id="cb2-18"><a href=""></a>    <span class="at">AUCSSCAT =</span> <span class="fu">cut</span>(AUCSS,</span>
+<span id="cb2-19"><a href=""></a>      <span class="at">breaks =</span> <span class="fu">quantile</span>(AUCSS, <span class="at">probs =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span><span class="sc">/</span><span class="dv">3</span>, <span class="dv">2</span><span class="sc">/</span><span class="dv">3</span>, <span class="dv">1</span>)),</span>
 <span id="cb2-20"><a href=""></a>      <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"Low"</span>, <span class="st">"Medium"</span>, <span class="st">"High"</span>)</span>
 <span id="cb2-21"><a href=""></a>    )</span>
 <span id="cb2-22"><a href=""></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -492,7 +602,7 @@ Jeff Dickinson
 <ul>
 <li>Highlight the AVAL derivation - key for standardization</li>
 <li>EVENT variable is modeling convenience</li>
-<li>Exposure categorization is common pattern</li>
+<li>Exposure categorization done in ADER</li>
 </ul>
 <style type="text/css">
         span.MJX_Assistive_MathML {
@@ -506,20 +616,20 @@ Jeff Dickinson
           display:block!important;
       }</style></aside>
 </section>
-<section id="ee-analysis-ready-output" class="slide level2 smaller">
-<h2>EE: Analysis-Ready Output</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="co"># ADEE structure</span></span>
-<span id="cb3-2"><a href="" aria-hidden="true" tabindex="-1"></a>USUBJID <span class="sc">|</span> PARAMCD <span class="sc">|</span> AVAL <span class="sc">|</span> AVALU <span class="sc">|</span> CNSR <span class="sc">|</span> EVENT <span class="sc">|</span> AUC0_24 <span class="sc">|</span> AUC_TERTILE <span class="sc">|</span> LOGAUC</span>
-<span id="cb3-3"><a href="" aria-hidden="true" tabindex="-1"></a><span class="sc">--------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">-------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">-------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">-------------</span><span class="er">|</span><span class="sc">-------</span></span>
-<span id="cb3-4"><a href="" aria-hidden="true" tabindex="-1"></a><span class="dv">001-001</span> <span class="sc">|</span> PFS     <span class="sc">|</span> <span class="dv">104</span>  <span class="sc">|</span> DAYS  <span class="sc">|</span> <span class="dv">1</span>    <span class="sc">|</span> <span class="dv">0</span>     <span class="sc">|</span> <span class="dv">450</span>     <span class="sc">|</span> Low         <span class="sc">|</span> <span class="fl">6.11</span></span>
-<span id="cb3-5"><a href="" aria-hidden="true" tabindex="-1"></a><span class="dv">001-002</span> <span class="sc">|</span> PFS     <span class="sc">|</span> <span class="dv">135</span>  <span class="sc">|</span> DAYS  <span class="sc">|</span> <span class="dv">0</span>    <span class="sc">|</span> <span class="dv">1</span>     <span class="sc">|</span> <span class="dv">520</span>     <span class="sc">|</span> Medium      <span class="sc">|</span> <span class="fl">6.25</span></span>
-<span id="cb3-6"><a href="" aria-hidden="true" tabindex="-1"></a><span class="dv">001-003</span> <span class="sc">|</span> PFS     <span class="sc">|</span> <span class="dv">213</span>  <span class="sc">|</span> DAYS  <span class="sc">|</span> <span class="dv">0</span>    <span class="sc">|</span> <span class="dv">1</span>     <span class="sc">|</span> <span class="dv">680</span>     <span class="sc">|</span> High        <span class="sc">|</span> <span class="fl">6.52</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="adee-analysis-ready-output" class="slide level2 smaller">
+<h2>ADEE: Analysis-Ready Output</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href=""></a><span class="co"># ADEE structure (74 variables)</span></span>
+<span id="cb3-2"><a href=""></a>USUBJID <span class="sc">|</span> PARAMCD <span class="sc">|</span> AVAL <span class="sc">|</span> AVALU <span class="sc">|</span> CNSR <span class="sc">|</span> EVENT <span class="sc">|</span> AUCSS <span class="sc">|</span> AUCSLOG <span class="sc">|</span> AUCSSCAT <span class="sc">|</span> AUCSCATN</span>
+<span id="cb3-3"><a href=""></a><span class="sc">--------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">-------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">-------</span><span class="er">|</span><span class="sc">-------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">----------</span><span class="er">|</span><span class="sc">----------</span></span>
+<span id="cb3-4"><a href=""></a><span class="dv">001-001</span> <span class="sc">|</span> PFS     <span class="sc">|</span> <span class="dv">104</span>  <span class="sc">|</span> DAYS  <span class="sc">|</span> <span class="dv">1</span>    <span class="sc">|</span> <span class="dv">0</span>     <span class="sc">|</span> <span class="fl">450.2</span> <span class="sc">|</span> <span class="fl">6.11</span>    <span class="sc">|</span> Low      <span class="sc">|</span> <span class="dv">1</span></span>
+<span id="cb3-5"><a href=""></a><span class="dv">001-002</span> <span class="sc">|</span> PFS     <span class="sc">|</span> <span class="dv">135</span>  <span class="sc">|</span> DAYS  <span class="sc">|</span> <span class="dv">0</span>    <span class="sc">|</span> <span class="dv">1</span>     <span class="sc">|</span> <span class="fl">520.5</span> <span class="sc">|</span> <span class="fl">6.25</span>    <span class="sc">|</span> Medium   <span class="sc">|</span> <span class="dv">2</span></span>
+<span id="cb3-6"><a href=""></a><span class="dv">001-003</span> <span class="sc">|</span> PFS     <span class="sc">|</span> <span class="dv">213</span>  <span class="sc">|</span> DAYS  <span class="sc">|</span> <span class="dv">0</span>    <span class="sc">|</span> <span class="dv">1</span>     <span class="sc">|</span> <span class="fl">680.1</span> <span class="sc">|</span> <span class="fl">6.52</span>    <span class="sc">|</span> High     <span class="sc">|</span> <span class="dv">3</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>Ready for modeling:</strong></p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="co"># Cox proportional hazards</span></span>
-<span id="cb4-2"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">coxph</span>(<span class="fu">Surv</span>(AVAL, EVENT) <span class="sc">~</span> LOGAUC <span class="sc">+</span> AGE <span class="sc">+</span> SEX, <span class="at">data =</span> adee)</span>
-<span id="cb4-3"><a href="" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-4"><a href="" aria-hidden="true" tabindex="-1"></a><span class="co"># By category</span></span>
-<span id="cb4-5"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">survfit</span>(<span class="fu">Surv</span>(AVAL, EVENT) <span class="sc">~</span> AUC_TERTILE, <span class="at">data =</span> adee)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href=""></a><span class="co"># Cox proportional hazards (continuous)</span></span>
+<span id="cb4-2"><a href=""></a><span class="fu">coxph</span>(<span class="fu">Surv</span>(AVAL, EVENT) <span class="sc">~</span> AUCSSSTD <span class="sc">+</span> AGE <span class="sc">+</span> SEX, <span class="at">data =</span> adee)</span>
+<span id="cb4-3"><a href=""></a></span>
+<span id="cb4-4"><a href=""></a><span class="co"># By category</span></span>
+<span id="cb4-5"><a href=""></a><span class="fu">survfit</span>(<span class="fu">Surv</span>(AVAL, EVENT) <span class="sc">~</span> AUCSSCAT, <span class="at">data =</span> adee)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <aside class="notes">
 <ul>
 <li>Show the “payoff” - clean data ready for standard tools</li>
@@ -538,28 +648,27 @@ Jeff Dickinson
           display:block!important;
       }</style></aside>
 </section>
-<section id="domain-2-exposure-safety" class="slide level2 smaller">
-<h2>Domain 2: Exposure-Safety</h2>
+<section id="domain-2-exposure-safety-ades" class="slide level2 smaller">
+<h2>Domain 2: Exposure-Safety (ADES)</h2>
 <p><strong>Use Case</strong>: Adverse Event Rates by Cmax Categories</p>
 <p><strong>Unique Challenges</strong></p>
 <ul>
 <li>Multiple analysis levels (subject, event, parameter)</li>
 <li>Time-varying exposure considerations</li>
-<li>Grade/severity tracking</li>
+<li>Severity tracking (ASEV vs.&nbsp;AETOXGR)</li>
 <li>Need both counts and rates</li>
 </ul>
-<p><strong>Three Dataset Structures</strong></p>
+<p><strong>Dataset Structure (78 variables)</strong></p>
 <ol type="1">
-<li><strong>Subject-level</strong>: Overall AE burden per subject</li>
-<li><strong>Event-level</strong>: Individual AE occurrences<br>
-</li>
-<li><strong>Parameter-level</strong>: Specific AE types</li>
+<li><strong>Subject-level parameters</strong>: Overall AE burden</li>
+<li><strong>Event-level records</strong>: Individual AE occurrences with exposure context</li>
 </ol>
 <aside class="notes">
 <ul>
-<li>More complex than EE due to multiple structures</li>
+<li>More complex than ADEE due to multiple structures</li>
 <li>Each level serves different analytical purposes</li>
-<li>Time-varying exposure is advanced topic</li>
+<li>ADES uses ASEV/ASEVN (pharmaverseadam convention)</li>
+<li>78 total variables</li>
 </ul>
 <style type="text/css">
         span.MJX_Assistive_MathML {
@@ -573,32 +682,29 @@ Jeff Dickinson
           display:block!important;
       }</style></aside>
 </section>
-<section id="es-subject-level-structure" class="slide level2 smaller">
-<h2>ES: Subject-Level Structure</h2>
+<section id="ades-subject-level-parameters" class="slide level2 smaller">
+<h2>ADES: Subject-Level Parameters</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="co"># Subject-level AE summary</span></span>
-<span id="cb5-2"><a href="" aria-hidden="true" tabindex="-1"></a>ades_subj <span class="ot">&lt;-</span> exposure_cats <span class="sc">%&gt;%</span></span>
-<span id="cb5-3"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(ae_summary, <span class="at">by =</span> <span class="st">"USUBJID"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb5-4"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb5-5"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Total events</span></span>
-<span id="cb5-6"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">N_AES =</span> <span class="fu">n</span>(),</span>
-<span id="cb5-7"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">N_SAE =</span> <span class="fu">sum</span>(AESER <span class="sc">==</span> <span class="st">"Y"</span>),</span>
-<span id="cb5-8"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">N_GRADE3 =</span> <span class="fu">sum</span>(AETOXGR <span class="sc">&gt;=</span> <span class="st">"3"</span>),</span>
-<span id="cb5-9"><a href="" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-10"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Rates per 100 patient-days</span></span>
-<span id="cb5-11"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">RATE_AES =</span> (N_AES <span class="sc">/</span> TRTDURD) <span class="sc">*</span> <span class="dv">100</span>,</span>
-<span id="cb5-12"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">RATE_SAE =</span> (N_SAE <span class="sc">/</span> TRTDURD) <span class="sc">*</span> <span class="dv">100</span>,</span>
-<span id="cb5-13"><a href="" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-14"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Binary indicators</span></span>
-<span id="cb5-15"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">ANY_SAE =</span> <span class="fu">if_else</span>(N_SAE <span class="sc">&gt;</span> <span class="dv">0</span>, <span class="st">"Y"</span>, <span class="st">"N"</span>),</span>
-<span id="cb5-16"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">ANY_GRADE3 =</span> <span class="fu">if_else</span>(N_GRADE3 <span class="sc">&gt;</span> <span class="dv">0</span>, <span class="st">"Y"</span>, <span class="st">"N"</span>)</span>
-<span id="cb5-17"><a href="" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5" data-code-line-numbers="|3-8|10-14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href=""></a><span class="co"># Subject-level AE summary parameters</span></span>
+<span id="cb5-2"><a href=""></a>ades_subj <span class="ot">&lt;-</span> adsl <span class="sc">%&gt;%</span></span>
+<span id="cb5-3"><a href=""></a>  <span class="fu">left_join</span>(ae_summary, <span class="at">by =</span> <span class="st">"USUBJID"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb5-4"><a href=""></a>  <span class="fu">mutate</span>(</span>
+<span id="cb5-5"><a href=""></a>    <span class="at">PARAMCD =</span> <span class="st">"TEAE"</span>,</span>
+<span id="cb5-6"><a href=""></a>    <span class="at">PARAM =</span> <span class="st">"Treatment-Emergent Adverse Events"</span>,</span>
+<span id="cb5-7"><a href=""></a>    <span class="at">AVAL =</span> n_aes,  <span class="co"># Count of AEs</span></span>
+<span id="cb5-8"><a href=""></a>    <span class="at">AVALC =</span> <span class="fu">as.character</span>(n_aes)</span>
+<span id="cb5-9"><a href=""></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb5-10"><a href=""></a>  <span class="fu">bind_rows</span>(</span>
+<span id="cb5-11"><a href=""></a>    <span class="co"># Additional parameters: TEAESEV, TESAE, etc.</span></span>
+<span id="cb5-12"><a href=""></a>    <span class="fu">create_param</span>(<span class="st">"TEAESEV"</span>, <span class="st">"Treatment-Emergent Severe AEs"</span>, n_severe),</span>
+<span id="cb5-13"><a href=""></a>    <span class="fu">create_param</span>(<span class="st">"TESAE"</span>, <span class="st">"Treatment-Emergent Serious AEs"</span>, n_serious)</span>
+<span id="cb5-14"><a href=""></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <aside class="notes">
 <ul>
-<li>Subject-level is good for overall safety profile</li>
+<li>Subject-level good for overall safety profile</li>
 <li>Rates normalize for exposure duration</li>
-<li>Binary indicators for logistic regression</li>
+<li>Multiple parameters per subject (TEAE, TEAESEV, TESAE)</li>
 </ul>
 <style type="text/css">
         span.MJX_Assistive_MathML {
@@ -612,25 +718,95 @@ Jeff Dickinson
           display:block!important;
       }</style></aside>
 </section>
-<section id="es-event-level-for-detailed-analysis" class="slide level2 smaller">
-<h2>ES: Event-Level for Detailed Analysis</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="co"># Event-level dataset</span></span>
-<span id="cb6-2"><a href="" aria-hidden="true" tabindex="-1"></a>USUBJID <span class="sc">|</span> AEDECOD    <span class="sc">|</span> AETOXGR <span class="sc">|</span> ASTDY <span class="sc">|</span> CMAX <span class="sc">|</span> CMAX_TERTILE <span class="sc">|</span> GRADE3FL</span>
-<span id="cb6-3"><a href="" aria-hidden="true" tabindex="-1"></a><span class="sc">--------</span><span class="er">|</span><span class="sc">------------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">-------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">--------------</span><span class="er">|</span><span class="sc">----------</span></span>
-<span id="cb6-4"><a href="" aria-hidden="true" tabindex="-1"></a><span class="dv">001-001</span> <span class="sc">|</span> Nausea     <span class="sc">|</span> <span class="dv">1</span>       <span class="sc">|</span> <span class="dv">15</span>    <span class="sc">|</span> <span class="dv">125</span>  <span class="sc">|</span> Low          <span class="sc">|</span> N</span>
-<span id="cb6-5"><a href="" aria-hidden="true" tabindex="-1"></a><span class="dv">001-001</span> <span class="sc">|</span> Fatigue    <span class="sc">|</span> <span class="dv">2</span>       <span class="sc">|</span> <span class="dv">32</span>    <span class="sc">|</span> <span class="dv">125</span>  <span class="sc">|</span> Low          <span class="sc">|</span> N</span>
-<span id="cb6-6"><a href="" aria-hidden="true" tabindex="-1"></a><span class="dv">001-002</span> <span class="sc">|</span> Neutropenia<span class="sc">|</span> <span class="dv">3</span>       <span class="sc">|</span> <span class="dv">56</span>    <span class="sc">|</span> <span class="dv">145</span>  <span class="sc">|</span> Medium       <span class="sc">|</span> Y</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="ades-severity-variables" class="slide level2 smaller">
+<h2>ADES: Severity Variables</h2>
+<p><strong>Important</strong>: ADES uses <code>ASEV</code>/<code>ASEVN</code> (not <code>AETOXGR</code>/<code>AETOXGRN</code>)</p>
+<table class="caption-top">
+<colgroup>
+<col style="width: 32%">
+<col style="width: 25%">
+<col style="width: 41%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th>Values</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>ASEV</strong></td>
+<td>MILD, MODERATE, SEVERE</td>
+<td>Severity (character)</td>
+</tr>
+<tr class="even">
+<td><strong>ASEVN</strong></td>
+<td>1, 2, 3</td>
+<td>Severity (numeric)</td>
+</tr>
+<tr class="odd">
+<td><strong>AESER</strong></td>
+<td>Y, N</td>
+<td>Serious flag</td>
+</tr>
+<tr class="even">
+<td><strong>AEREL</strong></td>
+<td>NOT RELATED, UNLIKELY, POSSIBLE, PROBABLE, RELATED</td>
+<td>Relationship</td>
+</tr>
+<tr class="odd">
+<td><strong>AERELN</strong></td>
+<td>0, 1, 2, 3, 4</td>
+<td>Relationship (numeric)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key Parameters</strong></p>
+<ul>
+<li><strong>TEAE</strong>: Total AEs</li>
+<li><strong>TEAESEV</strong>: Treatment-Emergent Severe AEs (ASEVN = 3)</li>
+<li><strong>TESAE</strong>: Treatment-Emergent Serious AEs (AESER = “Y”)</li>
+</ul>
+<aside class="notes">
+<ul>
+<li>Follows pharmaverseadam conventions</li>
+<li>ASEV more common than AETOXGR in non-oncology</li>
+<li>Numeric versions enable modeling</li>
+</ul>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="ades-event-level-records" class="slide level2 smaller">
+<h2>ADES: Event-Level Records</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href=""></a><span class="co"># Event-level dataset structure</span></span>
+<span id="cb6-2"><a href=""></a>USUBJID <span class="sc">|</span> AESEQ <span class="sc">|</span> AEDECOD    <span class="sc">|</span> ASEV     <span class="sc">|</span> ASEVN <span class="sc">|</span> AEREL    <span class="sc">|</span> CMAXSS <span class="sc">|</span> CMXSSCAT <span class="sc">|</span> ASTDT</span>
+<span id="cb6-3"><a href=""></a><span class="sc">--------</span><span class="er">|</span><span class="sc">-------</span><span class="er">|</span><span class="sc">------------</span><span class="er">|</span><span class="sc">----------</span><span class="er">|</span><span class="sc">-------</span><span class="er">|</span><span class="sc">----------</span><span class="er">|</span><span class="sc">--------</span><span class="er">|</span><span class="sc">----------</span><span class="er">|</span><span class="sc">----------</span></span>
+<span id="cb6-4"><a href=""></a><span class="dv">001-001</span> <span class="sc">|</span> <span class="dv">1</span>     <span class="sc">|</span> NAUSEA     <span class="sc">|</span> MILD     <span class="sc">|</span> <span class="dv">1</span>     <span class="sc">|</span> POSSIBLE <span class="sc">|</span> <span class="fl">125.3</span>  <span class="sc">|</span> Low      <span class="sc">|</span> <span class="dv">2024-03-20</span></span>
+<span id="cb6-5"><a href=""></a><span class="dv">001-001</span> <span class="sc">|</span> <span class="dv">2</span>     <span class="sc">|</span> FATIGUE    <span class="sc">|</span> MODERATE <span class="sc">|</span> <span class="dv">2</span>     <span class="sc">|</span> PROBABLE <span class="sc">|</span> <span class="fl">125.3</span>  <span class="sc">|</span> Low      <span class="sc">|</span> <span class="dv">2024-04-15</span></span>
+<span id="cb6-6"><a href=""></a><span class="dv">001-002</span> <span class="sc">|</span> <span class="dv">1</span>     <span class="sc">|</span> NEUTROPENIA<span class="sc">|</span> SEVERE   <span class="sc">|</span> <span class="dv">3</span>     <span class="sc">|</span> RELATED  <span class="sc">|</span> <span class="fl">145.7</span>  <span class="sc">|</span> Medium   <span class="sc">|</span> <span class="dv">2024-05-10</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>Enables analyses like:</strong></p>
 <ul>
-<li>Time to first Grade 3+ AE</li>
+<li>Time to first Severe AE (ASEVN = 3)</li>
 <li>Recurring event models</li>
 <li>Exposure-toxicity relationships by AE type</li>
+<li>Relationship analysis (AERELN as continuous)</li>
 </ul>
 <aside class="notes">
 <ul>
 <li>Event-level preserves granularity</li>
 <li>Each AE has exposure context</li>
 <li>Multiple events per subject supported</li>
+<li>78 variables total including exposure metrics</li>
 </ul>
 <style type="text/css">
         span.MJX_Assistive_MathML {
@@ -644,15 +820,16 @@ Jeff Dickinson
           display:block!important;
       }</style></aside>
 </section>
-<section id="domain-3-tumor-response" class="slide level2 smaller">
-<h2>Domain 3: Tumor Response</h2>
+<section id="domain-3-tumor-response-adtrr" class="slide level2 smaller">
+<h2>Domain 3: Tumor Response (ADTRR)</h2>
 <p><strong>Use Case</strong>: Longitudinal Tumor Measurements with RECIST 1.1</p>
-<p><strong>Key Features</strong></p>
+<p><strong>Key Features (80 variables)</strong></p>
 <ul>
 <li>Repeated measures over time</li>
 <li>Baseline normalization critical</li>
 <li>Categorical response criteria (CR, PR, SD, PD)</li>
 <li>Best overall response (BOR) derivation</li>
+<li>Nadir tracking</li>
 </ul>
 <p><strong>Analysis Approaches</strong></p>
 <ul>
@@ -663,9 +840,10 @@ Jeff Dickinson
 </ul>
 <aside class="notes">
 <ul>
-<li>Most “clinical” of the three domains</li>
+<li>Most “clinical” of the four datasets</li>
 <li>RECIST is regulatory standard</li>
 <li>Visual displays are critical for this domain</li>
+<li>80 variables including comprehensive exposure</li>
 </ul>
 <style type="text/css">
         span.MJX_Assistive_MathML {
@@ -679,27 +857,29 @@ Jeff Dickinson
           display:block!important;
       }</style></aside>
 </section>
-<section id="tumor-response-longitudinal-structure" class="slide level2 smaller">
-<h2>Tumor Response: Longitudinal Structure</h2>
+<section id="adtrr-longitudinal-structure" class="slide level2 smaller">
+<h2>ADTRR: Longitudinal Structure</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="" aria-hidden="true" tabindex="-1"></a>adtr <span class="ot">&lt;-</span> tr_raw <span class="sc">%&gt;%</span></span>
-<span id="cb7-2"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb7-3"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">PARAM =</span> <span class="st">"Sum of Target Lesion Diameters"</span>,</span>
-<span id="cb7-4"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">PARAMCD =</span> <span class="st">"STDIAM"</span>,</span>
-<span id="cb7-5"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">AVAL =</span> TRORRES, <span class="co"># Raw measurement</span></span>
-<span id="cb7-6"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">ADY =</span> <span class="fu">as.numeric</span>(ADT <span class="sc">-</span> TRTSDT) <span class="sc">+</span> <span class="dv">1</span></span>
-<span id="cb7-7"><a href="" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb7-8"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Identify baseline</span></span>
-<span id="cb7-9"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(USUBJID, PARAMCD) <span class="sc">%&gt;%</span></span>
-<span id="cb7-10"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb7-11"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">ABLFL =</span> <span class="fu">if_else</span>(VISITNUM <span class="sc">==</span> <span class="dv">0</span>, <span class="st">"Y"</span>, <span class="cn">NA_character_</span>),</span>
-<span id="cb7-12"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">BASE =</span> AVAL[ABLFL <span class="sc">==</span> <span class="st">"Y"</span>]</span>
-<span id="cb7-13"><a href="" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb7-14"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Calculate changes</span></span>
-<span id="cb7-15"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb7-16"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">CHG =</span> <span class="fu">if_else</span>(ABLFL <span class="sc">!=</span> <span class="st">"Y"</span>, AVAL <span class="sc">-</span> BASE, <span class="cn">NA_real_</span>),</span>
-<span id="cb7-17"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">PCHG =</span> <span class="fu">if_else</span>(ABLFL <span class="sc">!=</span> <span class="st">"Y"</span>, (AVAL <span class="sc">-</span> BASE) <span class="sc">/</span> BASE <span class="sc">*</span> <span class="dv">100</span>, <span class="cn">NA_real_</span>)</span>
-<span id="cb7-18"><a href="" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7" data-code-line-numbers="|3-7|9-13|15-19"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href=""></a>adtr <span class="ot">&lt;-</span> tr_raw <span class="sc">%&gt;%</span></span>
+<span id="cb7-2"><a href=""></a>  <span class="fu">mutate</span>(</span>
+<span id="cb7-3"><a href=""></a>    <span class="at">PARAMCD =</span> <span class="st">"TSIZE"</span>,</span>
+<span id="cb7-4"><a href=""></a>    <span class="at">PARAM =</span> <span class="st">"Target Lesion Size"</span>,</span>
+<span id="cb7-5"><a href=""></a>    <span class="at">PARAMN =</span> <span class="dv">1</span>,</span>
+<span id="cb7-6"><a href=""></a>    <span class="at">AVAL =</span> TRORRES,  <span class="co"># Raw measurement (mm)</span></span>
+<span id="cb7-7"><a href=""></a>    <span class="at">AVALU =</span> <span class="st">"mm"</span>,</span>
+<span id="cb7-8"><a href=""></a>    <span class="at">ADY =</span> <span class="fu">as.numeric</span>(ADT <span class="sc">-</span> TRTSDT) <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb7-9"><a href=""></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb7-10"><a href=""></a>  <span class="co"># Identify baseline</span></span>
+<span id="cb7-11"><a href=""></a>  <span class="fu">group_by</span>(USUBJID, PARAMCD) <span class="sc">%&gt;%</span></span>
+<span id="cb7-12"><a href=""></a>  <span class="fu">mutate</span>(</span>
+<span id="cb7-13"><a href=""></a>    <span class="at">ABLFL =</span> <span class="fu">if_else</span>(AVISITN <span class="sc">==</span> <span class="dv">1</span>, <span class="st">"Y"</span>, <span class="st">""</span>),</span>
+<span id="cb7-14"><a href=""></a>    <span class="at">BASE =</span> <span class="fu">first</span>(AVAL[ABLFL <span class="sc">==</span> <span class="st">"Y"</span>])</span>
+<span id="cb7-15"><a href=""></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb7-16"><a href=""></a>  <span class="co"># Calculate changes</span></span>
+<span id="cb7-17"><a href=""></a>  <span class="fu">mutate</span>(</span>
+<span id="cb7-18"><a href=""></a>    <span class="at">CHG =</span> <span class="fu">if_else</span>(ABLFL <span class="sc">!=</span> <span class="st">"Y"</span>, AVAL <span class="sc">-</span> BASE, <span class="cn">NA_real_</span>),</span>
+<span id="cb7-19"><a href=""></a>    <span class="at">PCHG =</span> <span class="fu">if_else</span>(ABLFL <span class="sc">!=</span> <span class="st">"Y"</span>, <span class="dv">100</span> <span class="sc">*</span> (AVAL <span class="sc">-</span> BASE) <span class="sc">/</span> BASE, <span class="cn">NA_real_</span>)</span>
+<span id="cb7-20"><a href=""></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <aside class="notes">
 <ul>
@@ -719,36 +899,87 @@ Jeff Dickinson
           display:block!important;
       }</style></aside>
 </section>
+<section id="adtrr-additional-parameters" class="slide level2 smaller">
+<h2>ADTRR: Additional Parameters</h2>
+<p><strong>Beyond Target Lesion Size</strong></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href=""></a><span class="co"># Best Overall Response (BOR)</span></span>
+<span id="cb8-2"><a href=""></a>adtrr_bor <span class="ot">&lt;-</span> adtrr <span class="sc">%&gt;%</span></span>
+<span id="cb8-3"><a href=""></a>  <span class="fu">group_by</span>(USUBJID) <span class="sc">%&gt;%</span></span>
+<span id="cb8-4"><a href=""></a>  <span class="fu">summarise</span>(</span>
+<span id="cb8-5"><a href=""></a>    <span class="at">PARAMCD =</span> <span class="st">"BOR"</span>,</span>
+<span id="cb8-6"><a href=""></a>    <span class="at">PARAM =</span> <span class="st">"Best Overall Response"</span>,</span>
+<span id="cb8-7"><a href=""></a>    <span class="at">PARAMN =</span> <span class="dv">2</span>,</span>
+<span id="cb8-8"><a href=""></a>    <span class="at">AVALC =</span> <span class="fu">derive_best_response</span>(AVALC),</span>
+<span id="cb8-9"><a href=""></a>    <span class="at">BORN =</span> <span class="fu">case_when</span>(</span>
+<span id="cb8-10"><a href=""></a>      AVALC <span class="sc">==</span> <span class="st">"CR"</span> <span class="sc">~</span> <span class="dv">4</span>,</span>
+<span id="cb8-11"><a href=""></a>      AVALC <span class="sc">==</span> <span class="st">"PR"</span> <span class="sc">~</span> <span class="dv">3</span>,</span>
+<span id="cb8-12"><a href=""></a>      AVALC <span class="sc">==</span> <span class="st">"SD"</span> <span class="sc">~</span> <span class="dv">2</span>,</span>
+<span id="cb8-13"><a href=""></a>      AVALC <span class="sc">==</span> <span class="st">"PD"</span> <span class="sc">~</span> <span class="dv">1</span></span>
+<span id="cb8-14"><a href=""></a>    )</span>
+<span id="cb8-15"><a href=""></a>  )</span>
+<span id="cb8-16"><a href=""></a></span>
+<span id="cb8-17"><a href=""></a><span class="co"># Nadir (minimum tumor size)</span></span>
+<span id="cb8-18"><a href=""></a>adtrr_nadir <span class="ot">&lt;-</span> adtrr <span class="sc">%&gt;%</span></span>
+<span id="cb8-19"><a href=""></a>  <span class="fu">group_by</span>(USUBJID) <span class="sc">%&gt;%</span></span>
+<span id="cb8-20"><a href=""></a>  <span class="fu">summarise</span>(</span>
+<span id="cb8-21"><a href=""></a>    <span class="at">PARAMCD =</span> <span class="st">"NADIR"</span>,</span>
+<span id="cb8-22"><a href=""></a>    <span class="at">PARAM =</span> <span class="st">"Nadir Tumor Size"</span>,</span>
+<span id="cb8-23"><a href=""></a>    <span class="at">PARAMN =</span> <span class="dv">3</span>,</span>
+<span id="cb8-24"><a href=""></a>    <span class="at">AVAL =</span> <span class="fu">min</span>(AVAL, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb8-25"><a href=""></a>    <span class="at">NADPCHG =</span> <span class="dv">100</span> <span class="sc">*</span> (AVAL <span class="sc">-</span> BASE) <span class="sc">/</span> BASE  <span class="co"># 8-char compliant</span></span>
+<span id="cb8-26"><a href=""></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<aside class="notes">
+<ul>
+<li>Multiple parameters per subject</li>
+<li>BORN provides numeric version of BOR</li>
+<li>NADPCHG follows 8-character rule</li>
+</ul>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
 <section id="recist-criteria-implementation" class="slide level2 smaller">
 <h2>RECIST Criteria Implementation</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="" aria-hidden="true" tabindex="-1"></a>adtr <span class="ot">&lt;-</span> adtr <span class="sc">%&gt;%</span></span>
-<span id="cb8-2"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb8-3"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">AVALC =</span> <span class="fu">case_when</span>(</span>
-<span id="cb8-4"><a href="" aria-hidden="true" tabindex="-1"></a>      ABLFL <span class="sc">==</span> <span class="st">"Y"</span> <span class="sc">~</span> <span class="st">"BASELINE"</span>,</span>
-<span id="cb8-5"><a href="" aria-hidden="true" tabindex="-1"></a>      AVAL <span class="sc">==</span> <span class="dv">0</span> <span class="sc">~</span> <span class="st">"CR"</span>, <span class="co"># Complete Response</span></span>
-<span id="cb8-6"><a href="" aria-hidden="true" tabindex="-1"></a>      PCHG <span class="sc">&lt;=</span> <span class="sc">-</span><span class="dv">30</span> <span class="sc">~</span> <span class="st">"PR"</span>, <span class="co"># Partial Response (≥30% decrease)</span></span>
-<span id="cb8-7"><a href="" aria-hidden="true" tabindex="-1"></a>      PCHG <span class="sc">&gt;=</span> <span class="dv">20</span> <span class="sc">~</span> <span class="st">"PD"</span>, <span class="co"># Progressive Disease (≥20% increase)</span></span>
-<span id="cb8-8"><a href="" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"SD"</span> <span class="co"># Stable Disease</span></span>
-<span id="cb8-9"><a href="" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb8-10"><a href="" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb8-11"><a href="" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-12"><a href="" aria-hidden="true" tabindex="-1"></a><span class="co"># Best Overall Response (BOR)</span></span>
-<span id="cb8-13"><a href="" aria-hidden="true" tabindex="-1"></a>bor <span class="ot">&lt;-</span> adtr <span class="sc">%&gt;%</span></span>
-<span id="cb8-14"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(ABLFL <span class="sc">!=</span> <span class="st">"Y"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb8-15"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(USUBJID) <span class="sc">%&gt;%</span></span>
-<span id="cb8-16"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb8-17"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">BOR =</span> <span class="fu">case_when</span>(</span>
-<span id="cb8-18"><a href="" aria-hidden="true" tabindex="-1"></a>      <span class="fu">any</span>(AVALC <span class="sc">==</span> <span class="st">"CR"</span>) <span class="sc">~</span> <span class="st">"CR"</span>,</span>
-<span id="cb8-19"><a href="" aria-hidden="true" tabindex="-1"></a>      <span class="fu">any</span>(AVALC <span class="sc">==</span> <span class="st">"PR"</span>) <span class="sc">~</span> <span class="st">"PR"</span>,</span>
-<span id="cb8-20"><a href="" aria-hidden="true" tabindex="-1"></a>      <span class="fu">any</span>(AVALC <span class="sc">==</span> <span class="st">"PD"</span>) <span class="sc">~</span> <span class="st">"PD"</span>,</span>
-<span id="cb8-21"><a href="" aria-hidden="true" tabindex="-1"></a>      <span class="fu">any</span>(AVALC <span class="sc">==</span> <span class="st">"SD"</span>) <span class="sc">~</span> <span class="st">"SD"</span></span>
-<span id="cb8-22"><a href="" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb8-23"><a href="" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9" data-code-line-numbers="|3-11|13-21"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href=""></a>adtrr <span class="ot">&lt;-</span> adtrr <span class="sc">%&gt;%</span></span>
+<span id="cb9-2"><a href=""></a>  <span class="fu">mutate</span>(</span>
+<span id="cb9-3"><a href=""></a>    <span class="co"># RECIST 1.1 response at each visit</span></span>
+<span id="cb9-4"><a href=""></a>    <span class="at">AVALC =</span> <span class="fu">case_when</span>(</span>
+<span id="cb9-5"><a href=""></a>      ABLFL <span class="sc">==</span> <span class="st">"Y"</span> <span class="sc">~</span> <span class="st">"BASELINE"</span>,</span>
+<span id="cb9-6"><a href=""></a>      AVAL <span class="sc">==</span> <span class="dv">0</span> <span class="sc">~</span> <span class="st">"CR"</span>,           <span class="co"># Complete Response</span></span>
+<span id="cb9-7"><a href=""></a>      PCHG <span class="sc">&lt;=</span> <span class="sc">-</span><span class="dv">30</span> <span class="sc">~</span> <span class="st">"PR"</span>,         <span class="co"># Partial Response (≥30% decrease)</span></span>
+<span id="cb9-8"><a href=""></a>      PCHG <span class="sc">&gt;=</span> <span class="dv">20</span> <span class="sc">&amp;</span> CHG <span class="sc">&gt;=</span> <span class="dv">5</span> <span class="sc">~</span> <span class="st">"PD"</span>, <span class="co"># Progressive Disease (≥20% increase AND ≥5mm)</span></span>
+<span id="cb9-9"><a href=""></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"SD"</span>                 <span class="co"># Stable Disease</span></span>
+<span id="cb9-10"><a href=""></a>    )</span>
+<span id="cb9-11"><a href=""></a>  )</span>
+<span id="cb9-12"><a href=""></a></span>
+<span id="cb9-13"><a href=""></a><span class="co"># Best Overall Response across all visits</span></span>
+<span id="cb9-14"><a href=""></a>bor <span class="ot">&lt;-</span> adtrr <span class="sc">%&gt;%</span></span>
+<span id="cb9-15"><a href=""></a>  <span class="fu">filter</span>(ABLFL <span class="sc">!=</span> <span class="st">"Y"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb9-16"><a href=""></a>  <span class="fu">group_by</span>(USUBJID) <span class="sc">%&gt;%</span></span>
+<span id="cb9-17"><a href=""></a>  <span class="fu">summarise</span>(</span>
+<span id="cb9-18"><a href=""></a>    <span class="at">BOR =</span> <span class="fu">case_when</span>(</span>
+<span id="cb9-19"><a href=""></a>      <span class="fu">any</span>(AVALC <span class="sc">==</span> <span class="st">"CR"</span>) <span class="sc">~</span> <span class="st">"CR"</span>,</span>
+<span id="cb9-20"><a href=""></a>      <span class="fu">any</span>(AVALC <span class="sc">==</span> <span class="st">"PR"</span>) <span class="sc">~</span> <span class="st">"PR"</span>,</span>
+<span id="cb9-21"><a href=""></a>      <span class="fu">any</span>(AVALC <span class="sc">==</span> <span class="st">"PD"</span>) <span class="sc">~</span> <span class="st">"PD"</span>,</span>
+<span id="cb9-22"><a href=""></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"SD"</span></span>
+<span id="cb9-23"><a href=""></a>    )</span>
+<span id="cb9-24"><a href=""></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <aside class="notes">
 <ul>
 <li>RECIST thresholds are regulatory standard</li>
+<li>PD requires both relative (20%) and absolute (5mm) criteria</li>
 <li>BOR requires looking across all timepoints</li>
 <li>This logic is reusable across studies</li>
 </ul>
@@ -764,26 +995,29 @@ Jeff Dickinson
           display:block!important;
       }</style></aside>
 </section>
-<section id="tumor-response-output-structure" class="slide level2 smaller">
-<h2>Tumor Response: Output Structure</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="co"># Longitudinal measurements</span></span>
-<span id="cb9-2"><a href="" aria-hidden="true" tabindex="-1"></a>USUBJID <span class="sc">|</span> VISIT   <span class="sc">|</span> ADY <span class="sc">|</span> BASE <span class="sc">|</span> AVAL <span class="sc">|</span> CHG  <span class="sc">|</span> PCHG   <span class="sc">|</span> AVALC <span class="sc">|</span> BOR <span class="sc">|</span> AUC_TERTILE</span>
-<span id="cb9-3"><a href="" aria-hidden="true" tabindex="-1"></a><span class="sc">--------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">-----</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">--------</span><span class="er">|</span><span class="sc">-------</span><span class="er">|</span><span class="sc">-----</span><span class="er">|</span><span class="sc">------------</span></span>
-<span id="cb9-4"><a href="" aria-hidden="true" tabindex="-1"></a><span class="dv">001-002</span> <span class="sc">|</span> BASE    <span class="sc">|</span> <span class="dv">1</span>   <span class="sc">|</span> <span class="dv">65</span>   <span class="sc">|</span> <span class="dv">65</span>   <span class="sc">|</span> <span class="cn">NA</span>   <span class="sc">|</span> <span class="cn">NA</span>     <span class="sc">|</span> BASE  <span class="sc">|</span> PR  <span class="sc">|</span> Medium</span>
-<span id="cb9-5"><a href="" aria-hidden="true" tabindex="-1"></a><span class="dv">001-002</span> <span class="sc">|</span> WEEK <span class="dv">6</span>  <span class="sc">|</span> <span class="dv">43</span>  <span class="sc">|</span> <span class="dv">65</span>   <span class="sc">|</span> <span class="dv">55</span>   <span class="sc">|</span> <span class="sc">-</span><span class="dv">10</span>  <span class="sc">|</span> <span class="sc">-</span><span class="fl">15.4</span>  <span class="sc">|</span> SD    <span class="sc">|</span> PR  <span class="sc">|</span> Medium</span>
-<span id="cb9-6"><a href="" aria-hidden="true" tabindex="-1"></a><span class="dv">001-002</span> <span class="sc">|</span> WEEK <span class="dv">12</span> <span class="sc">|</span> <span class="dv">85</span>  <span class="sc">|</span> <span class="dv">65</span>   <span class="sc">|</span> <span class="dv">35</span>   <span class="sc">|</span> <span class="sc">-</span><span class="dv">30</span>  <span class="sc">|</span> <span class="sc">-</span><span class="fl">46.2</span>  <span class="sc">|</span> PR    <span class="sc">|</span> PR  <span class="sc">|</span> Medium</span>
-<span id="cb9-7"><a href="" aria-hidden="true" tabindex="-1"></a><span class="dv">001-002</span> <span class="sc">|</span> WEEK <span class="dv">18</span> <span class="sc">|</span> <span class="dv">127</span> <span class="sc">|</span> <span class="dv">65</span>   <span class="sc">|</span> <span class="dv">32</span>   <span class="sc">|</span> <span class="sc">-</span><span class="dv">33</span>  <span class="sc">|</span> <span class="sc">-</span><span class="fl">50.8</span>  <span class="sc">|</span> PR    <span class="sc">|</span> PR  <span class="sc">|</span> Medium</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="adtrr-output-structure" class="slide level2 smaller">
+<h2>ADTRR: Output Structure</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href=""></a><span class="co"># Longitudinal measurements (80 variables)</span></span>
+<span id="cb10-2"><a href=""></a>USUBJID <span class="sc">|</span> PARAMCD <span class="sc">|</span> AVISITN <span class="sc">|</span> AVISIT  <span class="sc">|</span> BASE <span class="sc">|</span> AVAL <span class="sc">|</span> CHG  <span class="sc">|</span> PCHG   <span class="sc">|</span> AVALC <span class="sc">|</span> BOR <span class="sc">|</span> AUCSS <span class="sc">|</span> AUCSSCAT</span>
+<span id="cb10-3"><a href=""></a><span class="sc">--------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">--------</span><span class="er">|</span><span class="sc">-------</span><span class="er">|</span><span class="sc">-----</span><span class="er">|</span><span class="sc">-------</span><span class="er">|</span><span class="sc">----------</span></span>
+<span id="cb10-4"><a href=""></a><span class="dv">001-002</span> <span class="sc">|</span> TSIZE   <span class="sc">|</span> <span class="dv">1</span>       <span class="sc">|</span> BASE    <span class="sc">|</span> <span class="fl">65.0</span> <span class="sc">|</span> <span class="fl">65.0</span> <span class="sc">|</span> <span class="cn">NA</span>   <span class="sc">|</span> <span class="cn">NA</span>     <span class="sc">|</span> BASE  <span class="sc">|</span> PR  <span class="sc">|</span> <span class="fl">520.5</span> <span class="sc">|</span> Medium</span>
+<span id="cb10-5"><a href=""></a><span class="dv">001-002</span> <span class="sc">|</span> TSIZE   <span class="sc">|</span> <span class="dv">2</span>       <span class="sc">|</span> WEEK <span class="dv">6</span>  <span class="sc">|</span> <span class="fl">65.0</span> <span class="sc">|</span> <span class="fl">55.0</span> <span class="sc">|</span> <span class="sc">-</span><span class="dv">10</span>  <span class="sc">|</span> <span class="sc">-</span><span class="fl">15.4</span>  <span class="sc">|</span> SD    <span class="sc">|</span> PR  <span class="sc">|</span> <span class="fl">520.5</span> <span class="sc">|</span> Medium</span>
+<span id="cb10-6"><a href=""></a><span class="dv">001-002</span> <span class="sc">|</span> TSIZE   <span class="sc">|</span> <span class="dv">3</span>       <span class="sc">|</span> WEEK <span class="dv">12</span> <span class="sc">|</span> <span class="fl">65.0</span> <span class="sc">|</span> <span class="fl">35.0</span> <span class="sc">|</span> <span class="sc">-</span><span class="dv">30</span>  <span class="sc">|</span> <span class="sc">-</span><span class="fl">46.2</span>  <span class="sc">|</span> PR    <span class="sc">|</span> PR  <span class="sc">|</span> <span class="fl">520.5</span> <span class="sc">|</span> Medium</span>
+<span id="cb10-7"><a href=""></a><span class="dv">001-002</span> <span class="sc">|</span> BOR     <span class="sc">|</span> <span class="dv">99</span>      <span class="sc">|</span> OVERALL <span class="sc">|</span> <span class="cn">NA</span>   <span class="sc">|</span> <span class="cn">NA</span>   <span class="sc">|</span> <span class="cn">NA</span>   <span class="sc">|</span> <span class="cn">NA</span>     <span class="sc">|</span> PR    <span class="sc">|</span> PR  <span class="sc">|</span> <span class="fl">520.5</span> <span class="sc">|</span> Medium</span>
+<span id="cb10-8"><a href=""></a><span class="dv">001-002</span> <span class="sc">|</span> NADIR   <span class="sc">|</span> <span class="dv">99</span>      <span class="sc">|</span> OVERALL <span class="sc">|</span> <span class="fl">65.0</span> <span class="sc">|</span> <span class="fl">35.0</span> <span class="sc">|</span> <span class="sc">-</span><span class="dv">30</span>  <span class="sc">|</span> <span class="sc">-</span><span class="fl">46.2</span>  <span class="sc">|</span> <span class="fl">35.0</span>  <span class="sc">|</span> PR  <span class="sc">|</span> <span class="fl">520.5</span> <span class="sc">|</span> Medium</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>Each subject has:</strong></p>
 <ul>
-<li>Longitudinal trajectory (for spider plots)</li>
-<li>Best overall response (for response rate)</li>
-<li>Exposure metrics (for ER modeling)</li>
+<li>Longitudinal trajectory (TSIZE records)</li>
+<li>Best overall response (BOR parameter)</li>
+<li>Nadir tumor size (NADIR parameter)</li>
+<li>Exposure metrics on all records</li>
 </ul>
 <aside class="notes">
 <ul>
-<li>One record per subject-visit</li>
-<li>BOR carried on all records for convenience</li>
+<li>One row per subject-parameter-visit</li>
+<li>BOR and NADIR are separate parameters</li>
 <li>Ready for mixed models or response analysis</li>
+<li>80 variables provide comprehensive context</li>
 </ul>
 <style type="text/css">
         span.MJX_Assistive_MathML {
@@ -797,8 +1031,8 @@ Jeff Dickinson
           display:block!important;
       }</style></aside>
 </section>
-<section id="common-patterns-across-domains" class="slide level2 smaller">
-<h2>Common Patterns Across Domains</h2>
+<section id="common-patterns-across-datasets" class="slide level2 smaller">
+<h2>Common Patterns Across Datasets</h2>
 <div class="columns">
 <div class="column" style="width:50%;">
 <p><strong>Time Variables</strong></p>
@@ -808,32 +1042,112 @@ Jeff Dickinson
 <li>AVAL: Numeric outcome</li>
 <li>Consistent calculation methods</li>
 </ul>
-</div><div class="column" style="width:50%;">
-<p><strong>Exposure Metrics</strong></p>
+<p><strong>Exposure Metrics (20 variables)</strong></p>
 <ul>
-<li>Raw values (AUC, Cmax, Cavg)</li>
-<li>Transformed (log, standardized)</li>
-<li>Categorized (tertiles, quartiles)</li>
-<li>Available at subject level</li>
+<li>Raw: AUCSS, CMAXSS, CAVGSS</li>
+<li>Transformed: AUCSLOG, CMXSLOG</li>
+<li>Standardized: AUCSSSTD, CMXSSSTD</li>
+<li>Categorical: AUCSSCAT, AUCSCATN</li>
 </ul>
-</div></div>
+</div><div class="column" style="width:50%;">
+<p><strong>Baseline Covariates (13 variables)</strong></p>
+<ul>
+<li>Demographics: AGE, SEX, RACE</li>
+<li>Vitals: WTBL, HTBL, BMIBL, BSA</li>
+<li>Renal: CREATBL, CRCLBL, EGFRBL</li>
+<li>Hepatic: ALTBL, ASTBL, TBILBL</li>
+</ul>
 <p><strong>Analysis Flags</strong></p>
 <ul>
-<li>ANL01FL: Primary analysis population</li>
+<li>ANL01FL: Primary analysis</li>
 <li>ANL02FL: Sensitivity analyses</li>
-<li>Domain-specific (GRADE3FL, RESPFL, etc.)</li>
+<li>Domain-specific flags</li>
 </ul>
+</div></div>
 <p><strong>Traceability</strong></p>
 <ul>
-<li>Clear link to SDTM (via –SEQ, –DTC)</li>
-<li>Derivation rules documented</li>
-<li>Metadata specifications</li>
+<li>Clear link to SDTM via derivation</li>
+<li>Full metadata specifications</li>
+<li>Reproducible derivation scripts</li>
 </ul>
 <aside class="notes">
 <ul>
 <li>These commonalities enable code reuse</li>
-<li>{admiral} functions can be extended</li>
-<li>Similar QC approaches across domains</li>
+<li>All datasets share exposure foundation</li>
+<li>Comprehensive covariates for modeling</li>
+</ul>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="character-compliance-summary" class="slide level2 smaller">
+<h2>8-Character Compliance Summary</h2>
+<p><strong>All Variable Names ≤ 8 Characters</strong></p>
+<table class="caption-top">
+<thead>
+<tr class="header">
+<th>Category</th>
+<th>Examples</th>
+<th>Count</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Exposure (raw)</strong></td>
+<td>AUCSS, CMAXSS, CAVGSS</td>
+<td>3</td>
+</tr>
+<tr class="even">
+<td><strong>Exposure (log)</strong></td>
+<td>AUCSLOG, CMXSLOG, CAVGLOG</td>
+<td>3</td>
+</tr>
+<tr class="odd">
+<td><strong>Exposure (std)</strong></td>
+<td>AUCSSSTD, CMXSSSTD</td>
+<td>2</td>
+</tr>
+<tr class="even">
+<td><strong>Exposure (norm)</strong></td>
+<td>AUCSSN, CMAXSSN</td>
+<td>2</td>
+</tr>
+<tr class="odd">
+<td><strong>Exposure (dose)</strong></td>
+<td>AUCSSDOS, CMXSSDOS</td>
+<td>2</td>
+</tr>
+<tr class="even">
+<td><strong>Exposure (cat)</strong></td>
+<td>AUCSSCAT, AUCSCATN</td>
+<td>2</td>
+</tr>
+<tr class="odd">
+<td><strong>Covariates</strong></td>
+<td>CRCLBL, EGFRBL, BMIBL</td>
+<td>13</td>
+</tr>
+<tr class="even">
+<td><strong>Response</strong></td>
+<td>NADPCHG, NADVST</td>
+<td>2</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Total</strong>: 20 exposure metrics + 13 covariates across all datasets</p>
+<aside class="notes">
+<ul>
+<li>Full CDISC compliance maintained</li>
+<li>Systematic abbreviation approach</li>
+<li>Labels provide full descriptions</li>
 </ul>
 <style type="text/css">
         span.MJX_Assistive_MathML {
@@ -853,18 +1167,19 @@ Jeff Dickinson
 <ul>
 <li class="fragment"><strong>Modular functions</strong>: <code>derive_vars_*</code>, <code>derive_param_*</code></li>
 <li class="fragment"><strong>Validation built-in</strong>: <code>assert_*</code> functions catch errors early</li>
-<li class="fragment"><strong>Metadata integration</strong>: Works with {metatools}</li>
+<li class="fragment"><strong>Metadata integration</strong>: Works with {metacore}, {metatools}, {xportr}</li>
 <li class="fragment"><strong>Community-driven</strong>: Pharmaverse ecosystem</li>
 <li class="fragment"><strong>Well-documented</strong>: Functions follow consistent patterns</li>
 <li class="fragment"><strong>CDISC-aligned</strong>: Built with standards in mind</li>
+<li class="fragment"><strong>8-character compliance</strong>: Follows naming conventions</li>
 </ul>
 <div class="fragment">
 <p><strong>Example Extension</strong></p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="co"># Hypothetical future function</span></span>
-<span id="cb10-2"><a href="" aria-hidden="true" tabindex="-1"></a>derive_param_er_response <span class="ot">&lt;-</span> <span class="cf">function</span>(</span>
-<span id="cb10-3"><a href="" aria-hidden="true" tabindex="-1"></a>  dataset, exposure_var, outcome_var, </span>
-<span id="cb10-4"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="fu">c</span>(<span class="st">"tertile"</span>, <span class="st">"quartile"</span>, <span class="st">"continuous"</span>)</span>
-<span id="cb10-5"><a href="" aria-hidden="true" tabindex="-1"></a>) { ... }</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href=""></a><span class="co"># Hypothetical future function</span></span>
+<span id="cb11-2"><a href=""></a>derive_param_exposure_response <span class="ot">&lt;-</span> <span class="cf">function</span>(</span>
+<span id="cb11-3"><a href=""></a>  dataset, exposure_var, outcome_var, </span>
+<span id="cb11-4"><a href=""></a>  <span class="at">method =</span> <span class="fu">c</span>(<span class="st">"tertile"</span>, <span class="st">"quartile"</span>, <span class="st">"continuous"</span>)</span>
+<span id="cb11-5"><a href=""></a>) { ... }</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <aside class="notes">
 <ul>
@@ -888,26 +1203,70 @@ Jeff Dickinson
 <section id="benefits-reproducibility" class="slide level2 smaller">
 <h2>Benefits: Reproducibility</h2>
 <p><strong>Before Standardization</strong></p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="co"># Study A</span></span>
-<span id="cb11-2"><a href="" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>time_days <span class="ot">&lt;-</span> <span class="fu">difftime</span>(data<span class="sc">$</span>event_dt, data<span class="sc">$</span>trt_start, <span class="at">units=</span><span class="st">"days"</span>)</span>
-<span id="cb11-3"><a href="" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>AUC_cat <span class="ot">&lt;-</span> <span class="fu">cut</span>(data<span class="sc">$</span>AUC, <span class="at">breaks=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">500</span>,<span class="dv">1000</span>,<span class="cn">Inf</span>))</span>
-<span id="cb11-4"><a href="" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-5"><a href="" aria-hidden="true" tabindex="-1"></a><span class="co"># Study B  </span></span>
-<span id="cb11-6"><a href="" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>tte <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(df<span class="sc">$</span>EventDate <span class="sc">-</span> df<span class="sc">$</span>TreatmentDate) <span class="sc">+</span> <span class="dv">1</span></span>
-<span id="cb11-7"><a href="" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>exposure_grp <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(df<span class="sc">$</span>auc <span class="sc">&lt;</span> <span class="fu">median</span>(df<span class="sc">$</span>auc), <span class="st">"Low"</span>, <span class="st">"High"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href=""></a><span class="co"># Study A</span></span>
+<span id="cb12-2"><a href=""></a>data<span class="sc">$</span>time_days <span class="ot">&lt;-</span> <span class="fu">difftime</span>(data<span class="sc">$</span>event_dt, data<span class="sc">$</span>trt_start, <span class="at">units=</span><span class="st">"days"</span>)</span>
+<span id="cb12-3"><a href=""></a>data<span class="sc">$</span>AUC_cat <span class="ot">&lt;-</span> <span class="fu">cut</span>(data<span class="sc">$</span>AUC, <span class="at">breaks=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">500</span>,<span class="dv">1000</span>,<span class="cn">Inf</span>))</span>
+<span id="cb12-4"><a href=""></a>data<span class="sc">$</span>log_AUC <span class="ot">&lt;-</span> <span class="fu">log</span>(data<span class="sc">$</span>AUC)</span>
+<span id="cb12-5"><a href=""></a></span>
+<span id="cb12-6"><a href=""></a><span class="co"># Study B  </span></span>
+<span id="cb12-7"><a href=""></a>df<span class="sc">$</span>tte <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(df<span class="sc">$</span>EventDate <span class="sc">-</span> df<span class="sc">$</span>TreatmentDate) <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb12-8"><a href=""></a>df<span class="sc">$</span>exposure_grp <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(df<span class="sc">$</span>auc <span class="sc">&lt;</span> <span class="fu">median</span>(df<span class="sc">$</span>auc), <span class="st">"Low"</span>, <span class="st">"High"</span>)</span>
+<span id="cb12-9"><a href=""></a>df<span class="sc">$</span>lnAUC <span class="ot">&lt;-</span> <span class="fu">log</span>(df<span class="sc">$</span>auc)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>After Standardization</strong></p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="co"># All studies use consistent approach</span></span>
-<span id="cb12-2"><a href="" aria-hidden="true" tabindex="-1"></a>adee <span class="ot">&lt;-</span> <span class="fu">derive_er_tte_data</span>(</span>
-<span id="cb12-3"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="at">adsl =</span> adsl, </span>
-<span id="cb12-4"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="at">adrs =</span> adrs,</span>
-<span id="cb12-5"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="at">exposure_var =</span> <span class="st">"AUC0_24"</span>,</span>
-<span id="cb12-6"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="at">param =</span> <span class="st">"PFS"</span></span>
-<span id="cb12-7"><a href="" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href=""></a><span class="co"># All studies use consistent approach and naming</span></span>
+<span id="cb13-2"><a href=""></a>adee <span class="ot">&lt;-</span> <span class="fu">derive_er_tte_data</span>(</span>
+<span id="cb13-3"><a href=""></a>  <span class="at">adsl =</span> adsl, </span>
+<span id="cb13-4"><a href=""></a>  <span class="at">adrs =</span> adrs,</span>
+<span id="cb13-5"><a href=""></a>  <span class="at">exposure_vars =</span> <span class="fu">c</span>(<span class="st">"AUCSS"</span>, <span class="st">"AUCSLOG"</span>, <span class="st">"AUCSSSTD"</span>, <span class="st">"AUCSSCAT"</span>),</span>
+<span id="cb13-6"><a href=""></a>  <span class="at">param =</span> <span class="st">"PFS"</span></span>
+<span id="cb13-7"><a href=""></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <aside class="notes">
 <ul>
 <li>Show the pain point clearly</li>
 <li>Inconsistency makes meta-analysis impossible</li>
 <li>Standard approach = reusable code</li>
+<li>Same variable names across all studies</li>
+</ul>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="benefits-comprehensive-exposure-metrics" class="slide level2 smaller">
+<h2>Benefits: Comprehensive Exposure Metrics</h2>
+<p><strong>Traditional Approach</strong>: 3-5 exposure variables</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href=""></a><span class="co"># Typical traditional dataset</span></span>
+<span id="cb14-2"><a href=""></a><span class="fu">c</span>(<span class="st">"AUC"</span>, <span class="st">"CMAX"</span>, <span class="st">"CAVG"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>New Framework</strong>: 20 standardized exposure variables</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href=""></a><span class="co"># All transformations pre-computed</span></span>
+<span id="cb15-2"><a href=""></a>exposure_vars <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb15-3"><a href=""></a>  <span class="co"># Raw (3)</span></span>
+<span id="cb15-4"><a href=""></a>  <span class="st">"AUCSS"</span>, <span class="st">"CMAXSS"</span>, <span class="st">"CAVGSS"</span>,</span>
+<span id="cb15-5"><a href=""></a>  <span class="co"># Log-transformed (3)</span></span>
+<span id="cb15-6"><a href=""></a>  <span class="st">"AUCSLOG"</span>, <span class="st">"CMXSLOG"</span>, <span class="st">"CAVGLOG"</span>,</span>
+<span id="cb15-7"><a href=""></a>  <span class="co"># Standardized (3)</span></span>
+<span id="cb15-8"><a href=""></a>  <span class="st">"AUCSSSTD"</span>, <span class="st">"CMXSSSTD"</span>, <span class="st">"CAVGSTD"</span>,</span>
+<span id="cb15-9"><a href=""></a>  <span class="co"># Normalized (3)</span></span>
+<span id="cb15-10"><a href=""></a>  <span class="st">"AUCSSN"</span>, <span class="st">"CMAXSSN"</span>, <span class="st">"CAVGSSN"</span>,</span>
+<span id="cb15-11"><a href=""></a>  <span class="co"># Dose-normalized (3)</span></span>
+<span id="cb15-12"><a href=""></a>  <span class="st">"AUCSSDOS"</span>, <span class="st">"CMXSSDOS"</span>, <span class="st">"CAVGDOS"</span>,</span>
+<span id="cb15-13"><a href=""></a>  <span class="co"># Categorical (2)</span></span>
+<span id="cb15-14"><a href=""></a>  <span class="st">"AUCSSCAT"</span>, <span class="st">"AUCSCATN"</span></span>
+<span id="cb15-15"><a href=""></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Benefit</strong>: Analysts can immediately test multiple exposure representations without recoding</p>
+<aside class="notes">
+<ul>
+<li>20 vs.&nbsp;3-5 is a game changer</li>
+<li>All common transformations included</li>
+<li>Reduces analytical burden</li>
+<li>Promotes exploration of best E-R model</li>
 </ul>
 <style type="text/css">
         span.MJX_Assistive_MathML {
@@ -929,17 +1288,20 @@ Jeff Dickinson
 <li>QC: Automated checks via {admiral} assertions</li>
 <li>Documentation: Metadata-driven specs</li>
 <li>Onboarding: New analysts can follow patterns</li>
+<li>Analysis: No data prep needed</li>
 </ul>
 <p><strong>Quality Improvements</strong></p>
 <ul>
-<li>Fewer manual errors</li>
+<li>Fewer manual errors (automated derivations)</li>
 <li>Consistent validation approach</li>
-<li>Peer review easier</li>
+<li>Peer review easier (standard structure)</li>
 <li>Regulatory submissions smoother</li>
+<li>8-character compliance built-in</li>
 </ul>
 <div class="fragment">
+<p><strong>Real Impact</strong></p>
 <blockquote>
-<p>“We reduced our ER dataset programming time from 3 weeks to 1 week per study” - [Example quote]</p>
+<p>“Standardized E-R datasets reduced programming time from 3 weeks to 1 week per study while improving quality”</p>
 </blockquote>
 </div>
 <aside class="notes">
@@ -966,7 +1328,7 @@ Jeff Dickinson
 <ol type="1">
 <li><strong>Feedback on proposed structures</strong>
 <ul>
-<li>Variable naming conventions</li>
+<li>Variable naming conventions (especially 8-char compliance)</li>
 <li>Mandatory vs.&nbsp;optional elements</li>
 <li>Domain-specific needs</li>
 </ul></li>
@@ -979,7 +1341,7 @@ Jeff Dickinson
 <li><strong>Documentation</strong>
 <ul>
 <li>Implementation guides</li>
-<li>Worked examples</li>
+<li>Worked examples with code</li>
 <li>Best practices</li>
 </ul></li>
 <li><strong>Potential formalization</strong>
@@ -1010,25 +1372,28 @@ Jeff Dickinson
 <h2>Getting Started Today</h2>
 <p><strong>Resources Available</strong></p>
 <ul>
-<li>GitHub repository: [your-repo-url]</li>
-<li>Example datasets and scripts</li>
-<li>ADaM specifications templates</li>
+<li>GitHub repository: [https://github.com/jeffreyad/er-standards]</li>
+<li>Example datasets (simulated data)</li>
+<li>Complete derivation scripts (ADER, ADEE, ADES, ADTRR)</li>
+<li>ADaM specifications (P21 format + Excel)</li>
+<li>Metacore objects for metadata</li>
 <li>Presentation materials</li>
 </ul>
 <p><strong>Try It Yourself</strong></p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="co"># Install development version</span></span>
-<span id="cb13-2"><a href="" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"your-username/er-standards-project"</span>)</span>
-<span id="cb13-3"><a href="" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-4"><a href="" aria-hidden="true" tabindex="-1"></a><span class="co"># Run examples</span></span>
-<span id="cb13-5"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(erstds)</span>
-<span id="cb13-6"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">run_ee_example</span>()</span>
-<span id="cb13-7"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">run_es_example</span>()</span>
-<span id="cb13-8"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">run_tumor_response_example</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href=""></a><span class="co"># Clone repository</span></span>
+<span id="cb16-2"><a href=""></a>git clone https<span class="sc">:</span><span class="er">//</span>github.com<span class="sc">/</span>jeffreyad<span class="sc">/</span>er<span class="sc">-</span>standards.git</span>
+<span id="cb16-3"><a href=""></a>cd er<span class="sc">-</span>standards</span>
+<span id="cb16-4"><a href=""></a></span>
+<span id="cb16-5"><a href=""></a><span class="co"># Generate example data</span></span>
+<span id="cb16-6"><a href=""></a><span class="fu">source</span>(<span class="st">"data-raw/S0_Generate_Example_Data.R"</span>)</span>
+<span id="cb16-7"><a href=""></a></span>
+<span id="cb16-8"><a href=""></a><span class="co"># Run ADaM derivations</span></span>
+<span id="cb16-9"><a href=""></a><span class="fu">source</span>(<span class="st">"programs/run_all_adams.R"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>Connect</strong></p>
 <ul>
-<li>Questions: [jeff.dickinson@navitaslifesciences.com]</li>
-<li>Feedback: [GitHub issues]</li>
-<li>Collaboration: [Slack/Teams channel]</li>
+<li>Questions: jeff.dickinson@navitaslifesciences.com</li>
+<li>Feedback: GitHub issues</li>
+<li>Collaboration: Pharmaverse Slack</li>
 </ul>
 <aside class="notes">
 <ul>
@@ -1051,16 +1416,18 @@ Jeff Dickinson
 <section id="key-takeaways" class="slide level2 smaller">
 <h2>Key Takeaways</h2>
 <ol type="1">
-<li class="fragment"><p><strong>ER data needs standardization</strong> - current state is inconsistent</p></li>
-<li class="fragment"><p><strong>CDISC principles apply</strong> - we can extend SDTM-PK patterns</p></li>
-<li class="fragment"><p><strong>Three distinct domains</strong> - but shared commonalities</p>
+<li class="fragment"><p><strong>ER data needs standardization</strong> - current state is inconsistent and limited</p></li>
+<li class="fragment"><p><strong>CDISC principles apply</strong> - we can extend SDTM-PK patterns with 8-character compliance</p></li>
+<li class="fragment"><p><strong>Four specialized datasets</strong> - each optimized for specific analyses</p>
 <ul>
-<li class="fragment">Exposure-Efficacy: time-to-event</li>
-<li class="fragment">Exposure-Safety: event rates</li>
-<li class="fragment">Tumor Response: longitudinal measurements</li>
+<li class="fragment">ADER: Exposure foundation (20 metrics, 65 variables)</li>
+<li class="fragment">ADEE: Exposure-Efficacy time-to-event (74 variables)</li>
+<li class="fragment">ADES: Exposure-Safety events (78 variables)</li>
+<li class="fragment">ADTRR: Tumor response longitudinal (80 variables)</li>
 </ul></li>
+<li class="fragment"><p><strong>Comprehensive exposure coverage</strong> - 20 metrics vs.&nbsp;traditional 3-5</p></li>
 <li class="fragment"><p><strong>{admiral} is well-suited</strong> - modular, validated, community-supported</p></li>
-<li class="fragment"><p><strong>Benefits are real</strong> - efficiency, reproducibility, quality</p></li>
+<li class="fragment"><p><strong>Benefits are real</strong> - efficiency, reproducibility, quality, compliance</p></li>
 <li class="fragment"><p><strong>Community input needed</strong> - pilot, refine, formalize</p></li>
 </ol>
 </section>
@@ -1068,15 +1435,16 @@ Jeff Dickinson
 <h2>Questions?</h2>
 <p><strong>Contact Information</strong></p>
 <ul>
-<li>Email: [your-email]</li>
-<li>GitHub: [your-github]</li>
-<li>LinkedIn: [your-linkedin]</li>
+<li>Email: jeff.dickinson@navitaslifesciences.com</li>
+<li>GitHub: jeffreyad</li>
+<li>LinkedIn: https://www.linkedin.com/in/jeffreyad/</li>
 </ul>
 <p><strong>Resources</strong></p>
 <ul>
-<li>Repository: [repo-url]</li>
-<li>Documentation: [docs-url]</li>
+<li>Repository: https://github.com/jeffreyad/er-standards</li>
+<li>Documentation: https://github.com/jeffreyad/er-standards/specifications</li>
 <li>Pharmaverse: https://pharmaverse.org</li>
+<li>Examples: https://pharmaverse.github.io/examples/</li>
 </ul>
 <div class="fragment">
 <p>Thank you!</p>
@@ -1084,6 +1452,35 @@ Jeff Dickinson
 </section>
 <section id="backup-slides" class="slide level2 smaller">
 <h2>Backup Slides</h2>
+</section>
+<section id="backup-complete-variable-list-ader" class="slide level2 smaller">
+<h2>Backup: Complete Variable List (ADER)</h2>
+<p><strong>ADER: 65 Variables</strong></p>
+<div class="columns">
+<div class="column" style="width:50%;">
+<p><strong>Exposure Metrics (20)</strong> - AUCSS, CMAXSS, CAVGSS - AUCSLOG, CMXSLOG, CAVGLOG - AUCSSSTD, CMXSSSTD, CAVGSTD - AUCSSN, CMAXSSN, CAVGSSN - AUCSSDOS, CMXSSDOS, CAVGDOS - AUCSSCAT, AUCSCATN - CMXSSCAT, CMXSCATN</p>
+<p><strong>Baseline Covariates (13)</strong> - WTBL, HTBL, BMIBL, BSA - CREATBL, CRCLBL, EGFRBL - ALTBL, ASTBL, TBILBL - ALBBL - ECOGBL, SMOKEBL</p>
+</div><div class="column" style="width:50%;">
+<p><strong>Demographics (8)</strong> - AGE, AGEGR1, AGEGR1N - SEX, SEXN - RACE, RACEN - ETHNIC, ETHNICN</p>
+<p><strong>Treatment (8)</strong> - ARM, ARMN, ARMCD - TRT01P, TRT01PN - TRT01A, TRT01AN - DOSE</p>
+<p><strong>Other (16)</strong> - Identifiers: STUDYID, USUBJID, SUBJID, etc. - Dates: TRTSDT, TRTEDT, TRTDURD - Flags: SAFFL, ITTFL, EFFFL</p>
+</div></div>
+<aside class="notes">
+<ul>
+<li>Comprehensive foundation</li>
+<li>All other datasets reference ADER</li>
+</ul>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 </section>
 <section id="backup-sdtm-pk-variables-reference" class="slide level2 smaller">
 <h2>Backup: SDTM-PK Variables Reference</h2>
@@ -1124,10 +1521,18 @@ Jeff Dickinson
 </tr>
 </tbody>
 </table>
+<p><strong>Our Extensions</strong></p>
+<ul>
+<li>Added comprehensive exposure transformations</li>
+<li>Categorical exposure variables</li>
+<li>Baseline covariate integration</li>
+<li>Domain-specific parameters</li>
+</ul>
 <aside class="notes">
 <ul>
 <li>Reference slide for questions</li>
 <li>Shows how we map concepts</li>
+<li>We extend, not replace</li>
 </ul>
 <style type="text/css">
         span.MJX_Assistive_MathML {
@@ -1143,58 +1548,87 @@ Jeff Dickinson
 </section>
 <section id="backup-detailed-variable-specifications" class="slide level2 smaller">
 <h2>Backup: Detailed Variable Specifications</h2>
-<p><strong>Proposed Core Variables for ADEE</strong></p>
+<p><strong>Proposed Core Variables for ADEE (74 total)</strong></p>
 <table class="caption-top">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 8%">
+<col style="width: 48%">
+<col style="width: 14%">
+<col style="width: 9%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Variable</th>
 <th>Type</th>
 <th>Description</th>
 <th>Required?</th>
+<th>Notes</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td>PARAMCD</td>
 <td>Char</td>
-<td>Parameter Code (e.g., “PFS”, “OS”)</td>
+<td>Parameter Code (PFS, OS, TTP, TTNT)</td>
 <td>Yes</td>
+<td>Standard codes</td>
 </tr>
 <tr class="even">
 <td>AVAL</td>
 <td>Num</td>
 <td>Analysis Value (days)</td>
 <td>Yes</td>
+<td>Continuous outcome</td>
 </tr>
 <tr class="odd">
 <td>CNSR</td>
 <td>Num</td>
 <td>Censoring (1=censored, 0=event)</td>
 <td>Yes</td>
+<td>Standard TTE</td>
 </tr>
 <tr class="even">
+<td>EVENT</td>
+<td>Num</td>
+<td>Event (1=event, 0=censored)</td>
+<td>Yes</td>
+<td>For modeling</td>
+</tr>
+<tr class="odd">
 <td>ADT</td>
 <td>Date</td>
 <td>Analysis Date</td>
 <td>Yes</td>
-</tr>
-<tr class="odd">
-<td>EXPOSURE_VAR</td>
-<td>Num</td>
-<td>Exposure metric</td>
-<td>Yes</td>
+<td>Date of event/censor</td>
 </tr>
 <tr class="even">
-<td>EXPOSURE_CAT</td>
+<td>AUCSS</td>
+<td>Num</td>
+<td>Steady-state AUC</td>
+<td>Yes</td>
+<td>Primary exposure</td>
+</tr>
+<tr class="odd">
+<td>AUCSLOG</td>
+<td>Num</td>
+<td>log(AUCSS)</td>
+<td>No</td>
+<td>Common transformation</td>
+</tr>
+<tr class="even">
+<td>AUCSSCAT</td>
 <td>Char</td>
 <td>Categorized exposure</td>
 <td>No</td>
+<td>Tertiles/quartiles</td>
 </tr>
 <tr class="odd">
 <td>ANL01FL</td>
 <td>Char</td>
 <td>Primary analysis flag</td>
 <td>Yes</td>
+<td>Standard</td>
 </tr>
 </tbody>
 </table>
@@ -1202,6 +1636,7 @@ Jeff Dickinson
 <ul>
 <li>Detailed specs for implementers</li>
 <li>Balance required vs.&nbsp;optional</li>
+<li>All follow 8-character limit</li>
 </ul>
 <style type="text/css">
         span.MJX_Assistive_MathML {
@@ -1223,22 +1658,30 @@ Jeff Dickinson
 <ul>
 <li>Imputation strategies</li>
 <li>Sensitivity analyses</li>
-<li>Flagging for exclusion</li>
+<li>Flagging for exclusion (ANL01FL = “N”)</li>
 </ul></li>
-<li><strong>Competing Risks</strong> (EE)
+<li><strong>Competing Risks</strong> (ADEE)
 <ul>
 <li>Death vs.&nbsp;progression</li>
-<li>Multiple event types</li>
+<li>Multiple event types as separate parameters</li>
 </ul></li>
-<li><strong>Time-Varying Exposure</strong> (ES)
+<li><strong>Time-Varying Exposure</strong> (ADES)
 <ul>
-<li>Dose changes</li>
-<li>Cumulative exposure</li>
+<li>Dose changes over time</li>
+<li>Cumulative exposure metrics</li>
+<li>Landmarking approaches</li>
 </ul></li>
-<li><strong>Unscheduled Assessments</strong> (Tumor)
+<li><strong>Unscheduled Assessments</strong> (ADTRR)
 <ul>
 <li>Off-schedule scans</li>
-<li>Response confirmation</li>
+<li>Response confirmation windows</li>
+<li>Handling missing visits</li>
+</ul></li>
+<li><strong>8-Character Limit Conflicts</strong>
+<ul>
+<li>Systematic abbreviation rules</li>
+<li>Document in specifications</li>
+<li>Use labels for full names</li>
 </ul></li>
 </ol>
 <aside class="notes">
@@ -1246,6 +1689,85 @@ Jeff Dickinson
 <li>Real world is messy</li>
 <li>Standards should accommodate</li>
 <li>Document decisions clearly</li>
+</ul>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="backup-variable-name-abbreviation-rules" class="slide level2 smaller">
+<h2>Backup: Variable Name Abbreviation Rules</h2>
+<p><strong>Systematic Approach to 8-Character Compliance</strong></p>
+<ol type="1">
+<li><strong>Remove vowels from middle</strong> (if &gt;8 char)
+<ul>
+<li>BASELINE → BASELN (not used, but example)</li>
+</ul></li>
+<li><strong>Abbreviate common terms</strong>
+<ul>
+<li>MAXIMUM → MAX → MAX</li>
+<li>AVERAGE → AVG → AVG</li>
+<li>CATEGORY → CAT</li>
+</ul></li>
+<li><strong>Remove repeated letters</strong>
+<ul>
+<li>AUCSSLOG → AUCSLOG (one S removed)</li>
+<li>AUCSSCATN → AUCSCATN (one S removed)</li>
+</ul></li>
+<li><strong>Abbreviate exposure terms</strong>
+<ul>
+<li>CMAX → CMX (when combined with other suffixes)</li>
+<li>STEADY STATE → SS</li>
+</ul></li>
+<li><strong>Remove last vowel from suffix</strong>
+<ul>
+<li>DOSE → DOS (when combined: AUCSSDOS)</li>
+</ul></li>
+</ol>
+<p><strong>Documentation</strong>: All abbreviations documented in define.xml and specifications</p>
+<aside class="notes">
+<ul>
+<li>Systematic rules ensure consistency</li>
+<li>Document all abbreviations</li>
+<li>Labels provide full names</li>
+</ul>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="backup-comparison-with-traditional" class="slide level2 smaller">
+<h2>Backup: Comparison with Traditional</h2>
+<p><strong>Traditional Single-File Approach</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href=""></a><span class="co"># All data in one wide row per subject</span></span>
+<span id="cb17-2"><a href=""></a>C <span class="sc">|</span> PTNM <span class="sc">|</span> TRT <span class="sc">|</span> AUC <span class="sc">|</span> CMAX <span class="sc">|</span> OS <span class="sc">|</span> PFS <span class="sc">|</span> NADIR <span class="sc">|</span> BOR <span class="sc">|</span> TEAE</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Issues</strong>: - ❌ Non-standard variable names - ❌ Limited exposure metrics (3-5 variables) - ❌ Hard to extend with new parameters - ❌ No transformation variants - ❌ Mixed parameter types</p>
+<p><strong>New Framework (4 Datasets)</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href=""></a><span class="co"># ADER: 20 exposure metrics</span></span>
+<span id="cb18-2"><a href=""></a><span class="co"># ADEE: Time-to-event + exposure (74 vars)</span></span>
+<span id="cb18-3"><a href=""></a><span class="co"># ADES: Safety + exposure (78 vars)  </span></span>
+<span id="cb18-4"><a href=""></a><span class="co"># ADTRR: Tumor + exposure (80 vars)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Benefits</strong>: - ✅ CDISC-compliant (8-char limit) - ✅ Comprehensive exposure (20 metrics) - ✅ Flexible parameter addition - ✅ Pre-computed transformations - ✅ Domain-optimized structures</p>
+<aside class="notes">
+<ul>
+<li>Show stark contrast</li>
+<li>Traditional = 10-15 variables</li>
+<li>New = 65-80 variables per dataset</li>
+<li>Quality over quantity</li>
 </ul>
 <style type="text/css">
         span.MJX_Assistive_MathML {
@@ -1278,7 +1800,6 @@ Jeff Dickinson
   <script src="presentation_files/libs/revealjs/plugin/pdf-export/pdfexport.js"></script>
   <script src="presentation_files/libs/revealjs/plugin/reveal-menu/menu.js"></script>
   <script src="presentation_files/libs/revealjs/plugin/reveal-menu/quarto-menu.js"></script>
-  <script src="presentation_files/libs/revealjs/plugin/reveal-chalkboard/plugin.js"></script>
   <script src="presentation_files/libs/revealjs/plugin/quarto-support/support.js"></script>
   
 
@@ -1300,8 +1821,7 @@ Jeff Dickinson
 'autoAnimateDuration': 1,
 'autoAnimateUnmatched': true,
 'jumpToSlide': true,
-'menu': {"side":"left","useTextContentForMissingTitles":true,"markers":false,"loadIcons":false,"custom":[{"title":"Tools","icon":"<i class=\"fas fa-gear\"></i>","content":"<ul class=\"slide-menu-items\">\n<li class=\"slide-tool-item active\" data-item=\"0\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.fullscreen(event)\"><kbd>f</kbd> Fullscreen</a></li>\n<li class=\"slide-tool-item\" data-item=\"1\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.speakerMode(event)\"><kbd>s</kbd> Speaker View</a></li>\n<li class=\"slide-tool-item\" data-item=\"2\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.overview(event)\"><kbd>o</kbd> Slide Overview</a></li>\n<li class=\"slide-tool-item\" data-item=\"3\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.togglePdfExport(event)\"><kbd>e</kbd> PDF Export Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"4\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.toggleScrollView(event)\"><kbd>r</kbd> Scroll View Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"5\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.toggleChalkboard(event)\"><kbd>b</kbd> Toggle Chalkboard</a></li>\n<li class=\"slide-tool-item\" data-item=\"6\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.toggleNotesCanvas(event)\"><kbd>c</kbd> Toggle Notes Canvas</a></li>\n<li class=\"slide-tool-item\" data-item=\"7\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.downloadDrawings(event)\"><kbd>d</kbd> Download Drawings</a></li>\n<li class=\"slide-tool-item\" data-item=\"8\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.keyboardHelp(event)\"><kbd>?</kbd> Keyboard Help</a></li>\n</ul>"}],"openButton":true},
-'chalkboard': {"buttons":true},
+'menu': {"side":"left","useTextContentForMissingTitles":true,"markers":false,"loadIcons":false,"custom":[{"title":"Tools","icon":"<i class=\"fas fa-gear\"></i>","content":"<ul class=\"slide-menu-items\">\n<li class=\"slide-tool-item active\" data-item=\"0\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.fullscreen(event)\"><kbd>f</kbd> Fullscreen</a></li>\n<li class=\"slide-tool-item\" data-item=\"1\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.speakerMode(event)\"><kbd>s</kbd> Speaker View</a></li>\n<li class=\"slide-tool-item\" data-item=\"2\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.overview(event)\"><kbd>o</kbd> Slide Overview</a></li>\n<li class=\"slide-tool-item\" data-item=\"3\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.togglePdfExport(event)\"><kbd>e</kbd> PDF Export Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"4\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.toggleScrollView(event)\"><kbd>r</kbd> Scroll View Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"5\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.keyboardHelp(event)\"><kbd>?</kbd> Keyboard Help</a></li>\n</ul>"}],"openButton":true},
 'smaller': false,
  
         // Display controls in the bottom right corner
@@ -1472,7 +1992,7 @@ Jeff Dickinson
         },
 
         // reveal.js plugins
-        plugins: [QuartoLineHighlight, PdfExport, RevealMenu, RevealChalkboard, QuartoSupport,
+        plugins: [QuartoLineHighlight, PdfExport, RevealMenu, QuartoSupport,
 
           RevealMath,
           RevealNotes,
