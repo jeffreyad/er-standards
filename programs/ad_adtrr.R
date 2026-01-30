@@ -68,6 +68,7 @@ adsl <- adsl %>%
 ## Numeric identifiers and demographics ----
 
 adsl_cov <- adsl %>%
+  filter(SAFFL == "Y") %>% 
   mutate(
     # Study identifiers (numeric)
     STUDYIDN = as.numeric(word(USUBJID, 1, sep = fixed("-"))),
@@ -198,6 +199,12 @@ tsize_final <- adtr %>%
     PARAM = "Target Lesions Sum of Diameters",
     PARAMN = 1
   ) %>%
+  derive_var_nfrlt(
+    new_var = NFRLT,
+    new_var_unit = FRLTU,
+    out_unit = "HOURS",
+    visit_day = ADY
+  ) %>% 
   select(-any_of(vars_to_drop)) %>%
   derive_vars_merged(
     dataset_add = exposure_final,
@@ -211,7 +218,7 @@ common_vars_adrs <- intersect(adsl_vars, adrs_vars)
 vars_to_drop_adrs <- setdiff(common_vars_adrs, c("STUDYID", "USUBJID"))
 
 bor <- adrs %>%
-  filter(PARAMCD == "BOR") %>%
+  filter(PARAMCD == "BOR" & SAFFL == "Y") %>%
   mutate(
     PARAMN = 2,
     # Create BORN from AVALC if AVAL doesn't exist
