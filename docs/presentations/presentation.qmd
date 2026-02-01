@@ -4,7 +4,7 @@ subtitle: "Using CDISC Principles and {admiral}"
 author: "Jeff Dickinson"
 institute: "Navitas Data Sciences"
 date: today
-format:
+format: 
   revealjs:
     theme: simple
     slide-number: true
@@ -132,7 +132,7 @@ format:
 ## Four ER Datasets: A Comparison {.smaller}
 
 | Aspect | ADER | ADEE | ADES | ADTRR |
-|--------|------|------|------|-------|
+|---------------|---------------|---------------|---------------|---------------|
 | **Purpose** | Exposure foundation | Time-to-event | Safety events | Tumor response |
 | **Structure** | Subject-level | BDS (one/subject/param) | BDS + OCCDS hybrid | BDS with visits |
 | **Key Variables** | 20 exposure metrics | AVAL, CNSR, EVENT | TEAE, TEAESEV, event details | AVAL, BASE, CHG, PCHG |
@@ -153,33 +153,20 @@ format:
 
 ::::: columns
 ::: {.column width="50%"}
-**Raw Metrics**
-- AUCSS: Steady-state AUC
-- CMAXSS: Steady-state Cmax  
+**Raw Metrics** - AUCSS: Steady-state AUC - CMAXSS: Steady-state Cmax\
 - CAVGSS: Steady-state Cavg
 
-**Transformed**
-- AUCSLOG: log(AUCSS)
-- CMXSLOG: log(CMAXSS)
-- CAVGLOG: log(CAVGSS)
+**Transformed** - AUCSLOG: log(AUCSS) - CMXSLOG: log(CMAXSS) - CAVGLOG: log(CAVGSS)
 
-**Standardized**
-- AUCSSSTD: Z-score
-- CMXSSSTD: Z-score
+**Standardized** - AUCSSSTD: Z-score - CMXSSSTD: Z-score
 :::
 
 ::: {.column width="50%"}
-**Normalized**
-- AUCSSN: AUC/mean(AUC)
-- CMAXSSN: Cmax/mean(Cmax)
+**Normalized** - AUCSSN: AUC/mean(AUC) - CMAXSSN: Cmax/mean(Cmax)
 
-**Dose-Normalized**
-- AUCSSDOS: AUC/Dose
-- CMXSSDOS: Cmax/Dose
+**Dose-Normalized** - AUCSSDOS: AUC/Dose - CMXSSDOS: Cmax/Dose
 
-**Categorical**
-- AUCSSCAT: Tertiles/quartiles
-- AUCSCATN: Numeric category
+**Categorical** - AUCSSCAT: Tertiles/quartiles - AUCSCATN: Numeric category
 :::
 :::::
 
@@ -197,15 +184,15 @@ format:
 
 **Our Naming Strategy**
 
-| Traditional | Updated (≤8 char) | Rationale |
-|-------------|-------------------|-----------|
-| AUCSSLOG | **AUCSLOG** | Removed one "S" |
-| CMAXSSLOG | **CMXSLOG** | Abbreviated CMAX |
-| CAVGSSLOG | **CAVGLOG** | Removed SS |
-| CMAXSSSTD | **CMXSSSTD** | Abbreviated CMAX |
-| AUCSSDOSE | **AUCSSDOS** | Removed E |
-| CMAXSSDOSE | **CMXSSDOS** | Abbreviated + removed E |
-| AUCSSCATN | **AUCSCATN** | Removed one S |
+| Traditional | Updated (≤8 char) | Rationale               |
+|-------------|-------------------|-------------------------|
+| AUCSSLOG    | **AUCSLOG**       | Removed one "S"         |
+| CMAXSSLOG   | **CMXSLOG**       | Abbreviated CMAX        |
+| CAVGSSLOG   | **CAVGLOG**       | Removed SS              |
+| CMAXSSSTD   | **CMXSSSTD**      | Abbreviated CMAX        |
+| AUCSSDOSE   | **AUCSSDOS**      | Removed E               |
+| CMAXSSDOSE  | **CMXSSDOS**      | Abbreviated + removed E |
+| AUCSSCATN   | **AUCSCATN**      | Removed one S           |
 
 ::: notes
 -   Compliance with CDISC is critical
@@ -226,6 +213,7 @@ format:
 -   CNSR = censoring indicator (1=censored, 0=event)
 -   EVENT = event indicator (1=event, 0=censored)
 -   Exposure available as continuous and categorical
+
 ``` r
 adee %>% 
   select(USUBJID, PARAMCD, AVAL, CNSR, EVENT, AUCSS, AUCSSCAT) %>%
@@ -242,6 +230,7 @@ adee %>%
 ------------------------------------------------------------------------
 
 ## ADEE: Code Example {.smaller}
+
 ```{r}
 #| echo: true
 #| eval: false
@@ -280,6 +269,7 @@ exposure_cats <- adsl %>%
 ------------------------------------------------------------------------
 
 ## ADEE: Analysis-Ready Output {.smaller}
+
 ``` r
 # ADEE structure (74 variables)
 USUBJID | PARAMCD | AVAL | AVALU | CNSR | EVENT | AUCSS | AUCSLOG | AUCSSCAT | AUCSCATN
@@ -290,6 +280,7 @@ USUBJID | PARAMCD | AVAL | AVALU | CNSR | EVENT | AUCSS | AUCSLOG | AUCSSCAT | A
 ```
 
 **Ready for modeling:**
+
 ``` r
 # Cox proportional hazards (continuous)
 coxph(Surv(AVAL, EVENT) ~ AUCSSSTD + AGE + SEX, data = adee)
@@ -332,6 +323,7 @@ survfit(Surv(AVAL, EVENT) ~ AUCSSCAT, data = adee)
 ------------------------------------------------------------------------
 
 ## ADES: Subject-Level Parameters {.smaller}
+
 ```{r}
 #| echo: true
 #| eval: false
@@ -366,7 +358,7 @@ ades_subj <- adsl %>%
 **Important**: ADES uses `ASEV`/`ASEVN` (not `AETOXGR`/`AETOXGRN`)
 
 | Variable | Values | Description |
-|----------|--------|-------------|
+|-----------------------|-------------------|------------------------------|
 | **ASEV** | MILD, MODERATE, SEVERE | Severity (character) |
 | **ASEVN** | 1, 2, 3 | Severity (numeric) |
 | **AESER** | Y, N | Serious flag |
@@ -375,9 +367,9 @@ ades_subj <- adsl %>%
 
 **Key Parameters**
 
-- **TEAE**: Total AEs
-- **TEAESEV**: Treatment-Emergent Severe AEs (ASEVN = 3)
-- **TESAE**: Treatment-Emergent Serious AEs (AESER = "Y")
+-   **TEAE**: Total AEs
+-   **TEAESEV**: Treatment-Emergent Severe AEs (ASEVN = 3)
+-   **TESAE**: Treatment-Emergent Serious AEs (AESER = "Y")
 
 ::: notes
 -   Follows pharmaverseadam conventions
@@ -388,6 +380,7 @@ ades_subj <- adsl %>%
 ------------------------------------------------------------------------
 
 ## ADES: Event-Level Records {.smaller}
+
 ``` r
 # Event-level dataset structure
 USUBJID | AESEQ | AEDECOD    | ASEV     | ASEVN | AEREL    | CMAXSS | CMXSSCAT | ASTDT
@@ -442,6 +435,7 @@ USUBJID | AESEQ | AEDECOD    | ASEV     | ASEVN | AEREL    | CMAXSS | CMXSSCAT |
 ------------------------------------------------------------------------
 
 ## ADTRR: Longitudinal Structure {.smaller}
+
 ```{r}
 #| echo: true
 #| eval: false
@@ -480,6 +474,7 @@ adtr <- tr_raw %>%
 ## ADTRR: Additional Parameters {.smaller}
 
 **Beyond Target Lesion Size**
+
 ```{r}
 #| echo: true
 #| eval: false
@@ -521,6 +516,7 @@ adtrr_nadir <- adtrr %>%
 ------------------------------------------------------------------------
 
 ## RECIST Criteria Implementation {.smaller}
+
 ```{r}
 #| echo: true
 #| eval: false
@@ -562,6 +558,7 @@ bor <- adtrr %>%
 ------------------------------------------------------------------------
 
 ## ADTRR: Output Structure {.smaller}
+
 ``` r
 # Longitudinal measurements (80 variables)
 USUBJID | PARAMCD | AVISITN | AVISIT  | BASE | AVAL | CHG  | PCHG   | AVALC | BOR | AUCSS | AUCSSCAT
@@ -642,16 +639,16 @@ USUBJID | PARAMCD | AVISITN | AVISIT  | BASE | AVAL | CHG  | PCHG   | AVALC | BO
 
 **All Variable Names ≤ 8 Characters**
 
-| Category | Examples | Count |
-|----------|----------|-------|
-| **Exposure (raw)** | AUCSS, CMAXSS, CAVGSS | 3 |
-| **Exposure (log)** | AUCSLOG, CMXSLOG, CAVGLOG | 3 |
-| **Exposure (std)** | AUCSSSTD, CMXSSSTD | 2 |
-| **Exposure (norm)** | AUCSSN, CMAXSSN | 2 |
-| **Exposure (dose)** | AUCSSDOS, CMXSSDOS | 2 |
-| **Exposure (cat)** | AUCSSCAT, AUCSCATN | 2 |
-| **Covariates** | CRCLBL, EGFRBL, BMIBL | 13 |
-| **Response** | NADPCHG, NADVST | 2 |
+| Category            | Examples                  | Count |
+|---------------------|---------------------------|-------|
+| **Exposure (raw)**  | AUCSS, CMAXSS, CAVGSS     | 3     |
+| **Exposure (log)**  | AUCSLOG, CMXSLOG, CAVGLOG | 3     |
+| **Exposure (std)**  | AUCSSSTD, CMXSSSTD        | 2     |
+| **Exposure (norm)** | AUCSSN, CMAXSSN           | 2     |
+| **Exposure (dose)** | AUCSSDOS, CMXSSDOS        | 2     |
+| **Exposure (cat)**  | AUCSSCAT, AUCSCATN        | 2     |
+| **Covariates**      | CRCLBL, EGFRBL, BMIBL     | 13    |
+| **Response**        | NADPCHG, NADVST           | 2     |
 
 **Total**: 20 exposure metrics + 13 covariates across all datasets
 
@@ -679,6 +676,7 @@ USUBJID | PARAMCD | AVISITN | AVISIT  | BASE | AVAL | CHG  | PCHG   | AVALC | BO
 
 ::: fragment
 **Example Extension**
+
 ``` r
 # Hypothetical future function
 derive_param_exposure_response <- function(
@@ -700,6 +698,7 @@ derive_param_exposure_response <- function(
 ## Benefits: Reproducibility {.smaller}
 
 **Before Standardization**
+
 ``` r
 # Study A
 data$time_days <- difftime(data$event_dt, data$trt_start, units="days")
@@ -713,6 +712,7 @@ df$lnAUC <- log(df$auc)
 ```
 
 **After Standardization**
+
 ``` r
 # All studies use consistent approach and naming
 adee <- derive_er_tte_data(
@@ -735,12 +735,14 @@ adee <- derive_er_tte_data(
 ## Benefits: Comprehensive Exposure Metrics {.smaller}
 
 **Traditional Approach**: 3-5 exposure variables
+
 ``` r
 # Typical traditional dataset
 c("AUC", "CMAX", "CAVG")
 ```
 
 **New Framework**: 20 standardized exposure variables
+
 ``` r
 # All transformations pre-computed
 exposure_vars <- c(
@@ -834,7 +836,7 @@ exposure_vars <- c(
 
 **Resources Available**
 
--   GitHub repository: [https://github.com/jeffreyad/er-standards]
+-   GitHub repository: \[https://github.com/jeffreyad/er-standards\]
 -   Example datasets (simulated data)
 -   Complete derivation scripts (ADER, ADEE, ADES, ADTRR)
 -   ADaM specifications (P21 format + Excel)
@@ -842,6 +844,7 @@ exposure_vars <- c(
 -   Presentation materials
 
 **Try It Yourself**
+
 ``` r
 # Clone repository
 git clone https://github.com/jeffreyad/er-standards.git
@@ -856,7 +859,7 @@ source("programs/run_all_adams.R")
 
 **Connect**
 
--   Questions: jeff.dickinson@navitaslifesciences.com
+-   Questions: jeff.dickinson\@navitaslifesciences.com
 -   Feedback: GitHub issues
 -   Collaboration: Pharmaverse Slack
 
@@ -897,7 +900,7 @@ source("programs/run_all_adams.R")
 
 **Contact Information**
 
--   Email: jeff.dickinson@navitaslifesciences.com
+-   Email: jeff.dickinson\@navitaslifesciences.com
 -   GitHub: jeffreyad
 -   LinkedIn: https://www.linkedin.com/in/jeffreyad/
 
@@ -924,40 +927,17 @@ Thank you!
 
 ::::: columns
 ::: {.column width="50%"}
-**Exposure Metrics (20)**
-- AUCSS, CMAXSS, CAVGSS
-- AUCSLOG, CMXSLOG, CAVGLOG
-- AUCSSSTD, CMXSSSTD, CAVGSTD
-- AUCSSN, CMAXSSN, CAVGSSN
-- AUCSSDOS, CMXSSDOS, CAVGDOS
-- AUCSSCAT, AUCSCATN
-- CMXSSCAT, CMXSCATN
+**Exposure Metrics (20)** - AUCSS, CMAXSS, CAVGSS - AUCSLOG, CMXSLOG, CAVGLOG - AUCSSSTD, CMXSSSTD, CAVGSTD - AUCSSN, CMAXSSN, CAVGSSN - AUCSSDOS, CMXSSDOS, CAVGDOS - AUCSSCAT, AUCSCATN - CMXSSCAT, CMXSCATN
 
-**Baseline Covariates (13)**
-- WTBL, HTBL, BMIBL, BSA
-- CREATBL, CRCLBL, EGFRBL
-- ALTBL, ASTBL, TBILBL
-- ALBBL
-- ECOGBL, SMOKEBL
+**Baseline Covariates (13)** - WTBL, HTBL, BMIBL, BSA - CREATBL, CRCLBL, EGFRBL - ALTBL, ASTBL, TBILBL - ALBBL - ECOGBL, SMOKEBL
 :::
 
 ::: {.column width="50%"}
-**Demographics (8)**
-- AGE, AGEGR1, AGEGR1N
-- SEX, SEXN
-- RACE, RACEN
-- ETHNIC, ETHNICN
+**Demographics (8)** - AGE, AGEGR1, AGEGR1N - SEX, SEXN - RACE, RACEN - ETHNIC, ETHNICN
 
-**Treatment (8)**
-- ARM, ARMN, ARMCD
-- TRT01P, TRT01PN
-- TRT01A, TRT01AN
-- DOSE
+**Treatment (8)** - ARM, ARMN, ARMCD - TRT01P, TRT01PN - TRT01A, TRT01AN - DOSE
 
-**Other (16)**
-- Identifiers: STUDYID, USUBJID, SUBJID, etc.
-- Dates: TRTSDT, TRTEDT, TRTDURD
-- Flags: SAFFL, ITTFL, EFFFL
+**Other (16)** - Identifiers: STUDYID, USUBJID, SUBJID, etc. - Dates: TRTSDT, TRTEDT, TRTDURD - Flags: SAFFL, ITTFL, EFFFL
 :::
 :::::
 
@@ -982,10 +962,10 @@ Thank you!
 
 **Our Extensions**
 
-- Added comprehensive exposure transformations
-- Categorical exposure variables
-- Baseline covariate integration
-- Domain-specific parameters
+-   Added comprehensive exposure transformations
+-   Categorical exposure variables
+-   Baseline covariate integration
+-   Domain-specific parameters
 
 ::: notes
 -   Reference slide for questions
@@ -999,17 +979,17 @@ Thank you!
 
 **Proposed Core Variables for ADEE (74 total)**
 
-| Variable     | Type | Description                        | Required? | Notes |
-|--------------|------|------------------------------------|-----------|-------|
-| PARAMCD      | Char | Parameter Code (PFS, OS, TTP, TTNT)| Yes       | Standard codes |
-| AVAL         | Num  | Analysis Value (days)              | Yes       | Continuous outcome |
-| CNSR         | Num  | Censoring (1=censored, 0=event)    | Yes       | Standard TTE |
-| EVENT        | Num  | Event (1=event, 0=censored)        | Yes       | For modeling |
-| ADT          | Date | Analysis Date                      | Yes       | Date of event/censor |
-| AUCSS        | Num  | Steady-state AUC                   | Yes       | Primary exposure |
-| AUCSLOG      | Num  | log(AUCSS)                         | No        | Common transformation |
-| AUCSSCAT     | Char | Categorized exposure               | No        | Tertiles/quartiles |
-| ANL01FL      | Char | Primary analysis flag              | Yes       | Standard |
+| Variable | Type | Description | Required? | Notes |
+|------------|------------|---------------------------|------------|------------|
+| PARAMCD | Char | Parameter Code (PFS, OS, TTP, TTNT) | Yes | Standard codes |
+| AVAL | Num | Analysis Value (days) | Yes | Continuous outcome |
+| CNSR | Num | Censoring (1=censored, 0=event) | Yes | Standard TTE |
+| EVENT | Num | Event (1=event, 0=censored) | Yes | For modeling |
+| ADT | Date | Analysis Date | Yes | Date of event/censor |
+| AUCSS | Num | Steady-state AUC | Yes | Primary exposure |
+| AUCSLOG | Num | log(AUCSS) | No | Common transformation |
+| AUCSSCAT | Char | Categorized exposure | No | Tertiles/quartiles |
+| ANL01FL | Char | Primary analysis flag | Yes | Standard |
 
 ::: notes
 -   Detailed specs for implementers
@@ -1027,21 +1007,17 @@ Thank you!
     -   Imputation strategies
     -   Sensitivity analyses
     -   Flagging for exclusion (ANL01FL = "N")
-    
 2.  **Competing Risks** (ADEE)
     -   Death vs. progression
     -   Multiple event types as separate parameters
-    
 3.  **Time-Varying Exposure** (ADES)
     -   Dose changes over time
     -   Cumulative exposure metrics
     -   Landmarking approaches
-    
 4.  **Unscheduled Assessments** (ADTRR)
     -   Off-schedule scans
     -   Response confirmation windows
     -   Handling missing visits
-
 5.  **8-Character Limit Conflicts**
     -   Systematic abbreviation rules
     -   Document in specifications
@@ -1059,24 +1035,20 @@ Thank you!
 
 **Systematic Approach to 8-Character Compliance**
 
-1. **Remove vowels from middle** (if >8 char)
-   - BASELINE → BASELN (not used, but example)
-
-2. **Abbreviate common terms**
-   - MAXIMUM → MAX → MAX
-   - AVERAGE → AVG → AVG
-   - CATEGORY → CAT
-
-3. **Remove repeated letters**
-   - AUCSSLOG → AUCSLOG (one S removed)
-   - AUCSSCATN → AUCSCATN (one S removed)
-
-4. **Abbreviate exposure terms**
-   - CMAX → CMX (when combined with other suffixes)
-   - STEADY STATE → SS
-
-5. **Remove last vowel from suffix**
-   - DOSE → DOS (when combined: AUCSSDOS)
+1.  **Remove vowels from middle** (if \>8 char)
+    -   BASELINE → BASELN (not used, but example)
+2.  **Abbreviate common terms**
+    -   MAXIMUM → MAX → MAX
+    -   AVERAGE → AVG → AVG
+    -   CATEGORY → CAT
+3.  **Remove repeated letters**
+    -   AUCSSLOG → AUCSLOG (one S removed)
+    -   AUCSSCATN → AUCSCATN (one S removed)
+4.  **Abbreviate exposure terms**
+    -   CMAX → CMX (when combined with other suffixes)
+    -   STEADY STATE → SS
+5.  **Remove last vowel from suffix**
+    -   DOSE → DOS (when combined: AUCSSDOS)
 
 **Documentation**: All abbreviations documented in define.xml and specifications
 
@@ -1091,32 +1063,24 @@ Thank you!
 ## Backup: Comparison with Traditional {.smaller}
 
 **Traditional Single-File Approach**
-```r
+
+``` r
 # All data in one wide row per subject
 C | PTNM | TRT | AUC | CMAX | OS | PFS | NADIR | BOR | TEAE
 ```
 
-**Issues**:
-- ❌ Non-standard variable names
-- ❌ Limited exposure metrics (3-5 variables)
-- ❌ Hard to extend with new parameters
-- ❌ No transformation variants
-- ❌ Mixed parameter types
+**Issues**: - ❌ Non-standard variable names - ❌ Limited exposure metrics (3-5 variables) - ❌ Hard to extend with new parameters - ❌ No transformation variants - ❌ Mixed parameter types
 
 **New Framework (4 Datasets)**
-```r
+
+``` r
 # ADER: 20 exposure metrics
 # ADEE: Time-to-event + exposure (74 vars)
 # ADES: Safety + exposure (78 vars)  
 # ADTRR: Tumor + exposure (80 vars)
 ```
 
-**Benefits**:
-- ✅ CDISC-compliant (8-char limit)
-- ✅ Comprehensive exposure (20 metrics)
-- ✅ Flexible parameter addition
-- ✅ Pre-computed transformations
-- ✅ Domain-optimized structures
+**Benefits**: - ✅ CDISC-compliant (8-char limit) - ✅ Comprehensive exposure (20 metrics) - ✅ Flexible parameter addition - ✅ Pre-computed transformations - ✅ Domain-optimized structures
 
 ::: notes
 -   Show stark contrast
@@ -1127,7 +1091,6 @@ C | PTNM | TRT | AUC | CMAX | OS | PFS | NADIR | BOR | TEAE
 
 ## Acknowledgments
 
-Synthetic data and code examples were developed with assistance from Claude 
-(Anthropic, 2024), an AI assistant. All code was reviewed, tested, and 
-validated by the author. Any errors or omissions are the responsibility of 
-the author.
+Synthetic data and code examples were developed with assistance from Claude (Anthropic, 2024), an AI assistant. All code was reviewed, tested, and validated by the author. Any errors or omissions are the responsibility of the author.
+
+![](images/qr-code.png){width="237"}

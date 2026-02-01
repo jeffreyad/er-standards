@@ -24,7 +24,7 @@ Exposure-Response (ER) modeling is a key tool in assessing the safety and effica
 
 ## Background on Exposure-Response Modeling
 
-Exposure-response (ER) modeling plays a critical role in modern drug development, providing quantitative frameworks to characterize relationships between drug exposure measures (such as steady-state area under the concentration-time curve [AUCSS] or maximum concentration [CMAXSS]) and clinical outcomes. These relationships inform key regulatory and clinical decisions, including dose selection, dosing regimen optimization, and identification of patient populations most likely to benefit from treatment [@fda_erpk_guidance].
+Exposure-response (ER) modeling plays a critical role in modern drug development, providing quantitative frameworks to characterize relationships between drug exposure measures (such as steady-state area under the concentration-time curve \[AUCSS\] or maximum concentration \[CMAXSS\]) and clinical outcomes. These relationships inform key regulatory and clinical decisions, including dose selection, dosing regimen optimization, and identification of patient populations most likely to benefit from treatment [@fda_erpk_guidance].
 
 The scope of ER modeling spans multiple domains. In the efficacy realm, analysts examine how exposure relates to desirable clinical outcomes such as overall survival (OS), progression-free survival (PFS), or objective response rates. Safety analyses focus on the relationship between exposure and adverse events (AEs), both in terms of frequency and severity. Additionally, tumor response analyses in oncology track longitudinal changes in tumor burden relative to exposure, often incorporating standardized response criteria such as RECIST 1.1 [@eisenhauer_recist].
 
@@ -65,7 +65,7 @@ However, ER modeling introduces additional complexity not addressed by SDTM-PK:
 
 ## The {admiral} Package Ecosystem
 
-The {admiral} R package, part of the pharmaverse initiative, provides a comprehensive framework for creating Analysis Data Model (ADaM) datasets [@pharmaverse_admiral]. Key features relevant to ER standardization include:
+The {admiral} R package, part of the pharmaverse initiative, provides a comprehensive framework for creating Analysis Data Model (ADaM) datasets [@admiral2024]. Key features relevant to ER standardization include:
 
 -   **Modular functions**: Reusable derivation functions following consistent patterns
 -   **Built-in validation**: Assertion functions that catch errors early
@@ -95,67 +95,67 @@ The traditional approach stores all E-R data in a single wide-format file with o
 
 ### Subject Identifiers and Treatment
 
-| C | PTNM | TRT | DOSE | TIME | NTIM |
-|:-:|:----:|:---:|:----:|:----:|:----:|
-| 1 | 001 | 3 | 81 | 523 | 1 |
-| 1 | 002 | 1 | 0 | 365 | 0 |
-| 1 | 003 | 2 | 54 | 450 | 0 |
+|  C  | PTNM | TRT | DOSE | TIME | NTIM |
+|:---:|:----:|:---:|:----:|:----:|:----:|
+|  1  | 001  |  3  |  81  | 523  |  1   |
+|  1  | 002  |  1  |  0   | 365  |  0   |
+|  1  | 003  |  2  |  54  | 450  |  0   |
 
 : Subject identifiers and treatment assignment {#tbl-trad-ids}
 
-- **C**: Censor indicator (1=study included)
-- **PTNM**: Patient number
-- **TRT**: Treatment (1=Placebo, 2=Low Dose, 3=High Dose)
-- **DOSE**: Actual dose received (mg)
-- **TIME**: Time to primary event (days)
-- **NTIM**: Number of assessment timepoints
+-   **C**: Censor indicator (1=study included)
+-   **PTNM**: Patient number
+-   **TRT**: Treatment (1=Placebo, 2=Low Dose, 3=High Dose)
+-   **DOSE**: Actual dose received (mg)
+-   **TIME**: Time to primary event (days)
+-   **NTIM**: Number of assessment timepoints
 
 ### Time-to-Event Outcomes
 
-| PTNM | OS | OSOS | PFS | PFSS |
-|:----:|:--:|:----:|:---:|:----:|
-| 001 | 1 | 0 | 245 | 1 |
-| 002 | 0 | 1 | 180 | 0 |
-| 003 | 0 | 1 | 240 | 0 |
+| PTNM | OS  | OSOS | PFS | PFSS |
+|:----:|:---:|:----:|:---:|:----:|
+| 001  |  1  |  0   | 245 |  1   |
+| 002  |  0  |  1   | 180 |  0   |
+| 003  |  0  |  1   | 240 |  0   |
 
 : Time-to-event outcomes {#tbl-trad-tte}
 
-- **OS**: Overall survival event (1=death, 0=censored)
-- **OSOS**: Overall survival status
-- **PFS**: Progression-free survival time (days)
-- **PFSS**: PFS status (1=event, 0=censored)
+-   **OS**: Overall survival event (1=death, 0=censored)
+-   **OSOS**: Overall survival status
+-   **PFS**: Progression-free survival time (days)
+-   **PFSS**: PFS status (1=event, 0=censored)
 
 ### Demographics and Baseline Characteristics
 
-| PTNM | AGE | SEX | RACE | WT | HT | BSA | CRCLBL |
-|:----:|:---:|:---:|:----:|:---:|:--:|:---:|:------:|
-| 001 | 65 | 1 | 5 | 78.5 | 175 | 1.95 | 85.2 |
-| 002 | 58 | 2 | 5 | 65.2 | 168 | 1.75 | 92.1 |
-| 003 | 72 | 1 | 5 | 82.1 | 180 | 2.03 | 78.5 |
+| PTNM | AGE | SEX | RACE |  WT  | HT  | BSA  | CRCLBL |
+|:----:|:---:|:---:|:----:|:----:|:---:|:----:|:------:|
+| 001  | 65  |  1  |  5   | 78.5 | 175 | 1.95 |  85.2  |
+| 002  | 58  |  2  |  5   | 65.2 | 168 | 1.75 |  92.1  |
+| 003  | 72  |  1  |  5   | 82.1 | 180 | 2.03 |  78.5  |
 
 : Demographics and baseline characteristics {#tbl-trad-demo}
 
-- **AGE**: Age in years
-- **SEX**: Sex (1=Male, 2=Female)
-- **RACE**: Race (5=White)
-- **WT**: Weight (kg)
-- **HT**: Height (cm)
-- **BSA**: Body surface area (m²)
-- **CRCLBL**: Baseline creatinine clearance (mL/min)
+-   **AGE**: Age in years
+-   **SEX**: Sex (1=Male, 2=Female)
+-   **RACE**: Race (5=White)
+-   **WT**: Weight (kg)
+-   **HT**: Height (cm)
+-   **BSA**: Body surface area (m²)
+-   **CRCLBL**: Baseline creatinine clearance (mL/min)
 
 ### Exposure Metrics (Traditional - Limited)
 
-| PTNM | AUC | CMAX | CAVG |
-|:----:|:---:|:----:|:----:|
-| 001 | 145.2 | 89.3 | 72.1 |
-| 002 | 0.0 | 0.0 | 0.0 |
-| 003 | 98.5 | 62.1 | 49.3 |
+| PTNM |  AUC  | CMAX | CAVG |
+|:----:|:-----:|:----:|:----:|
+| 001  | 145.2 | 89.3 | 72.1 |
+| 002  |  0.0  | 0.0  | 0.0  |
+| 003  | 98.5  | 62.1 | 49.3 |
 
 : Traditional exposure metrics (only 3 variables) {#tbl-trad-exposure}
 
-- **AUC**: Area under the concentration-time curve (ng·h/mL)
-- **CMAX**: Maximum observed concentration (ng/mL)
-- **CAVG**: Average steady-state concentration (ng/mL)
+-   **AUC**: Area under the concentration-time curve (ng·h/mL)
+-   **CMAX**: Maximum observed concentration (ng/mL)
+-   **CAVG**: Average steady-state concentration (ng/mL)
 
 **Limitation**: Only 3 exposure variables, no transformations or categorical versions
 
@@ -163,16 +163,16 @@ The traditional approach stores all E-R data in a single wide-format file with o
 
 | PTNM | NADIR | BOR | TEAE | TEAEGR3 |
 |:----:|:-----:|:---:|:----:|:-------:|
-| 001 | 65.0 | 3 | 5 | 2 |
-| 002 | 105.2 | 2 | 2 | 0 |
-| 003 | 76.6 | 3 | 4 | 1 |
+| 001  | 65.0  |  3  |  5   |    2    |
+| 002  | 105.2 |  2  |  2   |    0    |
+| 003  | 76.6  |  3  |  4   |    1    |
 
 : Tumor response and safety outcomes {#tbl-trad-response}
 
-- **NADIR**: Nadir tumor size (mm)
-- **BOR**: Best overall response (1=PD, 2=SD, 3=PR, 4=CR)
-- **TEAE**: Total treatment-emergent adverse events
-- **TEAEGR3**: Number of Grade 3 or higher adverse events
+-   **NADIR**: Nadir tumor size (mm)
+-   **BOR**: Best overall response (1=PD, 2=SD, 3=PR, 4=CR)
+-   **TEAE**: Total treatment-emergent adverse events
+-   **TEAEGR3**: Number of Grade 3 or higher adverse events
 
 # Methods
 
@@ -196,31 +196,31 @@ Our framework extends CDISC ADaM principles to accommodate ER modeling requireme
 **Exposure Metrics (20 variables)**:
 
 | Category | Variables | Description |
-|----------|-----------|-------------|
+|---------------------|-----------------------|---------------------------|
 | **Raw** | AUCSS, CMAXSS, CAVGSS | Steady-state exposure metrics |
 | **Log-transformed** | AUCSLOG, CMXSLOG, CAVGLOG | Natural log transformations |
 | **Standardized** | AUCSSSTD, CMXSSSTD, CAVGSTD | Z-scores (mean=0, SD=1) |
 | **Normalized** | AUCSSN, CMAXSSN, CAVGSSN | Normalized to mean=1 |
 | **Dose-normalized** | AUCSSDOS, CMXSSDOS, CAVGDOS | Per-mg dose adjustments |
 | **Categorical** | AUCSSCAT, AUCSCATN | Tertiles/quartiles (char/num) |
-| | CMXSSCAT, CMXSCATN | Tertiles/quartiles (char/num) |
+|  | CMXSSCAT, CMXSCATN | Tertiles/quartiles (char/num) |
 
 **Baseline Covariates (13 variables)**:
 
-| Category | Variables | Description |
-|----------|-----------|-------------|
-| **Vitals** | WTBL, HTBL, BMIBL, BSA | Body measurements |
-| **Renal function** | CREATBL, CRCLBL, EGFRBL | Kidney function |
-| **Hepatic function** | ALTBL, ASTBL, TBILBL | Liver function |
-| **Performance** | ECOGBL | ECOG performance status |
-| **Other** | ALBBL, SMOKEBL | Albumin, smoking status |
+| Category             | Variables               | Description             |
+|----------------------|-------------------------|-------------------------|
+| **Vitals**           | WTBL, HTBL, BMIBL, BSA  | Body measurements       |
+| **Renal function**   | CREATBL, CRCLBL, EGFRBL | Kidney function         |
+| **Hepatic function** | ALTBL, ASTBL, TBILBL    | Liver function          |
+| **Performance**      | ECOGBL                  | ECOG performance status |
+| **Other**            | ALBBL, SMOKEBL          | Albumin, smoking status |
 
 **8-Character Compliance Notes**:
 
-- CMAXSS → CMXSS (in combinations like CMXSLOG)
-- AUCSSLOG → AUCSLOG (one S removed)
-- AUCSSDOSE → AUCSSDOS (E removed)
-- All transformations follow systematic abbreviation rules
+-   CMAXSS → CMXSS (in combinations like CMXSLOG)
+-   AUCSSLOG → AUCSLOG (one S removed)
+-   AUCSSDOSE → AUCSSDOS (E removed)
+-   All transformations follow systematic abbreviation rules
 
 ### ADEE: Analysis Dataset for Exposure-Efficacy
 
@@ -239,22 +239,22 @@ Our framework extends CDISC ADaM principles to accommodate ER modeling requireme
 
 **Core variables**:
 
-| Variable     | Type | Description                               | Notes |
-|--------------|------|-------------------------------------------|-------|
-| PARAMCD      | Char | Parameter code (PFS, OS, TTP, TTNT)       | Standard codes |
-| PARAM        | Char | Parameter description                     | Full text |
-| PARAMN       | Num  | Parameter number                          | For sorting |
-| AVAL         | Num  | Analysis value (time in days)             | Continuous |
-| AVALU        | Char | Unit (DAYS)                               | Standard unit |
-| CNSR         | Num  | Censoring indicator (1=censored, 0=event) | Standard TTE |
-| EVENT        | Num  | Event indicator (1=event, 0=censored)     | For modeling |
-| ADT          | Date | Analysis date                             | Date of event/censor |
-| ADY          | Num  | Study day                                 | Relative to TRTSDT |
-| AUCSS        | Num  | Steady-state AUC                          | Primary exposure |
-| AUCSLOG      | Num  | log(AUCSS)                                | Log transformation |
-| AUCSSSTD     | Num  | Standardized AUC                          | Z-score |
-| AUCSSCAT     | Char | Categorized AUC                           | Tertiles/quartiles |
-| ANL01FL      | Char | Primary analysis population flag          | Y or blank |
+| Variable | Type | Description | Notes |
+|------------|------------|-------------------------------------|------------|
+| PARAMCD | Char | Parameter code (PFS, OS, TTP, TTNT) | Standard codes |
+| PARAM | Char | Parameter description | Full text |
+| PARAMN | Num | Parameter number | For sorting |
+| AVAL | Num | Analysis value (time in days) | Continuous |
+| AVALU | Char | Unit (DAYS) | Standard unit |
+| CNSR | Num | Censoring indicator (1=censored, 0=event) | Standard TTE |
+| EVENT | Num | Event indicator (1=event, 0=censored) | For modeling |
+| ADT | Date | Analysis date | Date of event/censor |
+| ADY | Num | Study day | Relative to TRTSDT |
+| AUCSS | Num | Steady-state AUC | Primary exposure |
+| AUCSLOG | Num | log(AUCSS) | Log transformation |
+| AUCSSSTD | Num | Standardized AUC | Z-score |
+| AUCSSCAT | Char | Categorized AUC | Tertiles/quartiles |
+| ANL01FL | Char | Primary analysis population flag | Y or blank |
 
 This structure directly supports standard survival analysis approaches including Cox proportional hazards models and Kaplan-Meier estimation.
 
@@ -276,45 +276,46 @@ This structure directly supports standard survival analysis approaches including
 
 **Subject-level Parameters**:
 
-| PARAMCD | PARAM | Description |
-|---------|-------|-------------|
-| TEAE | Treatment-Emergent Adverse Events | Total AE count |
-| TEAESEV | Treatment-Emergent Severe AEs | ASEVN = 3 count |
-| TESAE | Treatment-Emergent Serious AEs | AESER = "Y" count |
+| PARAMCD | PARAM                             | Description       |
+|---------|-----------------------------------|-------------------|
+| TEAE    | Treatment-Emergent Adverse Events | Total AE count    |
+| TEAESEV | Treatment-Emergent Severe AEs     | ASEVN = 3 count   |
+| TESAE   | Treatment-Emergent Serious AEs    | AESER = "Y" count |
 
 **Subject-level core variables**:
 
-| Variable     | Type | Description                   |
-|--------------|------|-------------------------------|
-| PARAMCD      | Char | Parameter code                |
-| PARAM        | Char | Parameter description         |
-| AVAL         | Num  | Count or rate                 |
-| AVALC        | Char | Character value               |
-| AUCSS        | Num  | Steady-state AUC              |
-| AUCSSCAT     | Char | Categorized exposure          |
-| TRTDURD      | Num  | Treatment duration (days)     |
-| ANL01FL      | Char | Analysis flag                 |
+| Variable | Type | Description               |
+|----------|------|---------------------------|
+| PARAMCD  | Char | Parameter code            |
+| PARAM    | Char | Parameter description     |
+| AVAL     | Num  | Count or rate             |
+| AVALC    | Char | Character value           |
+| AUCSS    | Num  | Steady-state AUC          |
+| AUCSSCAT | Char | Categorized exposure      |
+| TRTDURD  | Num  | Treatment duration (days) |
+| ANL01FL  | Char | Analysis flag             |
 
 **Event-level core variables**:
 
-| Variable     | Type | Description                | Notes |
-|--------------|------|----------------------------|-------|
-| USUBJID      | Char | Unique subject identifier  | Key |
-| AESEQ        | Num  | AE sequence number         | Within subject |
-| AEDECOD      | Char | Preferred term             | MedDRA |
-| AEBODSYS     | Char | System organ class         | MedDRA SOC |
-| ASEV         | Char | Severity (MILD/MODERATE/SEVERE) | Not AETOXGR |
-| ASEVN        | Num  | Severity numeric (1/2/3)   | Not AETOXGRN |
-| AESER        | Char | Serious AE flag (Y/N)      | Regulatory |
-| AEREL        | Char | Relationship to study drug | 5 categories |
-| AERELN       | Num  | Relationship numeric (0-4) | Derived |
-| ASTDT        | Date | Start date                 | AE onset |
-| ASTDY        | Num  | Study day of onset         | Relative |
-| AUCSS        | Num  | Exposure at time of event  | From ADER |
-| AUCSSCAT     | Char | Categorized exposure       | From ADER |
+| Variable | Type | Description                     | Notes          |
+|----------|------|---------------------------------|----------------|
+| USUBJID  | Char | Unique subject identifier       | Key            |
+| AESEQ    | Num  | AE sequence number              | Within subject |
+| AEDECOD  | Char | Preferred term                  | MedDRA         |
+| AEBODSYS | Char | System organ class              | MedDRA SOC     |
+| ASEV     | Char | Severity (MILD/MODERATE/SEVERE) | Not AETOXGR    |
+| ASEVN    | Num  | Severity numeric (1/2/3)        | Not AETOXGRN   |
+| AESER    | Char | Serious AE flag (Y/N)           | Regulatory     |
+| AEREL    | Char | Relationship to study drug      | 5 categories   |
+| AERELN   | Num  | Relationship numeric (0-4)      | Derived        |
+| ASTDT    | Date | Start date                      | AE onset       |
+| ASTDY    | Num  | Study day of onset              | Relative       |
+| AUCSS    | Num  | Exposure at time of event       | From ADER      |
+| AUCSSCAT | Char | Categorized exposure            | From ADER      |
 
 **AERELN Derivation**:
-```
+
+```         
 AERELN = case_when(
   AEREL == "NOT RELATED" ~ 0,
   AEREL == "UNLIKELY RELATED" ~ 1,
@@ -343,41 +344,39 @@ This multi-level structure accommodates diverse analytical approaches from simpl
 
 **Parameters**:
 
-| PARAMCD | PARAM | PARAMN | Description |
-|---------|-------|--------|-------------|
-| TSIZE | Target Lesion Size | 1 | Longitudinal measurements |
-| BOR | Best Overall Response | 2 | Overall parameter |
-| NADIR | Nadir Tumor Size | 3 | Minimum size parameter |
+| PARAMCD | PARAM                 | PARAMN | Description               |
+|---------|-----------------------|--------|---------------------------|
+| TSIZE   | Target Lesion Size    | 1      | Longitudinal measurements |
+| BOR     | Best Overall Response | 2      | Overall parameter         |
+| NADIR   | Nadir Tumor Size      | 3      | Minimum size parameter    |
 
 **Core variables**:
 
-| Variable     | Type | Description                                        | Notes |
-|--------------|------|----------------------------------------------------|-------|
-| PARAMCD      | Char | Parameter code (TSIZE, BOR, NADIR)                 | Multiple params |
-| PARAM        | Char | Parameter description                              | Full text |
-| PARAMN       | Num  | Parameter number                                   | For sorting |
-| AVISITN      | Num  | Visit number                                       | Numeric visit |
-| AVISIT       | Char | Visit name                                         | Character |
-| AVAL         | Num  | Measurement value                                  | Continuous |
-| AVALC        | Char | Character value (RECIST category)                  | CR/PR/SD/PD |
-| AVALN        | Num  | Numeric value                                      | For BOR |
-| AVALU        | Char | Unit (mm)                                          | Millimeters |
-| BASE         | Num  | Baseline value                                     | Reference |
-| CHG          | Num  | Change from baseline                               | AVAL - BASE |
-| PCHG         | Num  | Percent change from baseline                       | 100*(AVAL-BASE)/BASE |
-| NADIR        | Num  | Nadir value (for PD assessment)                    | Minimum so far |
-| NADPCHG      | Num  | Percent change from nadir                          | 8-char compliant |
-| BORN         | Num  | Best overall response numeric                      | 4=CR, 3=PR, 2=SD, 1=PD |
-| ADT          | Date | Analysis date                                      | Assessment date |
-| ADY          | Num  | Study day                                          | Relative |
-| ABLFL        | Char | Baseline record flag                               | Y or blank |
-| AUCSS        | Num  | Steady-state AUC                                   | From ADER |
-| AUCSSCAT     | Char | Categorized AUC                                    | From ADER |
-| ANL01FL      | Char | Analysis flag                                      | Y or blank |
+| Variable | Type | Description                        | Notes                  |
+|-----------|-----------|---------------------------------------|-----------|
+| PARAMCD  | Char | Parameter code (TSIZE, BOR, NADIR) | Multiple params        |
+| PARAM    | Char | Parameter description              | Full text              |
+| PARAMN   | Num  | Parameter number                   | For sorting            |
+| AVISITN  | Num  | Visit number                       | Numeric visit          |
+| AVISIT   | Char | Visit name                         | Character              |
+| AVAL     | Num  | Measurement value                  | Continuous             |
+| AVALC    | Char | Character value (RECIST category)  | CR/PR/SD/PD            |
+| AVALN    | Num  | Numeric value                      | For BOR                |
+| AVALU    | Char | Unit (mm)                          | Millimeters            |
+| BASE     | Num  | Baseline value                     | Reference              |
+| CHG      | Num  | Change from baseline               | AVAL - BASE            |
+| PCHG     | Num  | Percent change from baseline       | 100\*(AVAL-BASE)/BASE  |
+| NADIR    | Num  | Nadir value (for PD assessment)    | Minimum so far         |
+| NADPCHG  | Num  | Percent change from nadir          | 8-char compliant       |
+| BORN     | Num  | Best overall response numeric      | 4=CR, 3=PR, 2=SD, 1=PD |
+| ADT      | Date | Analysis date                      | Assessment date        |
+| ADY      | Num  | Study day                          | Relative               |
+| ABLFL    | Char | Baseline record flag               | Y or blank             |
+| AUCSS    | Num  | Steady-state AUC                   | From ADER              |
+| AUCSSCAT | Char | Categorized AUC                    | From ADER              |
+| ANL01FL  | Char | Analysis flag                      | Y or blank             |
 
-**8-Character Compliance Notes**:
-- NADIR_PCHG → NADPCHG (percent change from nadir)
-- NADIR_VISIT → NADVST (visit of nadir)
+**8-Character Compliance Notes**: - NADIR_PCHG → NADPCHG (percent change from nadir) - NADIR_VISIT → NADVST (visit of nadir)
 
 ## Implementation with {admiral}
 
@@ -401,6 +400,7 @@ All code is available at: https://github.com/jeffreyad/er-standards
 Across all four ER datasets, we employ consistent patterns for:
 
 **Time variable derivation**:
+
 ``` r
 # Study day calculation (standard ADaM)
 mutate(ADY = as.numeric(ADT - TRTSDT) + 1)
@@ -410,6 +410,7 @@ mutate(AVAL = as.numeric(ADT - TRTSDT))
 ```
 
 **Exposure categorization**:
+
 ``` r
 # Tertile approach (8-character variable name)
 mutate(
@@ -425,6 +426,7 @@ mutate(
 ```
 
 **Log transformation** (8-character compliant):
+
 ``` r
 # For continuous modeling
 mutate(
@@ -434,6 +436,7 @@ mutate(
 ```
 
 **Standardization**:
+
 ``` r
 # Z-score transformation
 mutate(
@@ -442,6 +445,7 @@ mutate(
 ```
 
 **Analysis flags**:
+
 ``` r
 # Primary analysis population
 mutate(
@@ -466,7 +470,8 @@ Key derivation steps:
 9.  Export to XPT with metadata (65 variables)
 
 **Key Code Pattern**:
-```r
+
+``` r
 # Modular exposure derivation function
 derive_exposure_metrics <- function(adsl_data, 
                                    source = c("simulated", "adpc"),
@@ -533,7 +538,8 @@ Key derivation steps include:
 8.  Export with metadata (74 variables)
 
 **Key Code Pattern**:
-```r
+
+``` r
 # Derive time-to-event parameter
 adee_pfs <- adtte %>%
   filter(PARAMCD == "PFS") %>%
@@ -560,9 +566,9 @@ See Appendix B for complete code example.
 Multi-level derivation approach:
 
 1.  **Subject-level parameters**: Aggregate AE metrics
-    - TEAE: Total AEs per subject
-    - TEAESEV: Severe AEs (ASEVN = 3)
-    - TESAE: Serious AEs (AESER = "Y")
+    -   TEAE: Total AEs per subject
+    -   TEAESEV: Severe AEs (ASEVN = 3)
+    -   TESAE: Serious AEs (AESER = "Y")
 2.  **Event-level records**: Individual AEs with exposure
 3.  Merge all 20 exposure metrics from ADER
 4.  Create AERELN from AEREL (numeric relationship)
@@ -570,7 +576,8 @@ Multi-level derivation approach:
 6.  Export with metadata (78 variables)
 
 **Key Code Pattern**:
-```r
+
+``` r
 # Subject-level parameter: Total AEs
 ades_teae <- adsl %>%
   left_join(
@@ -630,7 +637,8 @@ Longitudinal derivation workflow:
 8.  Export with metadata (80 variables)
 
 **Key Code Pattern**:
-```r
+
+``` r
 # Longitudinal tumor measurements
 adtrr_tsize <- adtr %>%
   filter(PARAMCD == "SDIAM") %>%
@@ -718,11 +726,7 @@ Quality control for ER datasets follows {admiral} validation principles:
 We demonstrate the proposed framework using simulated data representative of oncology ER analyses:
 
 **Sample size**: 90 subjects (oncology subset for tumor data)\
-**Parameters**: 
-- ADER: 65 variables (20 exposure + 13 covariates)
-- ADEE: 74 variables (4 parameters: OS, PFS, TTP, TTNT)
-- ADES: 78 variables (subject-level + event-level)
-- ADTRR: 80 variables (3 parameters: TSIZE, BOR, NADIR)
+**Parameters**: - ADER: 65 variables (20 exposure + 13 covariates) - ADEE: 74 variables (4 parameters: OS, PFS, TTP, TTNT) - ADES: 78 variables (subject-level + event-level) - ADTRR: 80 variables (3 parameters: TSIZE, BOR, NADIR)
 
 **Exposure range**: AUCSS from 85 to 165 ng·h/mL (active treatment arms)
 
@@ -730,21 +734,11 @@ We demonstrate the proposed framework using simulated data representative of onc
 
 ADER dataset contained 300 subject records with complete exposure derivations:
 
-**Exposure Metrics Coverage**:
-- Raw metrics (3): AUCSS, CMAXSS, CAVGSS ✓
-- Log-transformed (3): AUCSLOG, CMXSLOG, CAVGLOG ✓
-- Standardized (3): AUCSSSTD, CMXSSSTD, CAVGSTD ✓
-- Normalized (3): AUCSSN, CMAXSSN, CAVGSSN ✓
-- Dose-normalized (3): AUCSSDOS, CMXSSDOS, CAVGDOS ✓
-- Categorical (5): AUCSSCAT, AUCSCATN, CMXSSCAT, CMXSCATN ✓
+**Exposure Metrics Coverage**: - Raw metrics (3): AUCSS, CMAXSS, CAVGSS ✓ - Log-transformed (3): AUCSLOG, CMXSLOG, CAVGLOG ✓ - Standardized (3): AUCSSSTD, CMXSSSTD, CAVGSTD ✓ - Normalized (3): AUCSSN, CMAXSSN, CAVGSSN ✓ - Dose-normalized (3): AUCSSDOS, CMXSSDOS, CAVGDOS ✓ - Categorical (5): AUCSSCAT, AUCSCATN, CMXSSCAT, CMXSCATN ✓
 
 **Total**: 20 exposure variables vs. traditional 3-5
 
-**Baseline Covariates Coverage**:
-- Vitals (4): WTBL, HTBL, BMIBL, BSA ✓
-- Renal (3): CREATBL, CRCLBL, EGFRBL ✓
-- Hepatic (3): ALTBL, ASTBL, TBILBL ✓
-- Other (3): ECOGBL, ALBBL, SMOKEBL ✓
+**Baseline Covariates Coverage**: - Vitals (4): WTBL, HTBL, BMIBL, BSA ✓ - Renal (3): CREATBL, CRCLBL, EGFRBL ✓ - Hepatic (3): ALTBL, ASTBL, TBILBL ✓ - Other (3): ECOGBL, ALBBL, SMOKEBL ✓
 
 **Total**: 13 covariate variables
 
@@ -754,32 +748,19 @@ ADER dataset contained 300 subject records with complete exposure derivations:
 
 ADEE dataset contained 1,200 records (300 subjects × 4 parameters):
 
-**Parameters**:
-- OS (Overall Survival): 300 records
-- PFS (Progression-Free Survival): 300 records
-- TTP (Time to Progression): 300 records
-- TTNT (Time to Next Treatment): 300 records
+**Parameters**: - OS (Overall Survival): 300 records - PFS (Progression-Free Survival): 300 records - TTP (Time to Progression): 300 records - TTNT (Time to Next Treatment): 300 records
 
-**Exposure Integration**:
-- All 20 exposure metrics available per record ✓
-- Median AUCSS by arm:
-  - Placebo: 0 (no exposure)
-  - Low Dose: 98.5 ng·h/mL
-  - High Dose: 145.2 ng·h/mL
+**Exposure Integration**: - All 20 exposure metrics available per record ✓ - Median AUCSS by arm: - Placebo: 0 (no exposure) - Low Dose: 98.5 ng·h/mL - High Dose: 145.2 ng·h/mL
 
 **Event Rates by Exposure Tertile (PFS)**:
 
-| Exposure | N | Events | Median Time (days) |
-|----------|---|--------|-------------------|
-| Low | 67 | 46 | 235 |
-| Medium | 67 | 41 | 255 |
-| High | 66 | 39 | 275 |
+| Exposure | N   | Events | Median Time (days) |
+|----------|-----|--------|--------------------|
+| Low      | 67  | 46     | 235                |
+| Medium   | 67  | 41     | 255                |
+| High     | 66  | 39     | 275                |
 
-Dataset structure supports standard survival analyses:
-- Cox proportional hazards with continuous exposure (AUCSSSTD)
-- Kaplan-Meier curves by exposure category (AUCSSCAT)
-- Log-rank tests for tertile comparisons
-- Flexible exposure representations (log, standardized, categorical)
+Dataset structure supports standard survival analyses: - Cox proportional hazards with continuous exposure (AUCSSSTD) - Kaplan-Meier curves by exposure category (AUCSSCAT) - Log-rank tests for tertile comparisons - Flexible exposure representations (log, standardized, categorical)
 
 **Benefit**: 20 exposure variables enable exploration of optimal E-R relationship
 
@@ -789,82 +770,71 @@ ADES multi-level structure (2,546 records total):
 
 **Subject-level Parameters** (1,524 records = 254 subjects × 6 parameters):
 
-| PARAMCD | PARAM | Mean AVAL |
-|---------|-------|-----------|
-| TEAE | Total AEs | 2.98 |
-| TEAESEV | Severe AEs | 0.35 |
-| TESAE | Serious AEs | 0.23 |
-| TEAEREL | Related AEs | 1.85 |
-| TEAEWD | AEs Leading to Withdrawal | 0.08 |
-| TEAEDTH | Fatal AEs | 0.02 |
+| PARAMCD | PARAM                     | Mean AVAL |
+|---------|---------------------------|-----------|
+| TEAE    | Total AEs                 | 2.98      |
+| TEAESEV | Severe AEs                | 0.35      |
+| TESAE   | Serious AEs               | 0.23      |
+| TEAEREL | Related AEs               | 1.85      |
+| TEAEWD  | AEs Leading to Withdrawal | 0.08      |
+| TEAEDTH | Fatal AEs                 | 0.02      |
 
 **Event-level Records** (1,022 AE events):
 
 **AE Rate by Exposure Tertile**:
 
 | Exposure | Subjects | Total AEs | Mean per Subject |
-|----------|----------|-----------|-----------------|
-| Low | 60 | 180 | 3.00 |
-| Medium | 60 | 195 | 3.25 |
-| High | 59 | 228 | 3.86 |
+|----------|----------|-----------|------------------|
+| Low      | 60       | 180       | 3.00             |
+| Medium   | 60       | 195       | 3.25             |
+| High     | 59       | 228       | 3.86             |
 
 **Severity Distribution** (Using ASEV/ASEVN):
 
-| Severity | Count | Percent |
-|----------|-------|---------|
-| MILD (ASEVN=1) | 453 | 59.9% |
-| MODERATE (ASEVN=2) | 228 | 30.2% |
-| SEVERE (ASEVN=3) | 75 | 9.9% |
+| Severity           | Count | Percent |
+|--------------------|-------|---------|
+| MILD (ASEVN=1)     | 453   | 59.9%   |
+| MODERATE (ASEVN=2) | 228   | 30.2%   |
+| SEVERE (ASEVN=3)   | 75    | 9.9%    |
 
 **Key Feature**: ADES uses ASEV/ASEVN (severity) not AETOXGR/AETOXGRN (toxicity grade), following pharmaverseadam conventions
 
-**Exposure Integration**:
-- All 20 exposure metrics available per record ✓
-- Enables multiple analytical approaches
-- Both count and rate analyses supported
+**Exposure Integration**: - All 20 exposure metrics available per record ✓ - Enables multiple analytical approaches - Both count and rate analyses supported
 
 ## Tumor Response Results
 
 ADTRR longitudinal structure (900 records total):
 
-**Parameters**:
-- TSIZE (Target Lesion Size): 810 records (90 subjects × 9 visits)
-- BOR (Best Overall Response): 90 records (1 per subject)
-- NADIR (Nadir Tumor Size): 90 records (1 per subject) (note: this should be consolidated with BOR)
+**Parameters**: - TSIZE (Target Lesion Size): 810 records (90 subjects × 9 visits) - BOR (Best Overall Response): 90 records (1 per subject) - NADIR (Nadir Tumor Size): 90 records (1 per subject) (note: this should be consolidated with BOR)
 
-**Longitudinal Measurements**:
-- Mean baseline tumor size: 100.2 mm
-- Assessments at: Baseline, Week 6, 12, 18, 24, 30, 36, 42, 48
+**Longitudinal Measurements**: - Mean baseline tumor size: 100.2 mm - Assessments at: Baseline, Week 6, 12, 18, 24, 30, 36, 42, 48
 
 **Best Overall Response Distribution**:
 
-| Response | Count | Percent | By Arm |
-|----------|-------|---------|--------|
-| CR | 3 | 3.3% | All High Dose |
-| PR | 32 | 35.6% | Mainly Low/High |
-| SD | 41 | 45.6% | Mixed |
-| PD | 14 | 15.6% | Mainly Placebo |
+| Response | Count | Percent | By Arm          |
+|----------|-------|---------|-----------------|
+| CR       | 3     | 3.3%    | All High Dose   |
+| PR       | 32    | 35.6%   | Mainly Low/High |
+| SD       | 41    | 45.6%   | Mixed           |
+| PD       | 14    | 15.6%   | Mainly Placebo  |
 
 **Response by Exposure Tertile (Active Arms)**:
 
-| Exposure | N | CR+PR | ORR (%) |
-|----------|---|-------|---------|
-| Low | 20 | 8 | 40.0% |
-| Medium | 20 | 11 | 55.0% |
-| High | 20 | 14 | 70.0% |
+| Exposure | N   | CR+PR | ORR (%) |
+|----------|-----|-------|---------|
+| Low      | 20  | 8     | 40.0%   |
+| Medium   | 20  | 11    | 55.0%   |
+| High     | 20  | 14    | 70.0%   |
 
 **Median Percent Change from Baseline by Visit**:
 
-| Visit | Placebo | Low Dose | High Dose |
-|-------|---------|----------|-----------|
-| Week 6 | +5.2% | -9.8% | -14.5% |
-| Week 12 | +10.5% | -18.9% | -27.2% |
-| Week 24 | +22.0% | -34.5% | -47.3% |
+| Visit   | Placebo | Low Dose | High Dose |
+|---------|---------|----------|-----------|
+| Week 6  | +5.2%   | -9.8%    | -14.5%    |
+| Week 12 | +10.5%  | -18.9%   | -27.2%    |
+| Week 24 | +22.0%  | -34.5%   | -47.3%    |
 
-**Key Variables**:
-- NADPCHG: Percent change from nadir (8-character compliant)
-- BORN: Numeric BOR (4=CR, 3=PR, 2=SD, 1=PD)
-- All 20 exposure metrics available per record ✓
+**Key Variables**: - NADPCHG: Percent change from nadir (8-character compliant) - BORN: Numeric BOR (4=CR, 3=PR, 2=SD, 1=PD) - All 20 exposure metrics available per record ✓
 
 ## Cross-Domain Common Patterns
 
@@ -878,29 +848,21 @@ Analysis of the four dataset implementations revealed several common patterns:
 6.  **Baseline covariates**: Same 13 variables available in all datasets
 7.  **Metadata structure**: Compatible with {metacore} and {xportr}
 
-These commonalities enable:
-- Shared utility functions (exposure derivation)
-- Consistent validation approaches
-- Unified documentation templates
-- Cross-domain QC checks
-- Code reuse across studies
+These commonalities enable: - Shared utility functions (exposure derivation) - Consistent validation approaches - Unified documentation templates - Cross-domain QC checks - Code reuse across studies
 
 ## Comparison with Traditional Approach
 
-| Feature | Traditional | New Framework | Improvement |
-|---------|-------------|---------------|-------------|
-| **Exposure Metrics** | 3-5 variables | 20 variables | 4-7× increase |
-| **Transformations** | Manual | Pre-computed | Time savings |
-| **Categorization** | Inconsistent | Standardized | Reproducibility |
-| **Baseline Covariates** | 5-10 variables | 13 variables | Comprehensive |
-| **Variable Naming** | Ad-hoc | CDISC compliant | Regulatory ready |
-| **Documentation** | External | Integrated specs | Traceability |
-| **Datasets** | 1 file | 4 specialized | Domain optimized |
+| Feature                 | Traditional    | New Framework    | Improvement      |
+|-----------------|------------------|--------------------|------------------|
+| **Exposure Metrics**    | 3-5 variables  | 20 variables     | 4-7× increase    |
+| **Transformations**     | Manual         | Pre-computed     | Time savings     |
+| **Categorization**      | Inconsistent   | Standardized     | Reproducibility  |
+| **Baseline Covariates** | 5-10 variables | 13 variables     | Comprehensive    |
+| **Variable Naming**     | Ad-hoc         | CDISC compliant  | Regulatory ready |
+| **Documentation**       | External       | Integrated specs | Traceability     |
+| **Datasets**            | 1 file         | 4 specialized    | Domain optimized |
 
-**Efficiency Gains**:
-- Dataset creation: 50% time reduction (templates + automation)
-- QC: 70% reduction (automated checks)
-- Analysis prep: 80% reduction (ready-to-use transformations)
+**Efficiency Gains**: - Dataset creation: 50% time reduction (templates + automation) - QC: 70% reduction (automated checks) - Analysis prep: 80% reduction (ready-to-use transformations)
 
 # Discussion
 
@@ -912,13 +874,7 @@ The proposed framework addresses multiple pain points in current ER modeling pra
 
 **Traditional limitation**: Most ER datasets contain only 3-5 exposure variables (e.g., AUC, CMAX, CAVG), requiring analysts to manually derive transformations.
 
-**Our solution**: ADER provides 20 pre-computed exposure metrics covering:
-- Raw values for basic analyses
-- Log-transformed for linear modeling
-- Standardized for covariate modeling
-- Normalized for relative comparisons
-- Dose-normalized for dose-response
-- Categorical for subgroup analyses
+**Our solution**: ADER provides 20 pre-computed exposure metrics covering: - Raw values for basic analyses - Log-transformed for linear modeling - Standardized for covariate modeling - Normalized for relative comparisons - Dose-normalized for dose-response - Categorical for subgroup analyses
 
 **Benefit**: Analysts can immediately test multiple exposure representations without recoding, accelerating model development and promoting exploration of optimal E-R relationships.
 
@@ -926,10 +882,7 @@ The proposed framework addresses multiple pain points in current ER modeling pra
 
 **Challenge**: 8-character variable name limit often conflicts with descriptive naming.
 
-**Our approach**: Systematic abbreviation rules:
-- AUCSSLOG → AUCSLOG (remove one S)
-- CMAXSSLOG → CMXSLOG (abbreviate CMAX)
-- AUCSSDOSE → AUCSSDOS (remove E)
+**Our approach**: Systematic abbreviation rules: - AUCSSLOG → AUCSLOG (remove one S) - CMAXSSLOG → CMXSLOG (abbreviate CMAX) - AUCSSDOSE → AUCSSDOS (remove E)
 
 **Benefit**: Full compliance with CDISC standards while maintaining clarity through labels and documentation.
 
@@ -937,83 +890,51 @@ The proposed framework addresses multiple pain points in current ER modeling pra
 
 **Traditional problem**: Each study starts from scratch with different variable names and structures.
 
-**Our solution**: Standardized structure enables:
-- Identical variable names across studies
-- Reusable analysis code
-- Meta-analyses across trials
-- Clear documentation
+**Our solution**: Standardized structure enables: - Identical variable names across studies - Reusable analysis code - Meta-analyses across trials - Clear documentation
 
 **Example**: Cox regression code becomes identical across studies:
-```r
+
+``` r
 coxph(Surv(AVAL, EVENT) ~ AUCSSSTD + AGE + SEX, data = adee)
 ```
 
 ### 4. Efficiency
 
-**Time savings demonstrated**:
-- Dataset creation: 3 weeks → 1 week (66% reduction)
-- QC time: 40 hours → 12 hours (70% reduction)
-- Analysis prep: 20 hours → 4 hours (80% reduction)
+**Time savings demonstrated**: - Dataset creation: 3 weeks → 1 week (66% reduction) - QC time: 40 hours → 12 hours (70% reduction) - Analysis prep: 20 hours → 4 hours (80% reduction)
 
-**Source of efficiency**:
-- Template-based derivation scripts
-- Automated validation with {admiral}
-- Pre-computed transformations
-- Integrated metadata
+**Source of efficiency**: - Template-based derivation scripts - Automated validation with {admiral} - Pre-computed transformations - Integrated metadata
 
 ### 5. Multi-Level Safety Analysis
 
 **Traditional limitation**: Safety data often limited to subject-level counts.
 
-**ADES innovation**: 
-- Subject-level parameters for overall burden
-- Event-level records for detailed analysis
-- Both structures in single dataset
+**ADES innovation**: - Subject-level parameters for overall burden - Event-level records for detailed analysis - Both structures in single dataset
 
-**Enables**:
-- Simple rate comparisons (subject-level)
-- Time-to-first-event models (event-level)
-- Recurrent event models (event-level)
-- Exposure-toxicity by AE type
+**Enables**: - Simple rate comparisons (subject-level) - Time-to-first-event models (event-level) - Recurrent event models (event-level) - Exposure-toxicity by AE type
 
 ### 6. Longitudinal Tumor Response
 
 **Traditional limitation**: Best response only, no trajectory data.
 
-**ADTRR innovation**:
-- Complete longitudinal measurements
-- Multiple derived parameters (TSIZE, BOR, NADIR)
-- RECIST 1.1 built in
-- Both continuous and categorical responses
+**ADTRR innovation**: - Complete longitudinal measurements - Multiple derived parameters (TSIZE, BOR, NADIR) - RECIST 1.1 built in - Both continuous and categorical responses
 
-**Enables**:
-- Waterfall plots (best percent change)
-- Spider plots (individual trajectories)
-- Time-to-response analyses
-- Mixed models for longitudinal analysis
+**Enables**: - Waterfall plots (best percent change) - Spider plots (individual trajectories) - Time-to-response analyses - Mixed models for longitudinal analysis
 
 ### 7. Regulatory Clarity
 
 **Challenge**: ER analyses often questioned due to unclear data lineage.
 
-**Our solution**:
-- Clear SDTM → ADaM derivation
-- Complete metadata specifications
-- Integrated with {define.xml}
-- Version-controlled derivation code
+**Our solution**: - Clear SDTM → ADaM derivation - Complete metadata specifications - Integrated with {define.xml} - Version-controlled derivation code
 
 ## Severity vs. Toxicity Grade
 
 An important design decision in ADES was the use of **ASEV/ASEVN** (adverse event severity: MILD/MODERATE/SEVERE) instead of **AETOXGR/AETOXGRN** (toxicity grade: 1-5).
 
-**Rationale**:
-1. **Pharmaverseadam alignment**: Example datasets use ASEV
-2. **Broader applicability**: Severity applies to all AEs, not just toxicities
-3. **Simplicity**: 3 categories easier than 5 grades
-4. **Clinical relevance**: SEVERE maps to regulatory "serious" criteria
+**Rationale**: 1. **Pharmaverseadam alignment**: Example datasets use ASEV 2. **Broader applicability**: Severity applies to all AEs, not just toxicities 3. **Simplicity**: 3 categories easier than 5 grades 4. **Clinical relevance**: SEVERE maps to regulatory "serious" criteria
 
 **Conversion when needed**:
-```r
+
+``` r
 # For studies requiring toxicity grades
 mutate(
   AETOXGR = case_when(
@@ -1030,113 +951,69 @@ mutate(
 
 ### Current Limitations
 
-1. **Exposure source**: Framework assumes exposure metrics are available (from PopPK model or NCA). Does not address exposure derivation itself.
+1.  **Exposure source**: Framework assumes exposure metrics are available (from PopPK model or NCA). Does not address exposure derivation itself.
 
-2. **Time-varying exposure**: Current implementation uses baseline or steady-state exposure. Time-varying exposure (dose changes, cumulative) requires extension.
+2.  **Time-varying exposure**: Current implementation uses baseline or steady-state exposure. Time-varying exposure (dose changes, cumulative) requires extension.
 
-3. **Missing data**: Limited guidance on imputation strategies for missing exposure or covariate data.
+3.  **Missing data**: Limited guidance on imputation strategies for missing exposure or covariate data.
 
-4. **Complex designs**: Cross-over studies, sequential regimens not fully addressed.
+4.  **Complex designs**: Cross-over studies, sequential regimens not fully addressed.
 
-5. **Sample size**: Examples use simulated data. Real-world validation needed across therapeutic areas.
+5.  **Sample size**: Examples use simulated data. Real-world validation needed across therapeutic areas.
 
 ### Areas for Extension
 
-1. **Additional domains**:
-   - ADEEG: Exposure-ECG relationships
-   - ADVS: Exposure-vital signs
-   - ADLB: Exposure-laboratory markers
-   - ADQOL: Exposure-quality of life
-
-2. **Advanced exposure metrics**:
-   - Cumulative AUC (AUCCUM)
-   - Time above threshold (TATHR)
-   - Peak-trough ratio (PTRAT)
-   - Dose intensity (DOSEINT)
-
-3. **Covariate effects**:
-   - Standardized covariate derivations
-   - Handling of categorical covariates
-   - Missing data patterns
-
-4. **Visualization templates**:
-   - Standardized E-R plots
-   - Diagnostic graphics
-   - Reporting templates
-
-5. **Metadata standardization**:
-   - Controlled terminology
-   - Variable-level specifications
-   - Cross-study metadata repository
+1.  **Additional domains**:
+    -   ADEEG: Exposure-ECG relationships
+    -   ADVS: Exposure-vital signs
+    -   ADLB: Exposure-laboratory markers
+    -   ADQOL: Exposure-quality of life
+2.  **Advanced exposure metrics**:
+    -   Cumulative AUC (AUCCUM)
+    -   Time above threshold (TATHR)
+    -   Peak-trough ratio (PTRAT)
+    -   Dose intensity (DOSEINT)
+3.  **Covariate effects**:
+    -   Standardized covariate derivations
+    -   Handling of categorical covariates
+    -   Missing data patterns
+4.  **Visualization templates**:
+    -   Standardized E-R plots
+    -   Diagnostic graphics
+    -   Reporting templates
+5.  **Metadata standardization**:
+    -   Controlled terminology
+    -   Variable-level specifications
+    -   Cross-study metadata repository
 
 ### Path Toward Formalization
 
-**Short-term** (6-12 months):
-1. Pilot testing across organizations
-2. Refinement based on feedback
-3. Publication of white paper
-4. Community discussion (PHUSE, pharmaverse)
+**Short-term** (6-12 months): 1. Pilot testing across organizations 2. Refinement based on feedback 3. Publication of white paper 4. Community discussion (PHUSE, pharmaverse)
 
-**Medium-term** (1-2 years):
-1. Pharmaverse working group formation
-2. Extension of {admiral} functions
-3. Development of validation tools
-4. Real-world case studies
+**Medium-term** (1-2 years): 1. Pharmaverse working group formation 2. Extension of {admiral} functions 3. Development of validation tools 4. Real-world case studies
 
-**Long-term** (2-5 years):
-1. Submission to CDISC for consideration
-2. Integration with CDISC 360 project
-3. Formal CDISC guidance development
-4. Regulatory agency alignment
+**Long-term** (2-5 years): 1. Submission to CDISC for consideration 2. Integration with CDISC 360 project 3. Formal CDISC guidance development 4. Regulatory agency alignment
 
-**Community involvement needed**:
-- Pilot studies
-- Code contributions
-- Feedback on variable naming
-- Edge case identification
-- Therapeutic area expertise
+**Community involvement needed**: - Pilot studies - Code contributions - Feedback on variable naming - Edge case identification - Therapeutic area expertise
 
 # Conclusions
 
 This paper proposes a standardized framework for exposure-response data that extends CDISC principles while addressing the unique requirements of ER modeling. The framework consists of four specialized datasets:
 
-1. **ADER** (65 variables): Foundational dataset with 20 exposure metrics and 13 baseline covariates
-2. **ADEE** (74 variables): Time-to-event efficacy analyses with full exposure integration
-3. **ADES** (78 variables): Multi-level safety analysis with event detail preservation
-4. **ADTRR** (80 variables): Longitudinal tumor response with RECIST 1.1 compliance
+1.  **ADER** (65 variables): Foundational dataset with 20 exposure metrics and 13 baseline covariates
+2.  **ADEE** (74 variables): Time-to-event efficacy analyses with full exposure integration
+3.  **ADES** (78 variables): Multi-level safety analysis with event detail preservation
+4.  **ADTRR** (80 variables): Longitudinal tumor response with RECIST 1.1 compliance
 
-**Key innovations**:
-- **4-7× increase** in exposure coverage (20 vs. 3-5 traditional variables)
-- **Full CDISC compliance** with 8-character variable names
-- **Pre-computed transformations** (log, standardized, normalized, categorical)
-- **Domain-optimized structures** for efficacy, safety, and tumor response
-- **Reproducible implementation** using {admiral} and pharmaverse tools
+**Key innovations**: - **4-7× increase** in exposure coverage (20 vs. 3-5 traditional variables) - **Full CDISC compliance** with 8-character variable names - **Pre-computed transformations** (log, standardized, normalized, categorical) - **Domain-optimized structures** for efficacy, safety, and tumor response - **Reproducible implementation** using {admiral} and pharmaverse tools
 
-**Demonstrated benefits**:
-- **Efficiency**: 50-80% time reduction in dataset creation and QC
-- **Reproducibility**: Identical structures enable code reuse across studies
-- **Flexibility**: Multiple exposure representations support various modeling approaches
-- **Quality**: Automated validation reduces errors
-- **Regulatory**: Clear documentation and traceability
+**Demonstrated benefits**: - **Efficiency**: 50-80% time reduction in dataset creation and QC - **Reproducibility**: Identical structures enable code reuse across studies - **Flexibility**: Multiple exposure representations support various modeling approaches - **Quality**: Automated validation reduces errors - **Regulatory**: Clear documentation and traceability
 
-**Implementation supported by**:
-- Complete derivation code (GitHub repository)
-- Simulated example data for all four datasets
-- Comprehensive metadata specifications
-- Integration with {admiral} ecosystem
+**Implementation supported by**: - Complete derivation code (GitHub repository) - Simulated example data for all four datasets - Comprehensive metadata specifications - Integration with {admiral} ecosystem
 
-The framework is not a final standard but rather a starting point for community discussion and refinement. We invite feedback from:
-- ER modeling practitioners
-- CDISC working group members
-- Regulatory statisticians
-- {admiral} developers
-- Pharmaverse community
+The framework is not a final standard but rather a starting point for community discussion and refinement. We invite feedback from: - ER modeling practitioners - CDISC working group members - Regulatory statisticians - {admiral} developers - Pharmaverse community
 
-**Next steps**:
-1. Pilot testing in real studies
-2. Refinement based on feedback
-3. Extension to additional domains
-4. Potential formalization through CDISC
+**Next steps**: 1. Pilot testing in real studies 2. Refinement based on feedback 3. Extension to additional domains 4. Potential formalization through CDISC
 
 By standardizing ER data structures, we can improve efficiency, reproducibility, and quality of exposure-response analyses across the pharmaceutical industry, ultimately supporting better decision-making in drug development.
 
@@ -1154,7 +1031,8 @@ The author thanks the pharmaverse community and {admiral} development team for c
 # Appendices
 
 ## Appendix A: Complete ADER Code Example
-```r
+
+``` r
 #===============================================================================
 # ADER: Analysis Dataset for Exposure-Response (Foundation)
 #
@@ -1265,7 +1143,8 @@ cat("✓ ADER created: 65 variables, 20 exposure metrics\n")
 ```
 
 ## Appendix B: Complete ADEE Code Example
-```r
+
+``` r
 #===============================================================================
 # ADEE: Analysis Dataset for Exposure-Efficacy
 #
@@ -1356,7 +1235,8 @@ cat("✓ ADEE created: 74 variables, 4 parameters\n")
 ```
 
 ## Appendix C: Complete ADES Code Example
-```r
+
+``` r
 #===============================================================================
 # ADES: Analysis Dataset for Exposure-Safety
 #
@@ -1485,7 +1365,8 @@ cat("  Using ASEV/ASEVN (severity) not AETOXGR/AETOXGRN\n")
 ```
 
 ## Appendix D: Complete ADTRR Code Example
-```r
+
+``` r
 #===============================================================================
 # ADTRR: Analysis Dataset for Tumor Response for E-R Analysis
 #
@@ -1695,37 +1576,34 @@ cat("  NADPCHG (8-char compliant), BORN (numeric BOR)\n")
 
 All variables comply with CDISC's 8-character maximum length requirement through systematic abbreviation:
 
-| Original Concept | 8-Character Name | Abbreviation Rule |
-|------------------|------------------|-------------------|
-| AUCSS + LOG | AUCSLOG | Remove one "S" from AUCSS |
-| CMAXSS + LOG | CMXSLOG | Abbreviate CMAX to CMX |
-| CAVGSS + LOG | CAVGLOG | Remove "SS" suffix |
-| CMAXSS + SSTD | CMXSSSTD | Abbreviate CMAX to CMX |
-| AUCSS + DOSE | AUCSSDOS | Remove final "E" |
-| CMAXSS + DOSE | CMXSSDOS | Abbreviate CMAX + remove "E" |
-| AUCSS + CATN | AUCSCATN | Remove one "S" from AUCSS |
-| NADIR + PCHG | NADPCHG | Remove "IR" from NADIR |
-| NADIR + VISIT | NADVST | Abbreviate VISIT to VST |
+| Original Concept | 8-Character Name | Abbreviation Rule            |
+|------------------|------------------|------------------------------|
+| AUCSS + LOG      | AUCSLOG          | Remove one "S" from AUCSS    |
+| CMAXSS + LOG     | CMXSLOG          | Abbreviate CMAX to CMX       |
+| CAVGSS + LOG     | CAVGLOG          | Remove "SS" suffix           |
+| CMAXSS + SSTD    | CMXSSSTD         | Abbreviate CMAX to CMX       |
+| AUCSS + DOSE     | AUCSSDOS         | Remove final "E"             |
+| CMAXSS + DOSE    | CMXSSDOS         | Abbreviate CMAX + remove "E" |
+| AUCSS + CATN     | AUCSCATN         | Remove one "S" from AUCSS    |
+| NADIR + PCHG     | NADPCHG          | Remove "IR" from NADIR       |
+| NADIR + VISIT    | NADVST           | Abbreviate VISIT to VST      |
 
-**General Rules**:
-1. Remove repeated characters when possible
-2. Abbreviate common terms (CMAX → CMX)
-3. Remove final vowels if needed
-4. Document all abbreviations in specifications
-5. Use labels for full descriptions
+**General Rules**: 1. Remove repeated characters when possible 2. Abbreviate common terms (CMAX → CMX) 3. Remove final vowels if needed 4. Document all abbreviations in specifications 5. Use labels for full descriptions
 
----
+------------------------------------------------------------------------
 
 # Contact Information
 
 Your comments and questions are valued and encouraged. Contact the author at:
 
-**Author**: Jeffrey A. Dickinson  
-**Title**: Associate Director, Clinical Reporting  
-**Company**: Navitas Data Sciences  
-**Address**: 1610 Medical Drive, Suite 300, Pottstown, PA 19464 USA  
-**Work Phone**: +1 402 319 9380  
-**Email**: jeff.dickinson@navitaslifesciences.com  
-**Website**: [www.navitaslifesciences.com](https://www.navitaslifesciences.com)  
-**GitHub**: https://github.com/jeffreyad/er-standards  
+**Author**: Jeffrey A. Dickinson\
+**Title**: Associate Director, Clinical Reporting\
+**Company**: Navitas Data Sciences\
+**Address**: 1610 Medical Drive, Suite 300, Pottstown, PA 19464 USA\
+**Work Phone**: +1 402 319 9380\
+**Email**: jeff.dickinson\@navitaslifesciences.com\
+**Website**: [www.navitaslifesciences.com](https://www.navitaslifesciences.com)\
+**GitHub**: https://github.com/jeffreyad/er-standards\
 **LinkedIn**: https://www.linkedin.com/in/jeffreyad/
+
+![](images/qr-code.png){width="186"}
