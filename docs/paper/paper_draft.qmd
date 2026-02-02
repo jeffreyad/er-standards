@@ -576,7 +576,7 @@ By establishing consistent ER data structures, the pharmaceutical industry can i
 
 Synthetic data and code examples were developed with assistance from Claude (Anthropic, 2024), an AI assistant. All code was reviewed, tested, and validated by the author. Any errors or omissions are the responsibility of the author.
 
-The author thanks the pharmaverse community and {admiral} development team for creating the foundational tools that made this work possible.
+The author thanks the pharmaverse community and {admiral} development team for creating the foundational tools that made this work possible, and for many fruitful conversations.
 
 # References
 
