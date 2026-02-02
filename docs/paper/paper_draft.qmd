@@ -159,8 +159,6 @@ The traditional approach stores all E-R data in a single wide-format file with o
 -   **CMAX**: Maximum observed concentration (ng/mL)
 -   **CAVG**: Average steady-state concentration (ng/mL)
 
-**Limitation**: Only 3 exposure variables, no transformations or categorical versions
-
 ### Tumor Response and Safety
 
 | PTNM | NADIR | BOR | TEAE | TEAEGR3 |
@@ -381,39 +379,39 @@ All code is available at: <https://github.com/jeffreyad/er-standards>
 
 Across all four ER datasets, we employ consistent patterns for:
 
-**Time variable derivation**:
+**Response variable derivation**:
 
 ``` r
-# Study day calculation (standard ADaM)
-mutate(ADY = as.numeric(ADT - TRTSDT) + 1)
-
-# Relative time in days
-mutate(AVAL = as.numeric(ADT - TRTSDT))
+ader_bor <- ader_tte %>%
+  derive_vars_merged(
+    dataset_add = adrs,
+    filter_add = PARAMCD == "BOR" & ANL01FL == "Y",
+    by_vars = get_admiral_option("subject_keys"),
+    new_vars = exprs(BOR = AVAL, BORC = AVALC)
+  )
 ```
 
-**Exposure categorization**:
+**Exposure metrics**:
 
 ``` r
-# Tertile approach (8-character variable name)
-mutate(
-  AUCSSCAT = cut(
-    AUCSS,
-    breaks = quantile(AUCSS, probs = c(0, 1/3, 2/3, 1), na.rm = TRUE),
-    labels = c("Low", "Medium", "High"),
-    include.lowest = TRUE
-  ),
-  # Numeric version
-  AUCSCATN = as.numeric(AUCSSCAT)
-)
+ader_auc <- ader_bor %>%
+  derive_vars_transposed(
+    dataset_merge = adpp,
+    filter = PARAMCD %in% c("AUCLST", "CMAX"),
+    by_vars = get_admiral_option("subject_keys"),
+    key_var = PARAMCD,
+    value_var = AVAL
+  ) %>%
+  rename(AUCSS = AUCLST, CMAXSS = CMAX)
 ```
 
-**Log transformation** (8-character compliant):
+**Log transformation**: 
 
 ``` r
 # For continuous modeling
 mutate(
-  AUCSLOG = log(AUCSS),        # One S removed for 8-char limit
-  CMXSLOG = log(CMAXSS)         # CMAX abbreviated to CMX
+  AUCSLOG = log(AUCSS),   
+  CMXSLOG = log(CMAXSS)
 )
 ```
 
@@ -423,15 +421,6 @@ mutate(
 # Z-score transformation
 mutate(
   AUCSSSTD = (AUCSS - mean(AUCSS, na.rm = TRUE)) / sd(AUCSS, na.rm = TRUE)
-)
-```
-
-**Analysis flags**:
-
-``` r
-# Primary analysis population
-mutate(
-  ANL01FL = if_else(!is.na(AVAL) & !is.na(AUCSS), "Y", "")
 )
 ```
 
@@ -618,77 +607,6 @@ Longitudinal derivation workflow:
     -   NADIR: Minimum tumor size (with NADPCHG)
 8.  Export with metadata (80 variables)
 
-**Key Code Pattern**:
-
-``` r
-# Longitudinal tumor measurements
-adtrr_tsize <- adtr %>%
-  filter(PARAMCD == "SDIAM") %>%
-  # Merge exposure from ADER
-  derive_vars_merged(
-    dataset_add = ader,
-    by_vars = exprs(STUDYID, USUBJID)
-  ) %>%
-  # Rename to TSIZE
-  mutate(
-    PARAMCD = "TSIZE",
-    PARAM = "Target Lesion Size",
-    PARAMN = 1
-  ) %>%
-  # Derive baseline
-  derive_var_base(
-    by_vars = exprs(STUDYID, USUBJID, PARAMCD)
-  ) %>%
-  # Derive changes (8-char compliant names already in admiral)
-  derive_var_chg() %>%
-  derive_var_pchg() %>%
-  # Derive nadir for PD assessment
-  group_by(USUBJID) %>%
-  mutate(
-    NADIR = lag(cummin(AVAL), default = first(BASE))
-  ) %>%
-  ungroup() %>%
-  # RECIST 1.1 response
-  mutate(
-    AVALC = case_when(
-      ABLFL == "Y" ~ "BASELINE",
-      AVAL == 0 ~ "CR",
-      PCHG <= -30 ~ "PR",
-      PCHG >= 20 & (AVAL - NADIR) >= 5 ~ "PD",
-      TRUE ~ "SD"
-    )
-  )
-
-# Best overall response (separate parameter)
-adtrr_bor <- adtrr_tsize %>%
-  filter(ABLFL != "Y") %>%
-  group_by(USUBJID) %>%
-  summarise(
-    AVALC = case_when(
-      any(AVALC == "CR") ~ "CR",
-      any(AVALC == "PR") ~ "PR",
-      any(AVALC == "PD") ~ "PD",
-      TRUE ~ "SD"
-    ),
-    BORN = case_when(
-      AVALC == "CR" ~ 4,
-      AVALC == "PR" ~ 3,
-      AVALC == "SD" ~ 2,
-      AVALC == "PD" ~ 1
-    ),
-    .groups = "drop"
-  ) %>%
-  mutate(
-    PARAMCD = "BOR",
-    PARAM = "Best Overall Response",
-    PARAMN = 2,
-    AVISITN = 99,
-    AVISIT = "OVERALL"
-  )
-```
-
-See Appendix D for complete code example.
-
 ## Validation Approach
 
 Quality control for ER datasets follows {admiral} validation principles:
@@ -698,7 +616,6 @@ Quality control for ER datasets follows {admiral} validation principles:
 3.  **Derivation traceability**: Document all derivation steps
 4.  **Double programming**: Independent derivation and comparison
 5.  **Visual inspection**: Generate diagnostic plots
-6.  **8-character compliance**: Verify all variable names ≤ 8 characters
 7.  **Comparison to source**: Verify against SDTM domains
 
 # Results
@@ -723,8 +640,6 @@ ADER dataset contained 300 subject records with complete exposure derivations:
 **Baseline Covariates Coverage**: - Vitals (4): WTBL, HTBL, BMIBL, BSA ✓ - Renal (3): CREATBL, CRCLBL, EGFRBL ✓ - Hepatic (3): ALTBL, ASTBL, TBILBL ✓ - Other (3): ECOGBL, ALBBL, SMOKEBL ✓
 
 **Total**: 13 covariate variables
-
-**8-Character Compliance**: All 65 variables ≤ 8 characters ✓
 
 ## Exposure-Efficacy Results
 
@@ -913,21 +828,6 @@ coxph(Surv(AVAL, EVENT) ~ AUCSSSTD + AGE + SEX, data = adee)
 An important design decision in ADES was the use of **ASEV/ASEVN** (adverse event severity: MILD/MODERATE/SEVERE) instead of **AETOXGR/AETOXGRN** (toxicity grade: 1-5).
 
 **Rationale**: 1. **Pharmaverseadam alignment**: Example datasets use ASEV 2. **Broader applicability**: Severity applies to all AEs, not just toxicities 3. **Simplicity**: 3 categories easier than 5 grades 4. **Clinical relevance**: SEVERE maps to regulatory "serious" criteria
-
-**Conversion when needed**:
-
-``` r
-# For studies requiring toxicity grades
-mutate(
-  AETOXGR = case_when(
-    ASEV == "MILD" ~ "1",
-    ASEV == "MODERATE" ~ "2",
-    ASEV == "SEVERE" ~ "3"
-  )
-)
-```
-
-**Note**: For oncology studies requiring NCI CTCAE grades 1-5, analysts can easily map or derive AETOXGR from severity + other AE characteristics.
 
 ## Limitations and Future Work
 
