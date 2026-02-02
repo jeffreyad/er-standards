@@ -10,7 +10,7 @@
   <meta name="generator" content="quarto-1.8.26">
 
   <meta name="author" content="Jeff Dickinson">
-  <meta name="dcterms.date" content="2026-01-27">
+  <meta name="dcterms.date" content="2026-02-02">
   <title>Standardizing Exposure-Response Data for Modeling and Simulation</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -208,7 +208,7 @@ Jeff Dickinson
     </div>
 </div>
 
-  <p class="date">2026-01-27</p>
+  <p class="date">2026-02-02</p>
 </section>
 <section id="overview" class="slide level2 smaller">
 <h2>Overview</h2>
@@ -368,11 +368,11 @@ Jeff Dickinson
 <h2>Four ER Datasets: A Comparison</h2>
 <table class="caption-top">
 <colgroup>
-<col style="width: 24%">
-<col style="width: 18%">
-<col style="width: 18%">
-<col style="width: 18%">
-<col style="width: 21%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -593,7 +593,7 @@ Jeff Dickinson
 <span id="cb2-16"><a href=""></a>exposure_cats <span class="ot">&lt;-</span> adsl <span class="sc">%&gt;%</span></span>
 <span id="cb2-17"><a href=""></a>  <span class="fu">mutate</span>(</span>
 <span id="cb2-18"><a href=""></a>    <span class="at">AUCSSCAT =</span> <span class="fu">cut</span>(AUCSS,</span>
-<span id="cb2-19"><a href=""></a>      <span class="at">breaks =</span> <span class="fu">quantile</span>(AUCSS, <span class="at">probs =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span><span class="sc">/</span><span class="dv">3</span>, <span class="dv">2</span><span class="sc">/</span><span class="dv">3</span>, <span class="dv">1</span>)),</span>
+<span id="cb2-19"><a href=""></a>      <span class="at">breaks =</span> <span class="fu">quantile</span>(AUCSS, <span class="at">probs =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span> <span class="sc">/</span> <span class="dv">3</span>, <span class="dv">2</span> <span class="sc">/</span> <span class="dv">3</span>, <span class="dv">1</span>)),</span>
 <span id="cb2-20"><a href=""></a>      <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"Low"</span>, <span class="st">"Medium"</span>, <span class="st">"High"</span>)</span>
 <span id="cb2-21"><a href=""></a>    )</span>
 <span id="cb2-22"><a href=""></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -691,7 +691,7 @@ Jeff Dickinson
 <span id="cb5-4"><a href=""></a>  <span class="fu">mutate</span>(</span>
 <span id="cb5-5"><a href=""></a>    <span class="at">PARAMCD =</span> <span class="st">"TEAE"</span>,</span>
 <span id="cb5-6"><a href=""></a>    <span class="at">PARAM =</span> <span class="st">"Treatment-Emergent Adverse Events"</span>,</span>
-<span id="cb5-7"><a href=""></a>    <span class="at">AVAL =</span> n_aes,  <span class="co"># Count of AEs</span></span>
+<span id="cb5-7"><a href=""></a>    <span class="at">AVAL =</span> n_aes, <span class="co"># Count of AEs</span></span>
 <span id="cb5-8"><a href=""></a>    <span class="at">AVALC =</span> <span class="fu">as.character</span>(n_aes)</span>
 <span id="cb5-9"><a href=""></a>  ) <span class="sc">%&gt;%</span></span>
 <span id="cb5-10"><a href=""></a>  <span class="fu">bind_rows</span>(</span>
@@ -723,8 +723,8 @@ Jeff Dickinson
 <p><strong>Important</strong>: ADES uses <code>ASEV</code>/<code>ASEVN</code> (not <code>AETOXGR</code>/<code>AETOXGRN</code>)</p>
 <table class="caption-top">
 <colgroup>
-<col style="width: 32%">
-<col style="width: 25%">
+<col style="width: 31%">
+<col style="width: 26%">
 <col style="width: 41%">
 </colgroup>
 <thead>
@@ -865,7 +865,7 @@ Jeff Dickinson
 <span id="cb7-3"><a href=""></a>    <span class="at">PARAMCD =</span> <span class="st">"TSIZE"</span>,</span>
 <span id="cb7-4"><a href=""></a>    <span class="at">PARAM =</span> <span class="st">"Target Lesion Size"</span>,</span>
 <span id="cb7-5"><a href=""></a>    <span class="at">PARAMN =</span> <span class="dv">1</span>,</span>
-<span id="cb7-6"><a href=""></a>    <span class="at">AVAL =</span> TRORRES,  <span class="co"># Raw measurement (mm)</span></span>
+<span id="cb7-6"><a href=""></a>    <span class="at">AVAL =</span> TRORRES, <span class="co"># Raw measurement (mm)</span></span>
 <span id="cb7-7"><a href=""></a>    <span class="at">AVALU =</span> <span class="st">"mm"</span>,</span>
 <span id="cb7-8"><a href=""></a>    <span class="at">ADY =</span> <span class="fu">as.numeric</span>(ADT <span class="sc">-</span> TRTSDT) <span class="sc">+</span> <span class="dv">1</span></span>
 <span id="cb7-9"><a href=""></a>  ) <span class="sc">%&gt;%</span></span>
@@ -927,7 +927,7 @@ Jeff Dickinson
 <span id="cb8-22"><a href=""></a>    <span class="at">PARAM =</span> <span class="st">"Nadir Tumor Size"</span>,</span>
 <span id="cb8-23"><a href=""></a>    <span class="at">PARAMN =</span> <span class="dv">3</span>,</span>
 <span id="cb8-24"><a href=""></a>    <span class="at">AVAL =</span> <span class="fu">min</span>(AVAL, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb8-25"><a href=""></a>    <span class="at">NADPCHG =</span> <span class="dv">100</span> <span class="sc">*</span> (AVAL <span class="sc">-</span> BASE) <span class="sc">/</span> BASE  <span class="co"># 8-char compliant</span></span>
+<span id="cb8-25"><a href=""></a>    <span class="at">NADPCHG =</span> <span class="dv">100</span> <span class="sc">*</span> (AVAL <span class="sc">-</span> BASE) <span class="sc">/</span> BASE <span class="co"># 8-char compliant</span></span>
 <span id="cb8-26"><a href=""></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <aside class="notes">
@@ -956,10 +956,10 @@ Jeff Dickinson
 <span id="cb9-3"><a href=""></a>    <span class="co"># RECIST 1.1 response at each visit</span></span>
 <span id="cb9-4"><a href=""></a>    <span class="at">AVALC =</span> <span class="fu">case_when</span>(</span>
 <span id="cb9-5"><a href=""></a>      ABLFL <span class="sc">==</span> <span class="st">"Y"</span> <span class="sc">~</span> <span class="st">"BASELINE"</span>,</span>
-<span id="cb9-6"><a href=""></a>      AVAL <span class="sc">==</span> <span class="dv">0</span> <span class="sc">~</span> <span class="st">"CR"</span>,           <span class="co"># Complete Response</span></span>
-<span id="cb9-7"><a href=""></a>      PCHG <span class="sc">&lt;=</span> <span class="sc">-</span><span class="dv">30</span> <span class="sc">~</span> <span class="st">"PR"</span>,         <span class="co"># Partial Response (≥30% decrease)</span></span>
+<span id="cb9-6"><a href=""></a>      AVAL <span class="sc">==</span> <span class="dv">0</span> <span class="sc">~</span> <span class="st">"CR"</span>, <span class="co"># Complete Response</span></span>
+<span id="cb9-7"><a href=""></a>      PCHG <span class="sc">&lt;=</span> <span class="sc">-</span><span class="dv">30</span> <span class="sc">~</span> <span class="st">"PR"</span>, <span class="co"># Partial Response (≥30% decrease)</span></span>
 <span id="cb9-8"><a href=""></a>      PCHG <span class="sc">&gt;=</span> <span class="dv">20</span> <span class="sc">&amp;</span> CHG <span class="sc">&gt;=</span> <span class="dv">5</span> <span class="sc">~</span> <span class="st">"PD"</span>, <span class="co"># Progressive Disease (≥20% increase AND ≥5mm)</span></span>
-<span id="cb9-9"><a href=""></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"SD"</span>                 <span class="co"># Stable Disease</span></span>
+<span id="cb9-9"><a href=""></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"SD"</span> <span class="co"># Stable Disease</span></span>
 <span id="cb9-10"><a href=""></a>    )</span>
 <span id="cb9-11"><a href=""></a>  )</span>
 <span id="cb9-12"><a href=""></a></span>
@@ -1551,11 +1551,11 @@ Jeff Dickinson
 <p><strong>Proposed Core Variables for ADEE (74 total)</strong></p>
 <table class="caption-top">
 <colgroup>
-<col style="width: 18%">
-<col style="width: 8%">
-<col style="width: 48%">
-<col style="width: 14%">
-<col style="width: 9%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 36%">
+<col style="width: 16%">
+<col style="width: 16%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -1785,7 +1785,8 @@ Jeff Dickinson
 <h2>Acknowledgments</h2>
 <p>Synthetic data and code examples were developed with assistance from Claude (Anthropic, 2024), an AI assistant. All code was reviewed, tested, and validated by the author. Any errors or omissions are the responsibility of the author.</p>
 
-</section>
+
+<img data-src="images/qr-code.png" width="237" class="r-stretch"></section>
     </div>
   <div class="quarto-auto-generated-content" style="display: none;">
 <div class="footer footer-default">
