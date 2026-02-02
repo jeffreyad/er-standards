@@ -587,13 +587,13 @@ The author thanks the pharmaverse community and {admiral} development team for c
 
 Full code examples can be found at the following links:
 
-**ADER** https://github.com/jeffreyad/er-standards/blob/main/programs/ad_ader.R
+**ADER** <https://github.com/jeffreyad/er-standards/blob/main/programs/ad_ader.R>
 
-**ADEE** https://github.com/jeffreyad/er-standards/blob/main/programs/ad_adee.R
+**ADEE** <https://github.com/jeffreyad/er-standards/blob/main/programs/ad_adee.R>
 
-**ADES** https://github.com/jeffreyad/er-standards/blob/main/programs/ad_ades.R
+**ADES** <https://github.com/jeffreyad/er-standards/blob/main/programs/ad_ades.R>
 
-**ADTRR** https://github.com/jeffreyad/er-standards/blob/main/programs/ad_adtrr.R
+**ADTRR** <https://github.com/jeffreyad/er-standards/blob/main/programs/ad_adtrr.R>
 
 # Contact Information
 
