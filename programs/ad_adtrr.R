@@ -15,6 +15,7 @@ library(stringr)
 library(metacore)
 library(metatools)
 library(xportr)
+library(readr)
 
 # Load Specs for Metacore ----
 # Load Specs for Metacore ----
@@ -346,3 +347,8 @@ adtrr_xpt <- adtrr %>%
 # Save output ----
 
 save(adtrr, file = file.path(dir, "adtrr.rda"), compress = "bzip2")
+
+write_csv(adtrr_xpt, file = file.path(dir, "adtrr.csv"))
+
+saveRDS(adtrr, file.path(dir, "adtrr.rds"))
+

@@ -15,6 +15,7 @@ library(stringr)
 library(metacore)
 library(metatools)
 library(xportr)
+library(readr)
 
 # Load Specs for Metacore ----
 # Load Specs for Metacore ----
@@ -405,3 +406,8 @@ ades_xpt <- ades %>%
 # Save output ----
 
 save(ades, file = file.path(dir, "ades.rda"), compress = "bzip2")
+
+write_csv(ades_xpt, file = file.path(dir, "ades.csv"))
+
+saveRDS(ades, file.path(dir, "ades.rds"))
+

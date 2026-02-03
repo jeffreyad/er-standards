@@ -232,3 +232,5 @@ ader_xpt <- ader %>%
 save(ader, file = file.path(dir, "ader.rda"), compress = "bzip2")
 
 write_csv(ader_xpt, file = file.path(dir, "ader.csv"))
+
+saveRDS(ader, file.path(dir, "ader.rds"))
