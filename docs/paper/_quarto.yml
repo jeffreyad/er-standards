@@ -2,7 +2,7 @@
 project:
   output-dir: _output
   render:
-    - paper_draft.qmd
+    - paper_final.qmd
 
 format:
   html:

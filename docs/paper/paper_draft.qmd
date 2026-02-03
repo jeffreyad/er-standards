@@ -64,7 +64,7 @@ However, ER modeling introduces additional complexity not addressed by SDTM-PK:
 
 ## The {admiral} Package Ecosystem
 
-The {admiral} R package, part of the pharmaverse initiative, provides a comprehensive framework for creating Analysis Data Model (ADaM) datasets [@admiral2024]. Key features relevant to ER standardization include:
+The {admiral} R package, part of the pharmaverse initiative, provides a comprehensive framework for creating Analysis Data Model (ADaM) datasets [@admiral2026]. Key features relevant to ER standardization include:
 
 -   **Modular functions**: Reusable derivation functions following consistent patterns
 -   **Built-in validation**: Assertion functions that catch errors early
