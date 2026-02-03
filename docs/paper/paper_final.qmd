@@ -24,41 +24,34 @@ Exposure-response (ER) modeling plays a critical role in modern drug development
 
 The scope of ER modeling spans multiple domains. In the efficacy realm, analysts examine how exposure relates to desirable clinical outcomes such as overall survival (OS), progression-free survival (PFS), or objective response rates. Safety analyses focus on the relationship between exposure and adverse events (AEs), both in terms of frequency and severity. Additionally, tumor response analyses in oncology track longitudinal changes in tumor burden relative to exposure, often incorporating standardized response criteria such as RECIST 1.1 [@eisenhauer_recist].
 
-Despite the central importance of ER modeling in drug development, the datasets supporting these analyses lack standardization. Traditional approaches typically include only 3-5 exposure variables (e.g., AUC, CMAX, CAVG) with inconsistent naming conventions and limited transformation options. Unlike pharmacokinetic (PK) data, which benefits from the CDISC Standard Data Tabulation Model for Pharmacokinetics (SDTM-PK) released in 2023 [@cdisc_sdtmpk], ER data structures remain heterogeneous across studies and organizations. This variability creates several challenges:
+Despite the central importance of ER modeling in drug development, the datasets supporting these analyses lack standardization. Traditional approaches typically include only 3-5 exposure variables with inconsistent naming conventions and limited transformations. 
 
-1.  **Reproducibility**: Inconsistent data structures make it difficult to replicate analyses or compare results across studies
-2.  **Efficiency**: Each analysis requires custom data preparation, preventing code reuse
-3.  **Limited exposure representations**: Traditional datasets lack comprehensive exposure transformations
-4.  **Quality**: Lack of standardization increases the risk of errors in data derivation
-5.  **Regulatory clarity**: Inconsistent documentation complicates regulatory review
-6.  **Collaboration**: Sharing methodologies across organizations is hampered by structural differences
+While CDISC has developed standards for pharmacokinetic data—including the Study Data Tabulation Model Implementation Guide for Pharmacokinetics (SDTM-PK) [@cdisc_sdtmpk] and the Basic Data Structure for ADaM PopPK [@cdisc_bdspoppk]—no equivalent standards exist specifically for ER analyses. This gap creates challenges in reproducibility, efficiency, quality control, and regulatory review.
 
-## CDISC SDTM-PK as a Foundation
+## CDISC PK Standards as a Foundation
 
-The CDISC SDTM-PK standard, finalized in 2023, provides a robust framework for representing pharmacokinetic data in a standardized format. Key principles include:
+The SDTM-PK and BDS for PopPK standards provide valuable principles applicable to ER analyses:
 
--   **Relative time variables**: PCTPT (planned time point) and PCELTM (elapsed time) enable consistent representation of temporal relationships
--   **Numeric analysis values**: PCSTRESN provides analysis-ready numeric results
--   **Traceability**: Clear linkage between collection and analysis through date/time variables
--   **Metadata**: Standardized parameter codes (PCTESTCD) facilitate data exchange
--   **8-character variable names**: All variables comply with CDISC ADaM requirements
+**From SDTM-PK**:
+- Relative time variables (PCTPT, PCELTM)
+- Standardized parameter codes
+- Clear traceability through date/time variables
+- 8-character variable name compliance
 
-While SDTM-PK focuses on concentration measurements themselves, many of its underlying principles are directly applicable to ER analyses. Both domains require:
+**From BDS for PopPK**:
+- Parameter-based structure (one record per subject per parameter)
+- Baseline and time-varying covariate integration
+- Analysis flags for population selection
+- Standardized derived parameter approach
 
--   Careful handling of time relative to dosing
--   Integration of exposure metrics with outcome data
--   Support for both continuous and categorical analyses
--   Clear documentation of derivation rules
--   Compliance with CDISC naming conventions
+**ER-Specific Requirements**:
 
-However, ER modeling introduces additional complexity not addressed by SDTM-PK:
-
--   **Outcome diversity**: Time-to-event, count, continuous, and categorical endpoints
--   **Longitudinal structures**: Repeated outcome measurements over time
--   **Complex relationships**: Non-linear exposure-response curves, threshold effects
--   **Time-varying exposures**: Dose modifications, cumulative exposure
--   **Comprehensive exposure transformations**: Need for multiple representations (log, standardized, categorical)
-
+However, ER modeling introduces additional complexity:
+- **Diverse outcomes**: Time-to-event (OS, PFS), safety events (AEs), tumor response (RECIST)
+- **Multi-domain integration**: Combining exposure with efficacy, safety, and response data
+- **Comprehensive transformations**: Multiple exposure representations (raw, log, standardized, categorical)
+- **Event-level detail**: Preserving individual occurrences alongside summary parameters
+- **Longitudinal structures**: Repeated measurements with baseline normalization
 ## The {admiral} Package Ecosystem
 
 The {admiral} R package, part of the pharmaverse initiative, provides a comprehensive framework for creating Analysis Data Model (ADaM) datasets [@admiral2026]. Key features relevant to ER standardization include:
