@@ -5,6 +5,7 @@
 .Ruserdata
 
 # Output files
+adam/*.rda
 adam/*.rds
 adam/*.xpt
 adam/*.csv
