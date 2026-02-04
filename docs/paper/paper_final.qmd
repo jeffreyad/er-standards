@@ -14,7 +14,7 @@ bibliography: references.bib
 
 # Abstract
 
-Exposure-Response (ER) modeling is a key tool in assessing the safety and efficacy of new drugs, enabling evaluation of the relationship between drug exposure, toxicity, and clinical benefit. ER datasets often resemble those used in Population Pharmacokinetic (PopPK) modeling, sharing features such as numeric covariates, relative time variables, and dependent outcomes. While CDISC released standards for PopPK data in 2023, no equivalent standards currently exist for ER data. However, many of the same principles could be applied. This paper explores ER datasets across three domains: Exposure-Efficacy (EE), with endpoints like Overall Survival (OS) and Progression-Free Survival (PFS); Exposure-Safety (ES), which may include specific adverse event frequencies; and Tumor Response, which may include measures of tumor size over time. Using the {admiral} R package, we demonstrate programming examples that illustrate how ER data can be structured in alignment with emerging standards, supporting consistency and reproducibility in modeling workflows. We propose a framework for standardizing ER data that extends CDISC SDTM-PK principles while accommodating the unique requirements of each domain.
+Exposure-Response (ER) modeling is a key tool in assessing the safety and efficacy of new drugs, enabling evaluation of the relationship between drug exposure, toxicity, and clinical benefit. ER datasets often resemble those used in Population Pharmacokinetic (PopPK) modeling, sharing features such as numeric covariates, relative time variables, and dependent outcomes. While CDISC released standards for PopPK data in 2023, no equivalent standards currently exist for ER data. However, many of the same principles could be applied. This presentation explores ER datasets across domains such as Exposure-Efficacy (EE), with endpoints like Overall Survival (OS) and Progression-Free Survival (PFS); Exposure-Safety (ES), which may include specific adverse event frequencies; and Tumor Response, which may include measures of tumor size over time. Using the {admiral} R package, I will demonstrate programming examples that illustrate how ER data can be structured in alignment with emerging standards, supporting consistency and reproducibility in modeling workflows.  
 
 # Introduction
 
@@ -26,20 +26,15 @@ The scope of ER modeling spans multiple domains. In the efficacy realm, analysts
 
 Despite the central importance of ER modeling in drug development, the datasets supporting these analyses lack standardization. Traditional approaches typically include only 3-5 exposure variables with inconsistent naming conventions and limited transformations. 
 
-While CDISC has developed standards for pharmacokinetic data—including the Study Data Tabulation Model Implementation Guide for Pharmacokinetics (SDTM-PK) [@cdisc_sdtmpk] and the Basic Data Structure for ADaM PopPK [@cdisc_bdspoppk]—no equivalent standards exist specifically for ER analyses. This gap creates challenges in reproducibility, efficiency, quality control, and regulatory review.
+While CDISC has developed standards for pharmacokinetic data—specifically the Basic Data Structure for ADaM PopPK (@cdisc_bdspoppk)—no equivalent standards exist specifically for Exposure-Response (ER) analyses. This gap creates challenges in reproducibility, efficiency, quality control, and regulatory review.
 
 ## CDISC PK Standards as a Foundation
 
-The SDTM-PK and BDS for PopPK standards provide valuable principles applicable to ER analyses:
-
-**From SDTM-PK**:
-- Relative time variables (PCTPT, PCELTM)
-- Standardized parameter codes
-- Clear traceability through date/time variables
-- 8-character variable name compliance
+The CDISC BDS standards for PopPK provide valuable principles applicable to ER analyses:
 
 **From BDS for PopPK**:
-- Parameter-based structure (one record per subject per parameter)
+- Relative time variables (NFRLT, AFRLT)
+- Parameter-based structure 
 - Baseline and time-varying covariate integration
 - Analysis flags for population selection
 - Standardized derived parameter approach
@@ -52,6 +47,7 @@ However, ER modeling introduces additional complexity:
 - **Comprehensive transformations**: Multiple exposure representations (raw, log, standardized, categorical)
 - **Event-level detail**: Preserving individual occurrences alongside summary parameters
 - **Longitudinal structures**: Repeated measurements with baseline normalization
+
 ## The {admiral} Package Ecosystem
 
 The {admiral} R package, part of the pharmaverse initiative, provides a comprehensive framework for creating Analysis Data Model (ADaM) datasets [@admiral2026]. Key features relevant to ER standardization include:
