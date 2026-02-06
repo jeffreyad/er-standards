@@ -1,4 +1,3 @@
-
 project:
   output-dir: _output
   render:
@@ -10,10 +9,17 @@ format:
     toc: true
   pdf:
     documentclass: article
-    toc: true
-    number-sections: true
-    geometry: margin=1in
+    toc: false  # Template doesn't show TOC
+    number-sections: false  # Template uses manual header formatting
+    geometry: 
+      - top=0.75in
+      - bottom=0.5in
+      - left=1in
+      - right=1in
+    mainfont: Arial
+    fontsize: 10pt  # Base font (114300 twips ≈ 10pt)
     keep-tex: true
+    papersize: letter
 
 bibliography: references.bib
 

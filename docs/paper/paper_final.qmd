@@ -4,19 +4,19 @@ author: "Jeffrey Dickinson, Navitas Data Sciences, Pottstown, PA, USA"
 format:
   pdf:
     documentclass: article
-    number-sections: true
+    number-sections: false
     toc: false
   docx:
-    number-sections: true
+    number-sections: false
     toc: false
 bibliography: references.bib
 ---
 
-# Abstract
+# ABSTRACT
 
 Exposure-Response (ER) modeling is a key tool in assessing the safety and efficacy of new drugs, enabling evaluation of the relationship between drug exposure, toxicity, and clinical benefit. ER datasets often resemble those used in Population Pharmacokinetic (PopPK) modeling, sharing features such as numeric covariates, relative time variables, and dependent outcomes. While CDISC released standards for PopPK data in 2023, no equivalent standards currently exist for ER data. However, many of the same principles could be applied. This presentation explores ER datasets across domains such as Exposure-Efficacy (EE), with endpoints like Overall Survival (OS) and Progression-Free Survival (PFS); Exposure-Safety (ES), which may include specific adverse event frequencies; and Tumor Response, which may include measures of tumor size over time. Using the {admiral} R package, I will demonstrate programming examples that illustrate how ER data can be structured in alignment with emerging standards, supporting consistency and reproducibility in modeling workflows.  
 
-# Introduction
+# INTRODUCTION
 
 ## Background on Exposure-Response Modeling
 
@@ -159,7 +159,7 @@ The traditional approach stores all ER data in a single wide-format file with on
 -   **TEAE**: Total treatment-emergent adverse events
 -   **TEAEGR3**: Number of Grade 3 or higher adverse events
 
-# Methods
+# METHODS
 
 ## Proposed Framework
 
@@ -432,7 +432,7 @@ Quality control for ER datasets follows {admiral} validation principles:
 5.  **Visual inspection**: Generate diagnostic plots
 6.  **Comparison to source**: Verify against SDTM domains
 
-# Results
+# RESULTS
 
 ## Framework Implementation
 
@@ -534,7 +534,8 @@ Common patterns across all four datasets:
 **Long-term** (2-5 years): 1. Submission to CDISC for consideration 2. Integration with CDISC 360 project 3. Formal CDISC guidance development 4. Regulatory agency alignment
 
 **Community involvement needed**: - Pilot studies - Code contributions - Feedback on variable naming - Edge case identification - Therapeutic area expertise
-# Conclusions
+
+# CONCLUSIONS
 
 This paper proposes a standardized framework for exposure-response data extending CDISC principles through four specialized datasets: ADER (exposure foundation), ADEE (exposure-efficacy), ADES (exposure-safety), and ADTRR (tumor response). The framework achieves full CDISC compliance with 8-character variable names while providing comprehensive exposure transformations and domain-optimized structures.
 
@@ -558,18 +559,18 @@ This framework represents a starting point for community discussion rather than 
 
 By establishing consistent ER data structures, the pharmaceutical industry can improve analytical efficiency, enhance reproducibility across studies, and strengthen regulatory submissions—ultimately supporting more informed decision-making in drug development.
 
-# Acknowledgments
+# REFERENCES
+
+::: {#refs}
+:::
+
+# ACKNOWLEDGMENTS
 
 Synthetic data and code examples were developed with assistance from Claude (Anthropic, 2024), an AI assistant. All code was reviewed, tested, and validated by the author. Any errors or omissions are the responsibility of the author.
 
 The author thanks the pharmaverse community and {admiral} development team for creating the foundational tools that made this work possible, and for many fruitful conversations.
 
-# References
-
-::: {#refs}
-:::
-
-# Links
+# LINKS
 
 Full code examples can be found at the following links:
 
@@ -581,7 +582,7 @@ Full code examples can be found at the following links:
 
 **ADTRR** <https://github.com/jeffreyad/er-standards/blob/main/programs/ad_adtrr.R>
 
-# Contact Information
+# CONTACT INFORMATION
 
 Your comments and questions are valued and encouraged. Contact the author at:
 
