@@ -18,7 +18,7 @@ Exposure-Response (ER) modeling is a key tool in assessing the safety and effica
 
 # INTRODUCTION
 
-## Background on Exposure-Response Modeling
+## BACKGROUND ON EXPOSURE-RESPONSE MODELING
 
 Exposure-response (ER) modeling plays a critical role in modern drug development, providing quantitative frameworks to characterize relationships between drug exposure measures (such as steady-state area under the concentration-time curve \[AUCSS\] or maximum concentration \[CMAXSS\]) and clinical outcomes. These relationships inform key regulatory and clinical decisions, including dose selection, dosing regimen optimization, and identification of patient populations most likely to benefit from treatment [@fda_erpk_guidance].
 
@@ -28,7 +28,7 @@ Despite the central importance of ER modeling in drug development, the datasets 
 
 While CDISC has developed standards for pharmacokinetic data—specifically the Basic Data Structure for ADaM PopPK (@cdisc_bdspoppk)—no equivalent standards exist specifically for Exposure-Response (ER) analyses. This gap creates challenges in reproducibility, efficiency, quality control, and regulatory review.
 
-## CDISC PK Standards as a Foundation
+## CDISC PK STANDARDS AS A FOUNDATION
 
 The CDISC BDS standards for PopPK provide valuable principles applicable to ER analyses:
 
@@ -48,7 +48,7 @@ However, ER modeling introduces additional complexity:
 - **Event-level detail**: Preserving individual occurrences alongside summary parameters
 - **Longitudinal structures**: Repeated measurements with baseline normalization
 
-## The {admiral} Package Ecosystem
+## THE {ADMIRAL} PACKAGE ECOSYSTEM
 
 The {admiral} R package, part of the pharmaverse initiative, provides a comprehensive framework for creating Analysis Data Model (ADaM) datasets [@admiral2026]. Key features relevant to ER standardization include:
 
@@ -64,7 +64,7 @@ The latest version of {admiral} (v1.4) includes experimental functions to facili
 
 Open-source projects like {admiral} include numerous examples of reusable functions, templates and code blocks that can be used in new programming. The Pharmaverse as a whole strives to provide a collection of open-source tools applicable to clinical reporting and electronic submissions.
 
-## Objectives
+## OBJECTIVES
 
 This paper aims to:
 
@@ -76,7 +76,7 @@ This paper aims to:
 6.  Provide practical examples that can be adapted for real-world applications
 7.  Initiate community discussion toward potential formalization of ER standards
 
-## Traditional Approach - Sample Data
+## TRADITIONAL APPROACH - SAMPLE DATA
 
 The traditional approach stores all ER data in a single wide-format file with one row per subject and all parameters as columns.
 
@@ -161,7 +161,7 @@ The traditional approach stores all ER data in a single wide-format file with on
 
 # METHODS
 
-## Proposed Framework
+## PROPOSED FRAMEWORK
 
 This framework extends CDISC ADaM principles to accommodate ER modeling requirements. We propose four specialized dataset types aligned with major ER domains:
 
@@ -272,7 +272,7 @@ This multi-level structure accommodates diverse analytical approaches from simpl
 | BOR     | Best Overall Response | 2      | Overall parameter         |
 | NADIR   | Nadir Tumor Size      | 3      | Minimum size parameter    |
 
-## Implementation with {admiral}
+## IMPLEMENTATION WITH {ADMIRAL}
 
 ### Development Environment
 
@@ -421,7 +421,7 @@ Longitudinal derivation workflow:
     -   NADIR: Minimum tumor size (with NADPCHG)
 8.  Export with metadata
 
-## Validation Approach
+## VALIDATION APPROACH
 
 Quality control for ER datasets follows {admiral} validation principles:
 
@@ -434,7 +434,7 @@ Quality control for ER datasets follows {admiral} validation principles:
 
 # RESULTS
 
-## Framework Implementation
+## FRAMEWORK IMPLEMENTATION
 
 We successfully implemented all four datasets using pharmaverseadam example data, demonstrating full CDISC compliance and practical applicability.
 
@@ -496,7 +496,7 @@ We successfully implemented all four datasets using pharmaverseadam example data
 
 **Result**: Enables waterfall plots, spider plots, time-to-response, and mixed model analyses
 
-## Cross-Domain Patterns
+## CROSS-DOMAIN PATTERNS
 
 Common patterns across all four datasets:
 
@@ -512,7 +512,7 @@ Common patterns across all four datasets:
 - Unified documentation templates
 - 50-80% time reduction in dataset creation and QC
 
-## Comparison with Traditional Approach
+## COMPARISON WITH TRADITIONAL APPROACH
 
 | Feature | Traditional | New Framework |
 |---------|-------------|---------------|
