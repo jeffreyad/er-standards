@@ -505,21 +505,6 @@ We successfully implemented all four datasets using pharmaverseadam example data
 -   Example baseline covariates from ADER
 -   Analysis flags for population selection
 
-**Core variables**:
-
-| Variable | Type | Description                               | Notes            |
-|----------|------|-------------------------------------------|------------------|
-| PARAMCD  | Char | Parameter code (PFS, OS, TTP, TTNT)       | Standard codes   |
-| PARAM    | Char | Parameter description                     | Full text        |
-| AVAL     | Num  | Analysis value (time in days)             | Continuous       |
-| AVALU    | Char | Unit (DAYS)                               | Standard unit    |
-| CNSR     | Num  | Censoring indicator (1=censored, 0=event) | Standard TTE     |
-| EVENT    | Num  | Event indicator (1=event, 0=censored)     | For modeling     |
-| AUCSS    | Num  | Steady-state AUC                          | Primary exposure |
-| ANL01FL  | Char | Primary analysis population flag          | Y or blank       |
-
-: Core variables in ADEE structure {#tbl-adee-variables}
-
 **Example structure**:
 ```
 Structure: ADTTE-style (time-to-event)
