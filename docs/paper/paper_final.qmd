@@ -14,7 +14,7 @@ bibliography: references.bib
 
 # ABSTRACT
 
-Exposure-Response (ER) modeling is a key tool in assessing the safety and efficacy of new drugs, enabling evaluation of the relationship between drug exposure, toxicity, and clinical benefit. ER datasets often resemble those used in Population Pharmacokinetic (PopPK) modeling, sharing features such as numeric covariates, relative time variables, and dependent outcomes. While CDISC released standards for PopPK data in 2023, no equivalent standards currently exist for ER data. However, many of the same principles could be applied. This presentation explores ER datasets across domains such as Exposure-Efficacy (EE), with endpoints like Overall Survival (OS) and Progression-Free Survival (PFS); Exposure-Safety (ES), which may include specific adverse event frequencies; and Tumor Response, which may include measures of tumor size over time. Using the {admiral} R package, this paper demonstrates programming examples that illustrate how ER data can be structured in alignment with emerging standards, supporting consistency and reproducibility in modeling workflows.  
+Exposure-Response (ER) modeling is a key tool in assessing the safety and efficacy of new drugs, enabling evaluation of the relationship between drug exposure, toxicity, and clinical benefit. ER datasets often resemble those used in Population Pharmacokinetic (PopPK) modeling, sharing features such as numeric covariates, relative time variables, and dependent outcomes. While CDISC released standards for PopPK data in 2023, no equivalent standards currently exist for ER data. However, many of the same principles could be applied. This paper explores ER datasets across domains such as Exposure-Efficacy (EE), with endpoints like Overall Survival (OS) and Progression-Free Survival (PFS); Exposure-Safety (ES), which may include specific adverse event frequencies; and Tumor Response, which may include measures of tumor size over time. Using the {admiral} R package, this paper demonstrates programming examples that illustrate how ER data can be structured in alignment with emerging standards, supporting consistency and reproducibility in modeling workflows.  
 
 # INTRODUCTION
 
@@ -62,7 +62,7 @@ The {admiral} framework has proven successful for standard ADaM datasets (ADSL, 
 
 The latest version of {admiral} (v1.4) includes experimental functions to facilitate PK analysis including `derive_var_nfrlt()` for deriving nominal time NFRLT "Nominal Relative Time from First Dose" which uses `convert_xxtpt_to_hours()` to convert PCTPT or other SDTM timepoints to numeric hours using regular expressions.
 
-Open-source projects like {admiral} include numerous examples of reusable functions, templates and code blocks that can be used in new programming. The Pharmaverse as a whole strives to provide a collection of open-source tools applicable to clinical reporting and electronic submissions. For examples see the [Pharmaverse Examples](https://pharmaverse.github.io/examples/) website.
+Open-source projects like {admiral} include numerous examples of reusable functions, templates and code blocks that can be used in new programming. The Pharmaverse as a whole strives to provide a collection of open-source tools applicable to clinical reporting and electronic submissions. For examples see the Pharmaverse Examples website (https://pharmaverse.github.io/examples/).
 
 ## OBJECTIVES
 
@@ -165,16 +165,7 @@ The traditional approach stores all ER data in a single wide-format file with on
 
 ## PROPOSED FRAMEWORK
 
-This framework extends CDISC ADaM principles to accommodate ER modeling requirements. We propose four specialized dataset types aligned with major ER domains, each designed to support specific analytical approaches while maintaining ADaM compliance:
-
-| Dataset  | Closest ADaM Analog                      | Record Grain                           | Intended Use
-| ---------|------------------------------------------|----------------------------------------|-----------------------------
-| ADER     | ADSL + exposure summary                  | 1 record per subject                   | Covariates for ER models
-| ADEE     | ADTTE-style (time-to-event ready)        | 1 record per subject per parameter     | Time-to-event ER (Cox, KM)
-| ADES     | ADAE (event-level) + subject-level parms | Event-level records plus subj summaries| Safety ER
-| ADTRR    | BDS (longitudinal)                       | 1 rec/subject/visit/timepoint          | Tumor response ER
-
-: Overview of proposed ER dataset structures {#tbl-er-overview}
+This framework extends CDISC ADaM principles to accommodate ER modeling requirements. We propose four specialized dataset types aligned with major ER domains, each designed to support specific analytical approaches while maintaining ADaM compliance.
 
 ## Dataset Comparison {#sec-comparison}
 
@@ -354,16 +345,9 @@ Key derivation steps:
 
 #### ADEE: Exposure-Efficacy
 
-Key derivation steps include:
+Successfully implemented using pharmaverseadam::adtte as source data. Created parameters for OS, PFS, TTP, and TTNT with complete exposure metric integration. All 254 subjects from the source data retained with valid time-to-event measurements and exposure linkage.
 
-1.  Start with time-to-event source (ADTTE or ADRS)
-2.  Merge all 20 exposure metrics from ADER
-3.  Merge 13 baseline covariates from ADER
-4.  Calculate time from treatment start to event/censoring
-5.  Create EVENT variable (inverse of CNSR for modeling)
-6.  Derive analysis flags (ANL01FL for subjects with non-missing exposure)
-7.  Create multiple parameters (OS, PFS, TTP, TTNT)
-8.  Export with metadata
+Result: Time-to-event structure ready for Cox regression and Kaplan-Meier analysis with full exposure covariate support.
 
 #### ADES: Exposure-Safety
 
