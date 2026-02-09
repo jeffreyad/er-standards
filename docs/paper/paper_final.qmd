@@ -68,7 +68,7 @@ Open-source projects like {admiral} include numerous examples of reusable functi
 
 This paper aims to:
 
-1.  Propose a standardized framework for ER data across four specialized datasets (ADER, ADEE, ADES, ADTRR)
+1.  Propose a standardized framework for ER data across four analysis data sets for exposure response
 2.  Demonstrate example exposure metric coverage
 3.  Ensure full CDISC compliance including 8-character variable name limits
 4.  Demonstrate implementation using {admiral} and related packages
@@ -99,7 +99,7 @@ The traditional approach stores all ER data in a single wide-format file with on
 
 ### Time-to-Event Outcomes
 
-| PTNM | OS  | OSOS | PFS | PFSS |
+| PTNM | OS  | OSS  | PFS | PFSS |
 |:----:|:---:|:----:|:---:|:----:|
 | 001  |  1  |  0   | 245 |  1   |
 | 002  |  0  |  1   | 180 |  0   |
@@ -108,7 +108,7 @@ The traditional approach stores all ER data in a single wide-format file with on
 : Time-to-event outcomes {#tbl-trad-tte}
 
 -   **OS**: Overall survival event (1=death, 0=censored)
--   **OSOS**: Overall survival status
+-   **OSS**: Overall survival status
 -   **PFS**: Progression-free survival time (days)
 -   **PFSS**: PFS status (1=event, 0=censored)
 
@@ -152,6 +152,8 @@ The traditional approach stores all ER data in a single wide-format file with on
 | 002  | 105.2 |  2  |  2   |    0    |
 | 003  | 76.6  |  3  |  4   |    1    |
 
+
+
 : Tumor response and safety outcomes {#tbl-trad-response}
 
 -   **NADIR**: Nadir tumor size (mm)
@@ -163,7 +165,14 @@ The traditional approach stores all ER data in a single wide-format file with on
 
 ## PROPOSED FRAMEWORK
 
-This framework extends CDISC ADaM principles to accommodate ER modeling requirements. We propose four specialized dataset types aligned with major ER domains:
+This framework extends CDISC ADaM principles to accommodate ER modeling requirements. We propose four example specialized dataset types aligned with major ER domains:
+
+| Dataset  | Closest ADaM analog                      | Record grain                           | Intended use
+| ---------|------------------------------------------|----------------------------------------|-----------------------------
+| ADER     | ADSL + exposure summary                  | 1 record per subject                   | Covariates for ER models
+| ADEE     | ADTTE-style (time-to-event ready)        | 1 record per subject per parameter     | Time-to-event ER (Cox, KM)
+| ADES     | ADAE (event-level) + subject-level parms | event-level records plus subj summaries| Safety ER
+| ADTRR    | BDS (longitudinal)                       | 1 record per subject per visit/time pt | Tumor response ER2. 
 
 ### ADER: Analysis Dataset for Exposure-Response (Foundation)
 
@@ -453,7 +462,7 @@ We successfully implemented all four datasets using pharmaverseadam example data
 - Hepatic function: ALTBL, ASTBL, TBILBL
 - Other: ECOGBL, ALBBL, SMOKEBL
 
-**Result**: Comprehensive exposure transformations pre-computed; all variable names ≤ 8 characters
+**Result**: Comprehensive exposure transformations pre-computed
 
 ### ADEE: Exposure-Efficacy
 
@@ -465,6 +474,24 @@ We successfully implemented all four datasets using pharmaverseadam example data
 - No ATPT/AVISIT (follows CDISC time-to-event standards)
 
 **Result**: Ready for Cox proportional hazards models and Kaplan-Meier estimation with multiple exposure representations
+
+Structure: ADTTE-style (time-to-event)
+Grain:     One record per subject per parameter (e.g., PFS, OS)
+Keys:      STUDYID, USUBJID, PARAMCD
+Core variables / derivations:
+  - AVAL   = time to event (days)
+  - CNSR   = censoring indicator (1=censored, 0=event)
+  - EVENT  = event indicator (1=event, 0=censored)
+Exposure linkage:
+  - Example exposure metric(s) from ADER (e.g., AUCSS) merged by USUBJID
+Flags:
+  - ANL01FL for primary analysis records
+
+USUBJID | PARAMCD | AVAL (Days) | CNSR | EVENT | AUCSS  | ANL01FL
+-------|---------|-------------|------|-------|--------|--------
+001    | PFS     | 245         | 0    | 1     | 145.2  | Y
+002    | PFS     | 180         | 1    | 0     | 0.0    | Y
+001    | OS      | 523         | 1    | 0     | 145.2  | Y
 
 ### ADES: Exposure-Safety
 
