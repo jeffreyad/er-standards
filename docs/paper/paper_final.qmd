@@ -14,7 +14,7 @@ bibliography: references.bib
 
 # ABSTRACT
 
-Exposure-Response (ER) modeling is a key tool in assessing the safety and efficacy of new drugs, enabling evaluation of the relationship between drug exposure, toxicity, and clinical benefit. ER datasets often resemble those used in Population Pharmacokinetic (PopPK) modeling, sharing features such as numeric covariates, relative time variables, and dependent outcomes. While CDISC released standards for PopPK data in 2023, no equivalent standards currently exist for ER data. However, many of the same principles could be applied. This presentation explores ER datasets across domains such as Exposure-Efficacy (EE), with endpoints like Overall Survival (OS) and Progression-Free Survival (PFS); Exposure-Safety (ES), which may include specific adverse event frequencies; and Tumor Response, which may include measures of tumor size over time. Using the {admiral} R package, I will demonstrate programming examples that illustrate how ER data can be structured in alignment with emerging standards, supporting consistency and reproducibility in modeling workflows.  
+Exposure-Response (ER) modeling is a key tool in assessing the safety and efficacy of new drugs, enabling evaluation of the relationship between drug exposure, toxicity, and clinical benefit. ER datasets often resemble those used in Population Pharmacokinetic (PopPK) modeling, sharing features such as numeric covariates, relative time variables, and dependent outcomes. While CDISC released standards for PopPK data in 2023, no equivalent standards currently exist for ER data. However, many of the same principles could be applied. This presentation explores ER datasets across domains such as Exposure-Efficacy (EE), with endpoints like Overall Survival (OS) and Progression-Free Survival (PFS); Exposure-Safety (ES), which may include specific adverse event frequencies; and Tumor Response, which may include measures of tumor size over time. Using the {admiral} R package, This paper demonstrates programming examples that illustrate how ER data can be structured in alignment with emerging standards, supporting consistency and reproducibility in modeling workflows.  
 
 # INTRODUCTION
 
@@ -62,7 +62,7 @@ The {admiral} framework has proven successful for standard ADaM datasets (ADSL, 
 
 The latest version of {admiral} (v1.4) includes experimental functions to facilitate PK analysis including `derive_var_nfrlt()` for deriving nominal time NFRLT "Nominal Relative Time from First Dose" which uses `convert_xxtpt_to_hours()` to convert PCTPT or other SDTM timepoints to numeric hours using regular expressions.
 
-Open-source projects like {admiral} include numerous examples of reusable functions, templates and code blocks that can be used in new programming. The Pharmaverse as a whole strives to provide a collection of open-source tools applicable to clinical reporting and electronic submissions.
+Open-source projects like {admiral} include numerous examples of reusable functions, templates and code blocks that can be used in new programming. The Pharmaverse as a whole strives to provide a collection of open-source tools applicable to clinical reporting and electronic submissions. For examples see the [Pharmvaverse Examples](https://pharmaverse.github.io/examples/) website.
 
 ## OBJECTIVES
 
@@ -84,9 +84,9 @@ The traditional approach stores all ER data in a single wide-format file with on
 
 |  C  | PTNM | TRT | DOSE | TIME | NTIM |
 |:---:|:----:|:---:|:----:|:----:|:----:|
-|  1  | 001  |  3  |  81  | 523  |  1   |
-|  1  | 002  |  1  |  0   | 365  |  0   |
-|  1  | 003  |  2  |  54  | 450  |  0   |
+|  1  | 001  |  3  |  81  | 523  |  518 |
+|  1  | 002  |  1  |  0   | 365  |  364 |
+|  1  | 003  |  2  |  54  | 450  |  448 |
 
 : Subject identifiers and treatment assignment {#tbl-trad-ids}
 
@@ -95,7 +95,7 @@ The traditional approach stores all ER data in a single wide-format file with on
 -   **TRT**: Treatment (1=Placebo, 2=Low Dose, 3=High Dose)
 -   **DOSE**: Actual dose received (mg)
 -   **TIME**: Time to primary event (days)
--   **NTIM**: Nominal Time to event
+-   **NTIM**: Nominal Time to event (days)
 
 ### Time-to-Event Outcomes
 
@@ -172,7 +172,23 @@ This framework extends CDISC ADaM principles to accommodate ER modeling requirem
 | ADER     | ADSL + exposure summary                  | 1 record per subject                   | Covariates for ER models
 | ADEE     | ADTTE-style (time-to-event ready)        | 1 record per subject per parameter     | Time-to-event ER (Cox, KM)
 | ADES     | ADAE (event-level) + subject-level parms | event-level records plus subj summaries| Safety ER
-| ADTRR    | BDS (longitudinal)                       | 1 record per subject per visit/time pt | Tumor response ER2. 
+| ADTRR    | BDS (longitudinal)                       | 1 record per subject per visit/time pt | Tumor response ER
+
+
+## Dataset Comparison {#sec-comparison}
+
+@tbl-er-comparison summarizes the four proposed ER datasets, their relationship to existing ADaM structures, and their intended analytical applications.
+
+| Dataset | Structural Model | Data Grain | Core Content | Typical PARAMCD Examples | ER Analysis Focus |
+|---------|-----------------|------------|--------------|-------------------------|-------------------|
+| **ADER** | ADSL-based (subject-level) | 1 rec/subject | Exposure metrics, baseline covariates, demographics | `AUC`, `CMAX`, `CTROUGH`, `DOSINT`, `RDOSINT` | What patient/dose factors predict exposure? |
+| **ADEE** | ADTTE-based (time-to-event) | 1 rec/subject/parameter | Event times, censoring indicators, exposure at event | `TTE`, `TTRESP`, `TTPROG`, `OS`, `PFS` | How does exposure affect time to efficacy outcomes? |
+| **ADES** | ADAE-based (event + summary) | Event-level + subject totals | Individual AEs, exposure at AE, subject-level summaries | `AEINCID`, `AESEV`, `TTFAE`, `AEANY` | What exposure levels increase safety risks? |
+| **ADTRR** | BDS-based (longitudinal) | 1 rec/subject/visit/time | Serial measurements, change from baseline, response categories | `TUMSIZE`, `PCHG`, `BOR`, `RECIST` | How does exposure drive response over time? |
+
+: Comparison of Exposure-Response ADaM Dataset Structures and Applications {#tbl-er-comparison}
+
+*Note:* AE, Adverse Event; ADaM, Analysis Data Model; ADSL, Subject-Level Analysis Dataset; ADTTE, Time-to-Event Analysis Dataset; BDS, Basic Data Structure; ER, Exposure-Response; OS, Overall Survival; PFS, Progression-Free Survival.
 
 ### ADER: Analysis Dataset for Exposure-Response (Foundation)
 
@@ -595,7 +611,7 @@ By establishing consistent ER data structures, the pharmaceutical industry can i
 
 Synthetic data and code examples were developed with assistance from Claude (Anthropic, 2024), an AI assistant. All code was reviewed, tested, and validated by the author. Any errors or omissions are the responsibility of the author.
 
-The author thanks the pharmaverse community and {admiral} development team for creating the foundational tools that made this work possible, and for many fruitful conversations.
+The author thanks the pharmaverse community and {admiral} development team for creating the foundational tools that made this work possible, and for many fruitful conversations. Eric Anderson, Bob Chastain and Luke Reinbolt provided helpful comments on an earlier version of this paper.
 
 # LINKS
 
