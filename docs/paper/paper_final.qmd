@@ -215,6 +215,8 @@ This framework extends CDISC ADaM principles to accommodate ER modeling requirem
 | **Categorical** | AUCSSCAT, AUCSCATN | Tertiles/quartiles (char/num) |
 |  | CMXSSCAT, CMXSCATN | Tertiles/quartiles (char/num) |
 
+: Example exposure metric transformations in ADER {#tbl-ader-exposure}
+
 **Baseline Covariates (13 variables)**:
 
 | Category             | Variables               | Description       |
@@ -222,6 +224,8 @@ This framework extends CDISC ADaM principles to accommodate ER modeling requirem
 | **Vitals**           | WTBL, HTBL, BMIBL, BSA  | Body measurements |
 | **Renal function**   | CREATBL, CRCLBL, EGFRBL | Kidney function   |
 | **Hepatic function** | ALTBL, ASTBL, TBILBL    | Liver function    |
+
+: Baseline covariates included in ADER {#tbl-ader-covariates}
 
 ### ADEE: Analysis Dataset for Exposure-Efficacy
 
@@ -250,6 +254,8 @@ This framework extends CDISC ADaM principles to accommodate ER modeling requirem
 | AUCSS    | Num  | Steady-state AUC                          | Primary exposure |
 | ANL01FL  | Char | Primary analysis population flag          | Y or blank       |
 
+: Core variables in ADEE structure {#tbl-adee-variables}
+
 This structure directly supports standard survival analysis approaches including Cox proportional hazards models and Kaplan-Meier estimation.
 
 ### ADES: Analysis Dataset for Exposure-Safety
@@ -274,6 +280,8 @@ This structure directly supports standard survival analysis approaches including
 | TEAESEV | Treatment-Emergent Severe AEs     | ASEVN = 3 count   |
 | TESAE   | Treatment-Emergent Serious AEs    | AESER = "Y" count |
 
+: Subject-level parameters in ADES {#tbl-ades-params}
+
 This multi-level structure accommodates diverse analytical approaches from simple comparisons of AE rates across exposure groups to complex time-to-event and recurrent event models.
 
 ### ADTRR: Analysis Dataset for Tumor Response for ER Analysis
@@ -297,6 +305,8 @@ This multi-level structure accommodates diverse analytical approaches from simpl
 | TSIZE   | Target Lesion Size    | 1      | Longitudinal measurements |
 | BOR     | Best Overall Response | 2      | Overall parameter         |
 | NADIR   | Nadir Tumor Size      | 3      | Minimum size parameter    |
+
+: Parameters in ADTRR structure {#tbl-adtrr-params}
 
 ## IMPLEMENTATION WITH {ADMIRAL}
 
