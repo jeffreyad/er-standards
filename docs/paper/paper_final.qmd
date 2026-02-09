@@ -491,17 +491,37 @@ We successfully implemented all four datasets using pharmaverseadam example data
 
 **Result**: Comprehensive exposure transformations pre-computed
 
-### ADEE: Exposure-Efficacy
+### ADEE: Analysis Dataset for Exposure-Efficacy
 
-**Structure**: One record per subject per parameter (OS, PFS, TTP, TTNT)
+**Primary use case**: Time-to-event analyses relating exposure to efficacy endpoints
 
-**Key Features**:
-- Time-to-event variables: AVAL (days), CNSR (censoring), EVENT (modeling indicator)
-- All exposure metrics from ADER available
-- No ATPT/AVISIT (follows CDISC time-to-event standards)
+**Key features**:
 
-**Result**: Ready for Cox proportional hazards models and Kaplan-Meier estimation with multiple exposure representations
+-   One record per subject per parameter (e.g., OS, PFS, TTP, TTNT)
+-   AVAL represents time from treatment initiation to event (in days)
+-   CNSR indicates censoring status (1 = censored, 0 = event)
+-   EVENT provides event indicator (1 = event, 0 = censored) for modeling convenience
+-   All exposure metrics from ADER available
+-   Example baseline covariates from ADER
+-   Analysis flags for population selection
 
+**Core variables**:
+
+| Variable | Type | Description                               | Notes            |
+|----------|------|-------------------------------------------|------------------|
+| PARAMCD  | Char | Parameter code (PFS, OS, TTP, TTNT)       | Standard codes   |
+| PARAM    | Char | Parameter description                     | Full text        |
+| AVAL     | Num  | Analysis value (time in days)             | Continuous       |
+| AVALU    | Char | Unit (DAYS)                               | Standard unit    |
+| CNSR     | Num  | Censoring indicator (1=censored, 0=event) | Standard TTE     |
+| EVENT    | Num  | Event indicator (1=event, 0=censored)     | For modeling     |
+| AUCSS    | Num  | Steady-state AUC                          | Primary exposure |
+| ANL01FL  | Char | Primary analysis population flag          | Y or blank       |
+
+: Core variables in ADEE structure {#tbl-adee-variables}
+
+**Example structure**:
+```
 Structure: ADTTE-style (time-to-event)
 Grain:     One record per subject per parameter (e.g., PFS, OS)
 Keys:      STUDYID, USUBJID, PARAMCD
@@ -513,12 +533,17 @@ Exposure linkage:
   - Example exposure metric(s) from ADER (e.g., AUCSS) merged by USUBJID
 Flags:
   - ANL01FL for primary analysis records
+```
 
-USUBJID | PARAMCD | AVAL (Days) | CNSR | EVENT | AUCSS  | ANL01FL
--------|---------|-------------|------|-------|--------|--------
-001    | PFS     | 245         | 0    | 1     | 145.2  | Y
-002    | PFS     | 180         | 1    | 0     | 0.0    | Y
-001    | OS      | 523         | 1    | 0     | 145.2  | Y
+| USUBJID | PARAMCD | AVAL (Days) | CNSR | EVENT | AUCSS  | ANL01FL |
+|---------|---------|-------------|------|-------|--------|---------|
+| 001     | PFS     | 245         | 0    | 1     | 145.2  | Y       |
+| 002     | PFS     | 180         | 1    | 0     | 0.0    | Y       |
+| 001     | OS      | 523         | 1    | 0     | 145.2  | Y       |
+
+: Example ADEE records {#tbl-adee-example}
+
+This structure directly supports standard survival analysis approaches including Cox proportional hazards models and Kaplan-Meier estimation.
 
 ### ADES: Exposure-Safety
 
