@@ -146,17 +146,17 @@ The traditional approach stores all ER data in a single wide-format file with on
 
 ### Tumor Response and Safety
 
-| PTNM | NADIR | BOR | TEAE | TEAEGR3 |
-|:----:|:-----:|:---:|:----:|:-------:|
-| 001  | 65.0  |  3  |  5   |    2    |
-| 002  | 105.2 |  2  |  2   |    0    |
-| 003  | 76.6  |  3  |  4   |    1    |
-
-
+| PTNM | BSLD  | NADIR | PCHG   | BOR | TEAE | TEAEGR3 |
+|:----:|:-----:|:-----:|:------:|:---:|:----:|:-------:|
+| 001  | 85.0  | 65.0  | -23.5% |  3  |  5   |    2    |
+| 002  | 120.5 | 105.2 | -12.7% |  2  |  2   |    0    |
+| 003  | 95.8  | 76.6  | -20.0% |  3  |  4   |    1    |
 
 : Tumor response and safety outcomes {#tbl-trad-response}
 
+-   **BSLD**: Baseline sum of longest diameters (mm)
 -   **NADIR**: Nadir tumor size (mm)
+-   **PCHG**: Percent change from baseline at nadir
 -   **BOR**: Best overall response (1=PD, 2=SD, 3=PR, 4=CR)
 -   **TEAE**: Total treatment-emergent adverse events
 -   **TEAEGR3**: Number of Grade 3 or higher adverse events
@@ -165,15 +165,16 @@ The traditional approach stores all ER data in a single wide-format file with on
 
 ## PROPOSED FRAMEWORK
 
-This framework extends CDISC ADaM principles to accommodate ER modeling requirements. We propose four example specialized dataset types aligned with major ER domains:
+This framework extends CDISC ADaM principles to accommodate ER modeling requirements. We propose four specialized dataset types aligned with major ER domains, each designed to support specific analytical approaches while maintaining ADaM compliance:
 
-| Dataset  | Closest ADaM analog                      | Record grain                           | Intended use
+| Dataset  | Closest ADaM Analog                      | Record Grain                           | Intended Use
 | ---------|------------------------------------------|----------------------------------------|-----------------------------
 | ADER     | ADSL + exposure summary                  | 1 record per subject                   | Covariates for ER models
 | ADEE     | ADTTE-style (time-to-event ready)        | 1 record per subject per parameter     | Time-to-event ER (Cox, KM)
-| ADES     | ADAE (event-level) + subject-level parms | event-level records plus subj summaries| Safety ER
+| ADES     | ADAE (event-level) + subject-level parms | Event-level records plus subj summaries| Safety ER
 | ADTRR    | BDS (longitudinal)                       | 1 record per subject per visit/time pt | Tumor response ER
 
+: Overview of proposed ER dataset structures {#tbl-er-overview}
 
 ## Dataset Comparison {#sec-comparison}
 
