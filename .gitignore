@@ -10,12 +10,15 @@ adam/*.rds
 adam/*.xpt
 adam/*.csv
 logs/*.log
+output/
 
 # Quarto
 .quarto/
 *_cache/
 *_files/
 _output/
+docs/presentations/*.html
+docs/presentations/*.pdf
 
 # LaTeX
 *.aux

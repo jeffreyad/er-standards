@@ -1,8 +1,135 @@
 # ER Standards Project - Complete Summary
 
-------------------------------------------------------------------------
+---
 
-## 📁 Complete Project Structure
+## About
+
+This repository supports the PHUSE US Connect 2026 paper and presentation:
+
+**"Standardizing Exposure-Response Data for Modeling and Simulation Using CDISC Principles and `{admiral}`"**
+
+Author: Jeffrey Dickinson, Navitas Data Sciences
+
+The project proposes a CDISC-compliant framework for four Exposure-Response (ER) ADaM datasets, with working programming examples built using the `{admiral}` R package.
+
+---
+
+## Proposed ADaM Dataset Framework
+
+| Dataset | Domain | Purpose |
+|---------|--------|---------|
+| **ADER** | Foundation | 20 exposure metrics (raw, log, standardized, dose-normalized, categorical) |
+| **ADEE** | Exposure-Efficacy | Time-to-event endpoints (OS, PFS) using Weibull AFT models |
+| **ADES** | Exposure-Safety | Adverse event rates, CTCAE grades, Poisson/logistic regression |
+| **ADTRR** | Tumor Response | RECIST 1.1 longitudinal measurements, BOR, waterfall/spider plots |
+
+---
+
+## Repository Structure
+
+```
+er-standards/
+├── README.md                        # Project overview and abstract
+├── PROJECT_SUMMARY.md               # This file
+│
+├── programs/                        # ADaM dataset creation programs
+│   ├── ad_adee.R                    # ADEE (Exposure-Efficacy)
+│   ├── ad_ader.R                    # ADER (Exposure metrics foundation)
+│   ├── ad_ades.R                    # ADES (Exposure-Safety)
+│   ├── ad_adtrr.R                   # ADTRR (Tumor Response)
+│   ├── ad_adee_long.R               # Long-format variant of ADEE
+│   ├── ad_ades_long.R               # Long-format variant of ADES
+│   ├── ad_adtrr_long.R              # Long-format variant of ADTRR
+│   └── run_all_adams.R              # Master script to run all programs
+│
+├── R/                               # Supporting R functions and scripts
+│   ├── 01_ee_exposure_efficacy.R    # Exposure-efficacy analysis examples
+│   ├── 02_es_exposure_safety.R      # Exposure-safety analysis examples
+│   ├── 03_tumor_response.R          # Tumor response analysis examples
+│   ├── derive_exposure_metrics.R    # Reusable exposure derivation functions
+│   ├── simulation_functions.R       # Data simulation utilities
+│   └── S0_data.R / S1-S3 scripts   # Dataset-specific derivation scripts
+│
+├── specifications/                  # ADaM dataset specifications
+│   ├── ADEE_P21_Specifications.csv  # ADEE variable-level specs
+│   ├── ADES_P21_Specifications.csv  # ADES variable-level specs
+│   ├── ADTR_P21_Specifications.csv  # ADTR variable-level specs
+│   ├── ADTRR_P21_Specifications.csv # ADTRR variable-level specs
+│   ├── ADER_P21_Specifications.csv  # ADER variable-level specs
+│   ├── *_DefineXML.xml              # Define-XML files for each dataset
+│   └── CHANGELOG.md                 # Specification change history
+│
+├── data/                            # Simulated input datasets (.rds, .csv)
+├── data-raw/                        # Scripts to generate simulated data
+│   ├── S0_Generate_Example_Data.R
+│   ├── S1_Generate_ADSL.R
+│   ├── S2_Generate_ADTTE.R
+│   ├── S3_Generate_ADAE.R
+│   ├── S4_Generate_ADTR.R
+│   └── S5_Generate_ADRS.R
+│
+├── adam/                            # Final ADaM datasets — gitignored, local only
+│   └── adee.xpt, ader.xpt, ades.xpt, adtrr.xpt (+ .csv, .rda, .rds)
+│
+├── docs/
+│   ├── paper/
+│   │   ├── paper_final.qmd          # Final manuscript (canonical version)
+│   │   ├── paper_draft.qmd          # Working draft
+│   │   ├── paper_draft_long.qmd     # Extended draft with full technical content
+│   │   ├── er_framework_comparison.qmd  # Supplementary comparison document
+│   │   ├── references.bib           # Citation database
+│   │   └── _quarto.yml              # Quarto render configuration
+│   └── presentations/
+│       ├── presentation.qmd         # Conference slides (RevealJS, current version)
+│       ├── presentation_v1.qmd      # Older slide version
+│       ├── presentation.pptx        # Exported PowerPoint
+│       ├── background.qmd           # Background slides
+│       └── er_comparison.qmd        # ER comparison slides
+│
+├── config/
+│   └── exposure_config.R            # Shared exposure parameter configuration
+│
+├── output/                          # Generated figures and tables — gitignored
+│   ├── figures/                     # PDF figures (S1–S3 series)
+│   └── tables/                      # CSV summary tables
+│
+└── renv/                            # R package environment management
+    ├── renv.lock                    # Locked package versions (committed)
+    └── activate.R                   # renv activation script (committed)
+```
+
+---
+
+## Rendering the Paper
+
+From the `docs/paper/` directory, run:
+
+```bash
+quarto render paper_final.qmd
+```
+
+The `_quarto.yml` is already configured to render `paper_final.qmd`.
+
+---
+
+## Running the ADaM Programs
+
+```r
+source("programs/run_all_adams.R")
+```
+
+Or run individual programs in `programs/` in any order. Input data is in `data/`.
+
+---
+
+## R Environment
+
+This project uses `renv` for reproducible package management.
+
+```r
+renv::restore()  # Install all required packages from renv.lock
+```
+
 
 ```         
 er-standards-project/
