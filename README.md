@@ -31,6 +31,10 @@ Define-XML and variable-level specifications for all four datasets are in [speci
 - Paper: [docs/paper/paper_final.qmd](docs/paper/paper_final.qmd)
 - Slides: [docs/presentations/presentation.qmd](docs/presentations/presentation.qmd)
 
+### External Resources
+
+- [pharmaverse ADER Example](https://pharmaverse.github.io/examples/adam/ader.html)
+
 ---
 
 ## Getting Started
